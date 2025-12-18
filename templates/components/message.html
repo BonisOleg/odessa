@@ -1,0 +1,11 @@
+{% load static %}
+
+<div class="message message--{{ message_type|default:'info' }}" role="alert">
+    {% if message_title %}
+    <div class="message__title">{{ message_title }}</div>
+    {% endif %}
+    <div class="message__text">{{ message_text|default:"" }}</div>
+    {% block message_content %}{% endblock %}
+</div>
+
+

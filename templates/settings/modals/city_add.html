@@ -1,0 +1,35 @@
+{% load static %}
+
+<div class="modal" id="modal-city-add" data-modal-id="city-add">
+    <div class="modal__overlay" data-action="close-modal"></div>
+    <div class="modal__content">
+        <div class="modal__header">
+            <h2 class="modal__title">Добавить город</h2>
+            <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal__body">
+                <div class="form-group">
+                    <label class="form-group__label form-group__label--required">Название города</label>
+                    <input type="text" class="form-control" name="name" placeholder="Киев" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-group__label form-group__label--required">Страна</label>
+                    <select class="form-select" name="country" required>
+                        <option value="">Выберите страну</option>
+                        <option selected>🇺🇦 Украина</option>
+                        <option>🇵🇱 Польша</option>
+                        <option>🇩🇪 Германия</option>
+                        <option>🇨🇿 Чехия</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal__footer">
+                <button type="button" class="button button--secondary" data-action="close-modal">Отмена</button>
+                <button type="submit" class="button button--primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+

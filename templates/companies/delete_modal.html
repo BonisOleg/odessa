@@ -1,0 +1,20 @@
+{% load static %}
+
+<div class="modal" id="modal-delete-company" data-modal-id="delete-company">
+    <div class="modal__overlay" data-action="close-modal"></div>
+    <div class="modal__content">
+        <div class="modal__header">
+            <h2 class="modal__title">Удалить компанию</h2>
+            <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
+        </div>
+        <div class="modal__body">
+            <p>Вы уверены, что хотите удалить компанию <strong>IT Solutions Ltd</strong>?</p>
+            <p class="text-muted">Это действие нельзя отменить.</p>
+        </div>
+        <div class="modal__footer">
+            <button type="button" class="button button--secondary" data-action="close-modal">Отмена</button>
+            <button type="button" class="button button--danger">Удалить</button>
+        </div>
+    </div>
+</div>
+

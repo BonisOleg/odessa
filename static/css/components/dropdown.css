@@ -1,0 +1,89 @@
+/* ==========================================================================
+   Dropdown Component - CRM Nice
+   ========================================================================== */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: inherit;
+  color: inherit;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-base);
+  transition: background-color var(--transition-fast);
+}
+
+.dropdown__trigger:hover {
+  background-color: var(--color-bg-light);
+}
+
+.dropdown__arrow {
+  font-size: var(--font-size-xs);
+  transition: transform var(--transition-fast);
+}
+
+.dropdown.is-open .dropdown__arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown__menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  margin-top: var(--spacing-xs);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  padding: var(--spacing-xs) 0;
+}
+
+.dropdown.is-open .dropdown__menu {
+  display: block;
+}
+
+.dropdown__menu--right {
+  left: auto;
+  right: 0;
+}
+
+.dropdown__item {
+  display: block;
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.dropdown__item:hover {
+  background-color: var(--color-bg-light);
+}
+
+.dropdown__item--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dropdown__divider {
+  margin: var(--spacing-xs) 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Dropdown in Button */
+.button.dropdown__trigger {
+  gap: var(--spacing-sm);
+}

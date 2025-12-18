@@ -1,0 +1,114 @@
+{% load static %}
+
+<header class="topbar">
+    <!-- Флаг країни + дата/час -->
+    <div class="topbar__left">
+        <div class="topbar__country dropdown">
+            <button class="dropdown__trigger" type="button">
+                🇺🇦 <span class="dropdown__arrow">▾</span>
+            </button>
+            <div class="dropdown__menu">
+                <a href="#" class="dropdown__item">🇺🇦 Украина</a>
+                <a href="#" class="dropdown__item">🇵🇱 Польша</a>
+                <a href="#" class="dropdown__item">🇩🇪 Германия</a>
+                <a href="#" class="dropdown__item">🇨🇿 Чехия</a>
+            </div>
+        </div>
+        <div class="topbar__datetime">
+            <span id="current-datetime">2 сентября 2025 22:40</span>
+        </div>
+    </div>
+    
+    <!-- Меню навігації -->
+    <nav class="topbar__nav">
+        <a href="/clients/" 
+           hx-get="/clients/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">Клиенты</a>
+        <a href="/tasks/" 
+           hx-get="/tasks/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">Задачи</a>
+        <a href="/companies/" 
+           hx-get="/companies/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">Компании</a>
+        <a href="/sales/" 
+           hx-get="/sales/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">Продажи</a>
+        <a href="/seo/" 
+           hx-get="/seo/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">SEO</a>
+        <a href="/franchises/" 
+           hx-get="/franchises/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">Франшизы</a>
+        <a href="/finances/" 
+           hx-get="/finances/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="topbar__nav-link">Финансы</a>
+    </nav>
+    
+    <!-- Права частина -->
+    <div class="topbar__right">
+        <!-- Пошук -->
+        <div class="topbar__search">
+            <input type="search" class="topbar__search-input" placeholder="🔍 Поиск..." name="q">
+        </div>
+        
+        <!-- AI-помічник (заглушка) -->
+        <div class="topbar__ai">
+            <button type="button" class="topbar__ai-button topbar__ai-button--disabled" title="AI-помощник временно недоступен">
+                🤖
+            </button>
+        </div>
+        
+        <!-- Кнопка "Добавить" -->
+        <div class="topbar__add dropdown">
+            <button class="button button--primary dropdown__trigger" type="button">
+                + Добавить <span class="dropdown__arrow">▾</span>
+            </button>
+            <div class="dropdown__menu dropdown__menu--right">
+                <a href="#" class="dropdown__item dropdown__item--disabled">Клиента</a>
+                <a href="#" class="dropdown__item dropdown__item--disabled">Задачу</a>
+                <a href="/companies/add/" 
+                   hx-get="/companies/add/" 
+                   hx-target="#main-content" 
+                   hx-push-url="true"
+                   class="dropdown__item">Компанию</a>
+            </div>
+        </div>
+        
+        <!-- User menu -->
+        <div class="topbar__user dropdown">
+            <button class="dropdown__trigger" type="button">
+                👤 Иван Петров <span class="dropdown__arrow">▾</span>
+            </button>
+            <div class="dropdown__menu dropdown__menu--right">
+                <div class="dropdown__item dropdown__item--info">
+                    Последний вход: 10.12.2025 14:30
+                </div>
+                <hr class="dropdown__divider">
+                <a href="/settings/" 
+                   hx-get="/settings/" 
+                   hx-target="#main-content" 
+                   hx-push-url="true"
+                   class="dropdown__item">Настройки</a>
+                <a href="#" class="dropdown__item">Избранное</a>
+                <a href="#" class="dropdown__item">Отчёты</a>
+                <hr class="dropdown__divider">
+                <a href="/accounts/logout/" class="dropdown__item">Выход</a>
+            </div>
+        </div>
+    </div>
+</header>
+

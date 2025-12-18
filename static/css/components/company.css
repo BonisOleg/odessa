@@ -1,0 +1,408 @@
+/* ==========================================================================
+   Company Component - CRM Nice
+   ========================================================================== */
+
+/* Company Header */
+.company-header {
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.company-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.company-header-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+}
+
+.company-logo-detail {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-base);
+  object-fit: cover;
+}
+
+.company-header-info h1 {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.company-header-info .badge {
+  margin-top: var(--spacing-xs);
+}
+
+.company-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.company-id {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Company Content Layout */
+.company-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.company-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.company-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* Info List */
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.info-label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+/* Phone List */
+.phone-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.phone-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-base);
+}
+
+.phone-star {
+  color: #fbbf24;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.phone-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin-left: auto;
+}
+
+/* Telegram Link */
+.telegram-link {
+  color: #0088cc;
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-fast);
+}
+
+.telegram-link:hover {
+  color: #0077b3;
+  text-decoration: underline;
+}
+
+/* Tags */
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.tag {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Short Comment */
+.short-comment-block {
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-base);
+  border-left: 3px solid var(--color-warning);
+}
+
+.short-comment-block h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+}
+
+.short-comment-text {
+  margin: 0;
+  padding: var(--spacing-sm);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  border-radius: var(--radius-base);
+  border: 1px dashed var(--color-border);
+  outline: none;
+  cursor: text;
+  min-height: 60px;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+.short-comment-text:focus {
+  border-color: var(--color-primary);
+  background-color: #fffbeb;
+}
+
+.short-comment-block small {
+  display: block;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+}
+
+/* Call Date Card */
+.call-date-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #fbbf24;
+}
+
+.call-date-card h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  color: #92400e;
+  font-size: var(--font-size-lg);
+}
+
+.call-date-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-base);
+}
+
+.call-date-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: #92400e;
+}
+
+.call-date-value.past {
+  color: var(--color-error);
+}
+
+.btn-edit-date {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-base);
+  transition: background-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btn-edit-date:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.call-date-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 2px solid #92400e;
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+/* Comments */
+.comments-card {
+  margin-top: var(--spacing-lg);
+}
+
+.comments-card h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+}
+
+.comments-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.comment {
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-base);
+  transition: background-color var(--transition-fast);
+}
+
+.comment:hover {
+  background-color: #f0f9ff;
+}
+
+.comment--hidden {
+  display: none;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.comment-author {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.comment-date {
+  color: var(--color-text-light);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.btn-delete-comment {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0;
+  opacity: 0.5;
+  transition: opacity var(--transition-fast);
+  margin-left: auto;
+}
+
+.btn-delete-comment:hover {
+  opacity: 1;
+  color: var(--color-error);
+}
+
+.comment-text {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-base);
+}
+
+.btn-expand-comments {
+  background: none;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+  margin-bottom: var(--spacing-md);
+}
+
+.btn-expand-comments:hover {
+  background-color: var(--color-primary-light);
+}
+
+/* Add Comment Form */
+.add-comment-form {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-direction: column;
+}
+
+.add-comment-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Photo Slider */
+.photo-slider {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  overflow-x: auto;
+  padding: var(--spacing-md);
+  background-color: var(--color-bg-light);
+  border-radius: var(--radius-base);
+  scroll-behavior: smooth;
+}
+
+.photo-slider img {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-base);
+  flex-shrink: 0;
+}
+
+.slider-btn {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-weight: var(--font-weight-bold);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.slider-btn:hover {
+  background-color: var(--color-primary-dark);
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .company-content {
+    grid-template-columns: 1fr;
+  }
+
+  .company-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .company-actions {
+    width: 100%;
+  }
+}

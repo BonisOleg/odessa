@@ -1,0 +1,22 @@
+{% load static %}
+
+<!-- Модальне вікно -->
+<div class="modal" id="modal-{{ modal_id|default:'default' }}" data-modal-id="{{ modal_id|default:'default' }}">
+    <div class="modal__overlay" data-action="close-modal"></div>
+    <div class="modal__content">
+        <div class="modal__header">
+            <h2 class="modal__title">{{ modal_title|default:"Модальное окно" }}</h2>
+            <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
+        </div>
+        <div class="modal__body">
+            {% block modal_content %}{% endblock %}
+        </div>
+        {% if modal_footer %}
+        <div class="modal__footer">
+            {% block modal_footer %}{% endblock %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+

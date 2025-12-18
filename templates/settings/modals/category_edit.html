@@ -1,0 +1,29 @@
+{% load static %}
+
+<div class="modal" id="modal-category-edit" data-modal-id="category-edit">
+    <div class="modal__overlay" data-action="close-modal"></div>
+    <div class="modal__content">
+        <div class="modal__header">
+            <h2 class="modal__title">Редактировать раздел</h2>
+            <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="modal__body">
+                <div class="form-group">
+                    <label class="form-group__label form-group__label--required">Название раздела</label>
+                    <input type="text" class="form-control" name="name" value="IT-услуги" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-group__label form-group__label--required">Цвет</label>
+                    <input type="color" class="form-control" name="color" value="#3B82F6" required>
+                </div>
+            </div>
+            <div class="modal__footer">
+                <button type="button" class="button button--secondary" data-action="close-modal">Отмена</button>
+                <button type="submit" class="button button--primary">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+

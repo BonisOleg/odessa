@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <title>{% block title %}CRM Nice{% endblock %}</title>
+    
+    {% load static %}
+    
+    <!-- 1. Preconnect для CDN оптимізації -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <!-- 2. normalize.css - ЗАВЖДИ ПЕРШИЙ -->
+    <link rel="stylesheet" href="{% static 'css/normalize.css' %}">
+    
+    <!-- 3. base.css -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    
+    <!-- 4. Додаткові CSS (components та utilities) -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- 5. CSRF token для HTMX -->
+    {% csrf_token %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+    
+    <!-- 6. HTMX 2.0.8 з defer -->
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" defer></script>
+    
+    <!-- 7. Власні JS з defer -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

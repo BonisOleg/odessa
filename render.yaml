@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: crm-nice
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn CRM_Nice.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: CRM_Nice.settings.production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: crm-nice-db
+          property: connectionString
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+
+databases:
+  - name: crm-nice-db
+    plan: free
+    databaseName: crm_nice
+    user: crm_nice

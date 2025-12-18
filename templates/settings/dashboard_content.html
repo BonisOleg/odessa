@@ -1,0 +1,59 @@
+{% load static %}
+
+<!-- Тільки контент для HTMX (без layout) -->
+<div class="page-header">
+<h1>Настройки CRM</h1>
+<p class="text-muted">Управление системой (только для суперадминистратора)</p>
+</div>
+
+<div class="settings-menu">
+<a href="/settings/countries/" 
+   hx-get="/settings/countries/" 
+   hx-target="#main-content" 
+   hx-push-url="true"
+   class="settings-card card">
+    <div class="settings-icon">🌍</div>
+    <h3>Страны</h3>
+    <p>Управление странами и флагами</p>
+</a>
+
+<a href="/settings/cities/" 
+   hx-get="/settings/cities/" 
+   hx-target="#main-content" 
+   hx-push-url="true"
+   class="settings-card card">
+    <div class="settings-icon">🏙️</div>
+    <h3>Города</h3>
+    <p>Список городов по странам</p>
+</a>
+
+<a href="/settings/categories/" 
+   hx-get="/settings/categories/" 
+   hx-target="#main-content" 
+   hx-push-url="true"
+   class="settings-card card">
+    <div class="settings-icon">🏷️</div>
+    <h3>Разделы</h3>
+    <p>Категории компаний с цветами</p>
+</a>
+
+<a href="/settings/statuses/" 
+   hx-get="/settings/statuses/" 
+   hx-target="#main-content" 
+   hx-push-url="true"
+   class="settings-card card">
+    <div class="settings-icon">🔖</div>
+    <h3>Статусы</h3>
+    <p>Статусы компаний с цветами</p>
+</a>
+
+<a href="/settings/users/" 
+   hx-get="/settings/users/" 
+   hx-target="#main-content" 
+   hx-push-url="true"
+   class="settings-card card">
+    <div class="settings-icon">👥</div>
+    <h3>Пользователи</h3>
+    <p>Управление пользователями и ролями</p>
+</a>
+</div>

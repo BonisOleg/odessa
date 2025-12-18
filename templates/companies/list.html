@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Компании - CRM Nice{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{% static 'css/components/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/table.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/card.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/pagination.css' %}">
+{% endblock %}
+
+{% block page_content %}
+{% include 'companies/list_content.html' %}
+{% endblock %}

@@ -1,0 +1,143 @@
+{% load static %}
+
+<!-- Тільки контент для HTMX (без layout) -->
+<div class="page-header">
+    <h1>Редактировать компанию</h1>
+    <p>Измените информацию о компании</p>
+</div>
+
+<form class="card" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <div class="form-grid">
+        <!-- Ліва колонка -->
+        <div class="form-column">
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Название компании</label>
+                <input type="text" class="form-control" name="name" value="IT Solutions Ltd" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Телефоны</label>
+                <div class="phone-inputs">
+                    <input type="tel" class="form-control" name="phones[]" value="+380991234567" required>
+                    <input type="tel" class="form-control" name="phones[]" value="+380501234567">
+                    <button type="button" class="button button--sm button--secondary" data-action="add-phone">+ Добавить телефон</button>
+                </div>
+                <span class="form-hint">Можно добавить несколько номеров</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Telegram</label>
+                <input type="text" class="form-control" name="telegram" value="@itsolutions">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Сайт</label>
+                <input type="url" class="form-control" name="website" value="https://itsolutions.com">
+                <span class="form-hint">Будет проверка на дубли</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Instagram</label>
+                <input type="text" class="form-control" name="instagram" value="@itsolutions">
+                <span class="form-hint">Будет проверка на дубли</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Ключевые слова</label>
+                <div class="tags-input">
+                    <span class="tag">CRM <button type="button" class="tag-remove" data-action="remove-tag">×</button></span>
+                    <span class="tag">Django <button type="button" class="tag-remove" data-action="remove-tag">×</button></span>
+                    <span class="tag">Разработка <button type="button" class="tag-remove" data-action="remove-tag">×</button></span>
+                    <input type="text" placeholder="Добавить...">
+                </div>
+                <span class="form-hint">Нажмите Enter для добавления тега</span>
+            </div>
+        </div>
+        
+        <!-- Права колонка -->
+        <div class="form-column">
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Город</label>
+                <select class="form-select" name="city" required>
+                    <option value="">Выберите город</option>
+                    <option selected>Киев</option>
+                    <option>Харьков</option>
+                    <option>Львов</option>
+                    <option>Одесса</option>
+                    <option>Днепр</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Раздел</label>
+                <select class="form-select" name="category" required>
+                    <option value="">Выберите раздел</option>
+                    <option selected>IT-услуги</option>
+                    <option>Ресторан</option>
+                    <option>Образование</option>
+                    <option>Недвижимость</option>
+                    <option>Электроника</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Статус</label>
+                <select class="form-select" name="status" required>
+                    <option value="">Выберите статус</option>
+                    <option>Новая</option>
+                    <option selected>В работе</option>
+                    <option>Заключен договор</option>
+                    <option>Отказ</option>
+                    <option>Архив</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Дата звонка</label>
+                <input type="date" class="form-control" name="call_date" value="2025-11-28">
+                <span class="form-hint">Запланированная дата звонка</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Краткий комментарий</label>
+                <textarea class="form-control" name="short_comment" rows="3" maxlength="500">Отправлено коммерческое предложение по разработке CRM-системы</textarea>
+                <span class="form-hint">Макс. 500 символов</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Полное описание</label>
+                <textarea class="form-control" name="full_description" rows="5">Компания занимается разработкой CRM-систем и веб-приложений на Django. Основные клиенты - средний и крупный бизнес. Работают на рынке более 5 лет. В штате 15 разработчиков.</textarea>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Секція файлів -->
+    <div class="form-section">
+        <div class="form-group">
+            <label class="form-group__label">Логотип</label>
+            <input type="file" class="form-control" name="logo" accept="image/*">
+            <div class="image-preview">
+                <img src="https://via.placeholder.com/80" alt="Current logo" class="logo-preview">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-group__label">Фотографии</label>
+            <input type="file" class="form-control" name="photos" accept="image/*" multiple>
+            <div class="images-preview"></div>
+        </div>
+    </div>
+    
+    <!-- Кнопки дій -->
+    <div class="form-actions">
+        <button type="submit" class="button button--primary">Сохранить</button>
+        <a href="/companies/1/" 
+           hx-get="/companies/1/" 
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="button button--secondary">Отмена</a>
+    </div>
+</form>
+

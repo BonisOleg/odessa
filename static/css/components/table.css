@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Table Component - CRM Nice
+   ========================================================================== */
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.table__head {
+  background-color: var(--color-bg-light);
+}
+
+.table__th {
+  padding: var(--spacing-md) var(--spacing-sm);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.table__th:hover {
+  background-color: #f3f4f6;
+}
+
+.table__row {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.table__row:hover {
+  background-color: var(--color-bg-light);
+}
+
+.table__td {
+  padding: var(--spacing-md) var(--spacing-sm);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+/* Company table specific */
+.company-table {
+  min-width: 1200px;
+}
+
+.company-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.company-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-base);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.phone-cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.phone-number {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.phone-star {
+  color: #fbbf24;
+  font-size: 1rem;
+  margin-left: var(--spacing-xs);
+}
+
+.contact-name {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+}
+
+.company-name-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+  transition: color var(--transition-fast);
+}
+
+.company-name-link:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+.website-link {
+  font-size: var(--font-size-lg);
+  text-decoration: none;
+}
+
+.table-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  align-items: center;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background-color: var(--color-bg-light);
+  transform: scale(1.1);
+}
+
+.icon-btn--active {
+  opacity: 1;
+}
+
+/* Filters */
+.filters-card {
+  margin-bottom: var(--spacing-lg);
+}
+
+.filters {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 150px;
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.filter-select {
+  width: 100%;
+}
+
+/* Call date styling */
+.call-date {
+  color: var(--color-text);
+}
+
+.call-date--overdue {
+  color: var(--color-error);
+  font-weight: var(--font-weight-medium);
+}
+
+.call-date {
+  white-space: nowrap;
+}
+
+.call-date.past {
+  color: var(--color-error);
+  font-weight: var(--font-weight-semibold);
+}
+
+.call-date.future {
+  color: var(--color-text);
+}
+
+.date-future {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Page header */
+.page-header {
+  margin-bottom: var(--spacing-lg);
+}
+
+.page-header h1 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.page-header p {
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .table-responsive {
+    margin: 0 calc(-1 * var(--spacing-lg));
+    padding: 0 var(--spacing-lg);
+  }
+}

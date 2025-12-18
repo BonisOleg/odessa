@@ -1,0 +1,106 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Пользователи - Настройки - CRM Nice{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{% static 'css/components/table.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/badge.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/card.css' %}">
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Управление пользователями</h1>
+    <p><a href="/settings/" hx-get="/settings/" hx-target="#main-content" hx-push-url="true" class="text-primary">←
+            Назад к настройкам</a></p>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <div class="card__header-flex">
+            <h3 class="card__title">Пользователи CRM</h3>
+            <button type="button" class="button button--primary" hx-get="/settings/users/add/" hx-target="body"
+                hx-swap="beforeend">+ Добавить пользователя</button>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead class="table__head">
+            <tr>
+                <th class="table__th">Имя</th>
+                <th class="table__th">Логин</th>
+                <th class="table__th">Роль</th>
+                <th class="table__th">Страна</th>
+                <th class="table__th">Статус</th>
+                <th class="table__th">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="table__row">
+                <td class="table__td">Иван Петров</td>
+                <td class="table__td">ivan.petrov</td>
+                <td class="table__td"><span class="badge badge--danger">Суперадмин</span></td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td"><span class="badge badge--success">Активен</span></td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" disabled>Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Мария Сидорова</td>
+                <td class="table__td">maria.sidorova</td>
+                <td class="table__td"><span class="badge badge--info">Менеджер</span></td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td"><span class="badge badge--success">Активен</span></td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/users/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/users/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Анна Коваль</td>
+                <td class="table__td">anna.koval</td>
+                <td class="table__td"><span class="badge badge--info">Менеджер</span></td>
+                <td class="table__td">🇵🇱 Польша</td>
+                <td class="table__td"><span class="badge badge--success">Активен</span></td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/users/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/users/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Петр Иванов</td>
+                <td class="table__td">petr.ivanov</td>
+                <td class="table__td"><span class="badge badge--secondary">Наблюдатель</span></td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td"><span class="badge badge--success">Активен</span></td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/users/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/users/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Ольга Шевченко</td>
+                <td class="table__td">olga.shevchenko</td>
+                <td class="table__td"><span class="badge badge--info">Менеджер</span></td>
+                <td class="table__td">🇩🇪 Германия</td>
+                <td class="table__td"><span class="badge badge--warning">Неактивен</span></td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/users/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/users/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

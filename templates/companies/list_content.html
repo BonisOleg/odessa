@@ -1,0 +1,491 @@
+{% load static %}
+
+<div class="page-header">
+    <p>Всего: <strong>127 компаний</strong> | Новых за 30 дней: <strong>+5</strong></p>
+</div>
+
+<!-- Фільтри -->
+<div class="card filters-card">
+    <div class="filters">
+        <div class="filter-group">
+            <label class="filter-label">Статус</label>
+            <div class="multiselect-dropdown">
+                <button type="button" class="multiselect-trigger" data-filter="status">
+                    <span class="multiselect-text">Все статусы</span>
+                    <span class="dropdown__arrow">▾</span>
+                </button>
+                <div class="multiselect-options">
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="status-работаем" value="Работаем" data-filter="status">
+                        <label for="status-работаем">Работаем</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="status-горячий" value="Горячий" data-filter="status">
+                        <label for="status-горячий">Горячий</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="status-хороший" value="Хороший" data-filter="status">
+                        <label for="status-хороший">Хороший</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="status-позже" value="Позже" data-filter="status">
+                        <label for="status-позже">Позже</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="status-холодный" value="Холодный" data-filter="status">
+                        <label for="status-холодный">Холодный</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Город</label>
+            <div class="multiselect-dropdown">
+                <button type="button" class="multiselect-trigger" data-filter="city">
+                    <span class="multiselect-text">Все города</span>
+                    <span class="dropdown__arrow">▾</span>
+                </button>
+                <div class="multiselect-options">
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="city-киев" value="Киев" data-filter="city">
+                        <label for="city-киев">Киев</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="city-харьков" value="Харьков" data-filter="city">
+                        <label for="city-харьков">Харьков</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="city-львов" value="Львов" data-filter="city">
+                        <label for="city-львов">Львов</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="city-одесса" value="Одесса" data-filter="city">
+                        <label for="city-одесса">Одесса</label>
+                    </div>
+                    <div class="multiselect-option">
+                        <input type="checkbox" id="city-днепр" value="Днепр" data-filter="city">
+                        <label for="city-днепр">Днепр</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Дата обновления</label>
+            <select class="form-select filter-select">
+                <option value="">Все даты</option>
+                <option>Сегодня</option>
+                <option>Вчера</option>
+                <option>На этой неделе</option>
+                <option>В этом месяце</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Раздел</label>
+            <select class="form-select filter-select">
+                <option value="">Все разделы</option>
+                <option>IT-услуги</option>
+                <option>Ресторан</option>
+                <option>Образование</option>
+                <option>Недвижимость</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label">Дата звонка</label>
+            <select class="form-select filter-select">
+                <option value="">Все даты</option>
+                <option>Просрочено</option>
+                <option>Сегодня</option>
+                <option>На этой неделе</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Таблиця компаній -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="table company-table">
+            <thead class="table__head">
+                <tr>
+                    <th class="table__th">ID</th>
+                    <th class="table__th">Лого + Имя</th>
+                    <th class="table__th">Телефон + Имя</th>
+                    <th class="table__th">Instagram</th>
+                    <th class="table__th">Сайт</th>
+                    <th class="table__th">Статус</th>
+                    <th class="table__th">Город</th>
+                    <th class="table__th">Дата обновления</th>
+                    <th class="table__th">Раздел</th>
+                    <th class="table__th">Дата звонка</th>
+                    <th class="table__th">Комментарий</th>
+                    <th class="table__th">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="table__row" data-status="Работаем" data-city="Киев" data-updated="2025-11-24">
+                    <td class="table__td">
+                        <span class="text-muted">#00123</span>
+                    </td>
+                    <td class="table__td">
+                        <div class="company-cell">
+                            <img src="https://via.placeholder.com/40" alt="IT Solutions" class="company-logo">
+                            <a href="/companies/1/" hx-get="/companies/1/" hx-target="#main-content" hx-push-url="true"
+                                class="company-name-link">IT Solutions Ltd</a>
+                        </div>
+                    </td>
+                    <td class="table__td">
+                        <div class="phone-cell">
+                            <span class="phone-number">+380991234567</span>
+                            <span class="phone-star">⭐</span>
+                            <span class="contact-name">Иван Петров</span>
+                        </div>
+                    </td>
+                    <td class="table__td">@itsolutions</td>
+                    <td class="table__td">
+                        <a href="https://itsolutions.com" target="_blank" rel="noopener" class="website-link">🌐</a>
+                    </td>
+                    <td class="table__td"><span class="badge badge--success">Работаем</span></td>
+                    <td class="table__td">Киев</td>
+                    <td class="table__td">24.11.2025</td>
+                    <td class="table__td">
+                        <span class="badge badge--custom-blue">IT-услуги</span>
+                    </td>
+                    <td class="table__td">
+                        <span class="call-date" data-call-date="2025-11-28">28.11.2025</span>
+                    </td>
+                    <td class="table__td">Отправлено КП</td>
+                    <td class="table__td">
+                        <div class="table-actions">
+                            <button type="button" class="icon-btn favorite-btn" data-id="1" title="В избранное">⭐</button>
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="@itsolutions" title="Telegram">💬</button>
+                            <a href="/companies/1/edit/" hx-get="/companies/1/edit/" hx-target="#main-content"
+                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
+                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
+                                hx-target="body" hx-swap="beforeend">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="table__row" data-status="Позже" data-city="Львов" data-updated="2025-11-23">
+                    <td class="table__td">
+                        <span class="text-muted">#00124</span>
+                    </td>
+                    <td class="table__td">
+                        <div class="company-cell">
+                            <img src="https://via.placeholder.com/40" alt="Restaurant Pro" class="company-logo">
+                            <a href="/companies/2/" hx-get="/companies/2/" hx-target="#main-content" hx-push-url="true"
+                                class="company-name-link">Restaurant Pro</a>
+                        </div>
+                    </td>
+                    <td class="table__td">
+                        <div class="phone-cell">
+                            <span class="phone-number">+380501234567</span>
+                            <span class="phone-star">⭐</span>
+                            <span class="contact-name">Мария Сидорова</span>
+                        </div>
+                    </td>
+                    <td class="table__td">@restaurantpro</td>
+                    <td class="table__td">-</td>
+                    <td class="table__td"><span class="badge badge--warning">Позже</span></td>
+                    <td class="table__td">Львов</td>
+                    <td class="table__td">23.11.2025</td>
+                    <td class="table__td">
+                        <span class="badge badge--custom-red">Ресторан</span>
+                    </td>
+                    <td class="table__td">
+                        <span class="call-date" data-call-date="2025-11-20">20.11.2025</span>
+                    </td>
+                    <td class="table__td">Ждем обратной связи</td>
+                    <td class="table__td">
+                        <div class="table-actions">
+                            <button type="button" class="icon-btn favorite-btn icon-btn--active" data-id="2" title="В избранном">⭐</button>
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="@restaurantpro" title="Telegram">💬</button>
+                            <a href="/companies/2/edit/" hx-get="/companies/2/edit/" hx-target="#main-content"
+                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
+                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
+                                hx-target="body" hx-swap="beforeend">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="table__row" data-status="Горячий" data-city="Харьков" data-updated="2025-11-25">
+                    <td class="table__td">
+                        <span class="text-muted">#00125</span>
+                    </td>
+                    <td class="table__td">
+                        <div class="company-cell">
+                            <img src="https://via.placeholder.com/40" alt="EduTech" class="company-logo">
+                            <a href="/companies/3/" hx-get="/companies/3/" hx-target="#main-content" hx-push-url="true"
+                                class="company-name-link">EduTech Solutions</a>
+                        </div>
+                    </td>
+                    <td class="table__td">
+                        <div class="phone-cell">
+                            <span class="phone-number">+380671234567</span>
+                            <span class="contact-name">Петр Иванов</span>
+                        </div>
+                    </td>
+                    <td class="table__td">@edutech</td>
+                    <td class="table__td">
+                        <a href="https://edutech.com" target="_blank" rel="noopener" class="website-link">🌐</a>
+                    </td>
+                    <td class="table__td"><span class="badge badge--info">Горячий</span></td>
+                    <td class="table__td">Харьков</td>
+                    <td class="table__td">25.11.2025</td>
+                    <td class="table__td">
+                        <span class="badge badge--custom-green">Образование</span>
+                    </td>
+                    <td class="table__td">
+                        <span class="call-date" data-call-date="2025-11-30">30.11.2025</span>
+                    </td>
+                    <td class="table__td">Очень заинтересованы</td>
+                    <td class="table__td">
+                        <div class="table-actions">
+                            <button type="button" class="icon-btn favorite-btn" data-id="3" title="В избранное">⭐</button>
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="@edutech" title="Telegram">💬</button>
+                            <a href="/companies/3/edit/" hx-get="/companies/3/edit/" hx-target="#main-content"
+                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
+                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
+                                hx-target="body" hx-swap="beforeend">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="table__row" data-status="Холодный" data-city="Одесса" data-updated="2025-11-22">
+                    <td class="table__td">
+                        <span class="text-muted">#00126</span>
+                    </td>
+                    <td class="table__td">
+                        <div class="company-cell">
+                            <img src="https://via.placeholder.com/40" alt="Real Estate Plus" class="company-logo">
+                            <a href="/companies/4/" hx-get="/companies/4/" hx-target="#main-content" hx-push-url="true"
+                                class="company-name-link">Real Estate Plus</a>
+                        </div>
+                    </td>
+                    <td class="table__td">
+                        <div class="phone-cell">
+                            <span class="phone-number">+380951234567</span>
+                            <span class="contact-name">Анна Смирнова</span>
+                        </div>
+                    </td>
+                    <td class="table__td">@realestateplus</td>
+                    <td class="table__td">-</td>
+                    <td class="table__td"><span class="badge badge--secondary">Холодный</span></td>
+                    <td class="table__td">Одесса</td>
+                    <td class="table__td">22.11.2025</td>
+                    <td class="table__td">
+                        <span class="badge badge--custom-orange">Недвижимость</span>
+                    </td>
+                    <td class="table__td">
+                        <span class="call-date" data-call-date="">-</span>
+                    </td>
+                    <td class="table__td">Первичный контакт</td>
+                    <td class="table__td">
+                        <div class="table-actions">
+                            <button type="button" class="icon-btn favorite-btn" data-id="4" title="В избранное">⭐</button>
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="@realestateplus" title="Telegram">💬</button>
+                            <a href="/companies/4/edit/" hx-get="/companies/4/edit/" hx-target="#main-content"
+                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
+                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
+                                hx-target="body" hx-swap="beforeend">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="table__row" data-status="Хороший" data-city="Днепр" data-updated="2025-11-21">
+                    <td class="table__td">
+                        <span class="text-muted">#00127</span>
+                    </td>
+                    <td class="table__td">
+                        <div class="company-cell">
+                            <img src="https://via.placeholder.com/40" alt="TechStart" class="company-logo">
+                            <a href="/companies/5/" hx-get="/companies/5/" hx-target="#main-content" hx-push-url="true"
+                                class="company-name-link">TechStart Inc</a>
+                        </div>
+                    </td>
+                    <td class="table__td">
+                        <div class="phone-cell">
+                            <span class="phone-number">+380631234567</span>
+                            <span class="phone-star">⭐</span>
+                            <span class="contact-name">Денис Козлов</span>
+                        </div>
+                    </td>
+                    <td class="table__td">@techstart</td>
+                    <td class="table__td">
+                        <a href="https://techstart.com" target="_blank" rel="noopener" class="website-link">🌐</a>
+                    </td>
+                    <td class="table__td"><span class="badge badge--success">Хороший</span></td>
+                    <td class="table__td">Днепр</td>
+                    <td class="table__td">21.11.2025</td>
+                    <td class="table__td">
+                        <span class="badge badge--custom-blue">IT-услуги</span>
+                    </td>
+                    <td class="table__td">
+                        <span class="call-date" data-call-date="2025-11-27">27.11.2025</span>
+                    </td>
+                    <td class="table__td">Подписан договор</td>
+                    <td class="table__td">
+                        <div class="table-actions">
+                            <button type="button" class="icon-btn favorite-btn icon-btn--active" data-id="5" title="В избранном">⭐</button>
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="@techstart" title="Telegram">💬</button>
+                            <a href="/companies/5/edit/" hx-get="/companies/5/edit/" hx-target="#main-content"
+                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
+                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
+                                hx-target="body" hx-swap="beforeend">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Пагінація -->
+    <div class="pagination">
+        <button type="button" class="pagination__btn pagination__btn--prev" disabled>← Назад</button>
+        <span class="pagination__info">Страница 1 из 2</span>
+        <button type="button" class="pagination__btn pagination__btn--next">Вперед →</button>
+    </div>
+</div>
+
+<script defer>
+    // ==========================================================================
+    // Multiselect Dropdown
+    // ==========================================================================
+    document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.multiselect-trigger');
+        if (trigger) {
+            e.preventDefault();
+            e.stopPropagation();
+            const dropdown = trigger.closest('.multiselect-dropdown');
+            const isOpen = dropdown.classList.contains('is-open');
+            
+            // Закрити всі інші
+            document.querySelectorAll('.multiselect-dropdown.is-open').forEach(function(open) {
+                if (open !== dropdown) open.classList.remove('is-open');
+            });
+            
+            // Перемкнути поточний
+            if (isOpen) {
+                dropdown.classList.remove('is-open');
+            } else {
+                dropdown.classList.add('is-open');
+            }
+        } else if (!e.target.closest('.multiselect-dropdown')) {
+            // Закрити всі при кліку поза
+            document.querySelectorAll('.multiselect-dropdown.is-open').forEach(function(dropdown) {
+                dropdown.classList.remove('is-open');
+            });
+        }
+    });
+
+    // Оновлення тексту multiselect
+    function updateMultiselectText(dropdown) {
+        const checked = dropdown.querySelectorAll('input[type="checkbox"]:checked');
+        const text = dropdown.querySelector('.multiselect-text');
+        if (checked.length === 0) {
+            const filter = dropdown.querySelector('.multiselect-trigger').getAttribute('data-filter');
+            text.textContent = filter === 'status' ? 'Все статусы' : 'Все города';
+        } else if (checked.length === 1) {
+            text.textContent = checked[0].value;
+        } else {
+            text.textContent = `Выбрано: ${checked.length}`;
+        }
+    }
+
+    // ==========================================================================
+    // Фільтрація таблиці
+    // ==========================================================================
+    function filterTable() {
+        const statusChecks = document.querySelectorAll('input[data-filter="status"]:checked');
+        const cityChecks = document.querySelectorAll('input[data-filter="city"]:checked');
+        const selectedStatuses = Array.from(statusChecks).map(cb => cb.value);
+        const selectedCities = Array.from(cityChecks).map(cb => cb.value);
+        
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(function(row) {
+            let show = true;
+            
+            if (selectedStatuses.length > 0) {
+                const rowStatus = row.getAttribute('data-status');
+                if (!selectedStatuses.includes(rowStatus)) show = false;
+            }
+            
+            if (selectedCities.length > 0) {
+                const rowCity = row.getAttribute('data-city');
+                if (!selectedCities.includes(rowCity)) show = false;
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
+    }
+
+    // Обробка змін checkbox
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[data-filter]')) {
+            const dropdown = e.target.closest('.multiselect-dropdown');
+            updateMultiselectText(dropdown);
+            filterTable();
+        }
+    });
+
+    // ==========================================================================
+    // Сортування по даті обновлення (нові зверху)
+    // ==========================================================================
+    function sortTableByDate() {
+        const tbody = document.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        
+        rows.sort(function(a, b) {
+            const aId = a.querySelector('.favorite-btn')?.getAttribute('data-id');
+            const bId = b.querySelector('.favorite-btn')?.getAttribute('data-id');
+            const aFav = favorites.includes(aId) ? 0 : 1;
+            const bFav = favorites.includes(bId) ? 0 : 1;
+            
+            if (aFav !== bFav) return aFav - bFav;
+            
+            const aDate = a.getAttribute('data-updated') || '';
+            const bDate = b.getAttribute('data-updated') || '';
+            return bDate.localeCompare(aDate);
+        });
+        
+        rows.forEach(function(row) {
+            tbody.appendChild(row);
+        });
+    }
+
+    // ==========================================================================
+    // Перевірка простроченої дати звонка
+    // ==========================================================================
+    function checkCallDates() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        document.querySelectorAll('.call-date[data-call-date]').forEach(function(el) {
+            const dateStr = el.getAttribute('data-call-date');
+            if (!dateStr || dateStr === '-') return;
+            
+            const callDate = new Date(dateStr);
+            callDate.setHours(0, 0, 0, 0);
+            
+            el.classList.remove('past', 'future');
+            if (callDate < today) {
+                el.classList.add('past');
+            } else {
+                el.classList.add('future');
+            }
+        });
+    }
+
+    // Ініціалізація
+    sortTableByDate();
+    checkCallDates();
+    
+    // Після HTMX
+    document.body.addEventListener('htmx:afterSwap', function() {
+        sortTableByDate();
+        checkCallDates();
+    });
+</script>

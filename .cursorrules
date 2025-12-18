@@ -1,0 +1,57 @@
+# Правила для Cursor AI - CRM_Nice Project
+
+## КРИТИЧНІ ПРАВИЛА (непорушні)
+
+### normalize.css
+- ❌ НІКОЛИ не змінювати `static/css/normalize.css`
+- ❌ НІКОЛИ не використовувати `!important` для перевизначення normalize.css
+- ✅ normalize.css ЗАВЖДИ має бути першим підключеним CSS файлом
+
+### Стилізація
+- ❌ НІКОЛИ не використовувати inline styles (`style=""`)
+- ❌ НІКОЛИ не використовувати `!important`
+- ✅ ЗАВЖДИ використовувати BEM методологію для класів
+- ✅ ЗАВЖДИ використовувати CSS custom properties з `base.css`
+- ✅ ЗАВЖДИ зберігати низьку специфічність CSS
+
+### Порядок підключення (не порушувати!)
+1. preconnect для CDN
+2. normalize.css (ЗАВЖДИ ПЕРШИЙ)
+3. base.css
+4. components/*.css
+5. utilities/*.css
+6. CSRF token meta tag
+7. HTMX 2.0.8 (з defer)
+8. Власні JS (з defer)
+
+### JavaScript
+- ❌ НІКОЛИ не додавати jQuery, core-js, Bootstrap JS
+- ✅ ЗАВЖДИ підключати скрипти з `defer`
+- ✅ Використовувати Vanilla JS (ES modules або IIFE)
+- ✅ Використовувати `const`/`let` (ніколи `var`)
+
+### HTMX
+- ✅ ЗАВЖДИ використовувати CSRF token для HTMX форм
+- ✅ Використовувати `hx-headers` або налаштувати глобально через `htmx:configRequest`
+- ✅ Дотримуватися best practices HTMX
+
+### Підтримка браузерів
+- Chrome 90+, Firefox 88+, Safari 14+, Edge 90+ (2021+)
+- Використовувати сучасні CSS features (custom properties, container queries, native nesting)
+- Обмежити глибину CSS nesting до ≤3 рівнів
+
+### Структура CSS
+- `base.css` - CSS custom properties та базові стилі
+- `components/*.css` - компоненти (BEM)
+- `utilities/*.css` - утилітарні класи
+
+### Django
+- Використовувати семантичну HTML5 розмітку
+- Дотримуватися accessibility стандартів
+- Зовнішні CSS/JS файли (не inline)
+
+
+
+
+
+

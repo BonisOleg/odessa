@@ -1,0 +1,107 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Города - Настройки - CRM Nice{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{% static 'css/components/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/table.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/card.css' %}">
+{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Управление городами</h1>
+    <p><a href="/settings/" hx-get="/settings/" hx-target="#main-content" hx-push-url="true" class="text-primary">←
+            Назад к настройкам</a></p>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <div class="card__header-flex">
+            <h3 class="card__title">Список городов</h3>
+            <button type="button" class="button button--primary" hx-get="/settings/cities/add/" hx-target="body"
+                hx-swap="beforeend">+ Добавить город</button>
+        </div>
+    </div>
+
+    <!-- Фільтр по країні -->
+    <div class="mb-lg">
+        <select class="form-select form-select--max-width">
+            <option>Все страны</option>
+            <option selected>Украина</option>
+            <option>Польша</option>
+            <option>Германия</option>
+            <option>Чехия</option>
+        </select>
+    </div>
+
+    <table class="table">
+        <thead class="table__head">
+            <tr>
+                <th class="table__th">Название</th>
+                <th class="table__th">Страна</th>
+                <th class="table__th">Кол-во компаний</th>
+                <th class="table__th">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="table__row">
+                <td class="table__td">Киев</td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td">120</td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/cities/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/cities/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Харьков</td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td">45</td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/cities/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/cities/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Львов</td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td">32</td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/cities/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/cities/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Одесса</td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td">28</td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/cities/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/cities/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+            <tr class="table__row">
+                <td class="table__td">Днепр</td>
+                <td class="table__td">🇺🇦 Украина</td>
+                <td class="table__td">19</td>
+                <td class="table__td">
+                    <button type="button" class="button button--sm button--secondary" hx-get="/settings/cities/1/edit/"
+                        hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="/settings/cities/1/delete/"
+                        hx-target="body" hx-swap="beforeend">Удалить</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

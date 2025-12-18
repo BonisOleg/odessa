@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Вход в систему - CRM Nice{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/components/button.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/card.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card card">
+        <div class="login-card__header card__header">
+            <h1 class="card__title">CRM Nice</h1>
+            <p class="card__subtitle">Вход в систему</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Логин</label>
+                <input type="text" class="form-control" name="username" placeholder="Введите логин" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Пароль</label>
+                <input type="password" class="form-control" name="password" placeholder="Введите пароль" required>
+            </div>
+
+            <button type="submit" class="button button--primary button--block">Войти</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

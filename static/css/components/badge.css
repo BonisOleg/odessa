@@ -1,0 +1,69 @@
+/* ==========================================================================
+   Badge Component - CRM Nice
+   ========================================================================== */
+
+.badge {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge--success {
+  background-color: var(--color-success);
+  color: var(--color-bg);
+}
+
+.badge--warning {
+  background-color: var(--color-warning);
+  color: var(--color-bg);
+}
+
+.badge--info {
+  background-color: var(--color-info, #3B82F6);
+  color: var(--color-bg);
+}
+
+.badge--danger {
+  background-color: var(--color-error);
+  color: var(--color-bg);
+}
+
+.badge--secondary {
+  background-color: var(--color-secondary);
+  color: var(--color-bg);
+}
+
+/* Custom badges with specific colors */
+.badge--custom {
+  background-color: var(--badge-custom-color, var(--color-secondary));
+  color: var(--color-bg);
+}
+
+.badge--custom-blue {
+  background-color: var(--color-info);
+  color: var(--color-bg);
+}
+
+.badge--custom-red {
+  background-color: var(--color-error);
+  color: var(--color-bg);
+}
+
+.badge--custom-green {
+  background-color: var(--color-success);
+  color: var(--color-bg);
+}
+
+.badge--custom-orange {
+  background-color: var(--color-warning);
+  color: var(--color-bg);
+}
+
+.badge--custom-purple {
+  background-color: #8B5CF6;
+  color: var(--color-bg);
+}

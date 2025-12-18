@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/components/layout.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/topbar.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/button.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/dropdown.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/badge.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/modal.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/message.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/table.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/company.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/filter.css' %}">
+<link rel="stylesheet" href="{% static 'css/utilities/spacing.css' %}">
+<link rel="stylesheet" href="{% static 'css/utilities/text.css' %}">
+{% block page_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+{% include 'components/topbar.html' %}
+
+<div class="layout">
+    <main id="main-content" class="layout__main">
+        {% block page_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

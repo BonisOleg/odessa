@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}Добавить компанию - CRM Nice{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{% static 'css/components/form.css' %}">
+<link rel="stylesheet" href="{% static 'css/components/card.css' %}">
+{% endblock %}
+
+{% block page_content %}
+{% include 'companies/create_content.html' %}
+{% endblock %}
+

@@ -1,0 +1,22 @@
+/* ==========================================================================
+   Login Component - CRM Nice
+   ========================================================================== */
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--color-bg-light);
+}
+
+.login-card {
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-card__header {
+    text-align: center;
+}
+
+

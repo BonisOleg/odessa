@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Message Component - CRM Nice
+   ========================================================================== */
+
+.message {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-base);
+    border: 1px solid;
+    margin-bottom: var(--spacing-md);
+}
+
+.message__title {
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+}
+
+.message__text {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Success message */
+.message--success {
+    background-color: #d1fae5;
+    border-color: var(--color-success);
+    color: #065f46;
+}
+
+.message--success .message__title {
+    color: #065f46;
+}
+
+/* Error message */
+.message--error {
+    background-color: #fee2e2;
+    border-color: var(--color-error);
+    color: #991b1b;
+}
+
+.message--error .message__title {
+    color: #991b1b;
+}
+
+/* Warning message */
+.message--warning {
+    background-color: #fef3c7;
+    border-color: var(--color-warning);
+    color: #92400e;
+}
+
+.message--warning .message__title {
+    color: #92400e;
+}
+
+/* Info message */
+.message--info {
+    background-color: #dbeafe;
+    border-color: var(--color-info);
+    color: #1e40af;
+}
+
+.message--info .message__title {
+    color: #1e40af;
+}
+
+

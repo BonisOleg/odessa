@@ -1,0 +1,25 @@
+/* ==========================================================================
+   Layout Component - CRM Nice
+   ========================================================================== */
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--topbar-height, 60px));
+  margin-top: var(--topbar-height, 60px);
+}
+
+.layout__main {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  padding: var(--spacing-lg);
+  background-color: var(--color-bg-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout__main {
+    padding: var(--spacing-md);
+  }
+}

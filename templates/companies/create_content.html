@@ -1,0 +1,221 @@
+{% load static %}
+
+<!-- Тільки контент для HTMX (без layout) -->
+
+<form class="card" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-grid">
+        <!-- Ліва колонка -->
+        <div class="form-column">
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Название компании</label>
+                <input type="text" class="form-control" name="name" placeholder="Введите название" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Телефоны + Имена контактов</label>
+                <div class="phone-inputs" id="phone-list">
+                    <div class="phone-input-group">
+                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" required>
+                        <input type="text" class="form-control" name="contact_names[]" placeholder="Иван Петров">
+                        <label class="phone-favorite">
+                            <input type="radio" name="favorite_phone" value="0">
+                            <span class="favorite-star">⭐</span>
+                        </label>
+                    </div>
+                </div>
+                <button type="button" class="button button--sm button--secondary" data-action="add-phone">+ Добавить
+                    телефон</button>
+                <span class="form-hint">Можно добавить несколько номеров, только один со звездой</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">
+                    💬 Telegram
+                </label>
+                <input type="text" class="form-control" name="telegram"
+                    placeholder="@username или https://t.me/username">
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">Сайт</label>
+                <input type="url" class="form-control" name="website" placeholder="https://example.com">
+                <span class="form-hint">Будет проверка на дубли</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">Instagram</label>
+                <input type="text" class="form-control" name="instagram" placeholder="@username">
+                <span class="form-hint">Будет проверка на дубли</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">Ключевые слова</label>
+                <textarea class="form-control" name="keywords" rows="3"
+                    placeholder="CRM, Django, разработка, консалтинг"></textarea>
+                <span class="form-hint">Через запятую для точного поиска</span>
+            </div>
+        </div>
+
+        <!-- Права колонка -->
+        <div class="form-column">
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Город</label>
+                <select class="form-select" name="city" required>
+                    <option value="">Выберите город</option>
+                    <option>Киев</option>
+                    <option>Харьков</option>
+                    <option>Львов</option>
+                    <option>Одесса</option>
+                    <option>Днепр</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Раздел</label>
+                <select class="form-select" name="category" required>
+                    <option value="">Выберите раздел</option>
+                    <option>IT-услуги</option>
+                    <option>Ресторан</option>
+                    <option>Образование</option>
+                    <option>Недвижимость</option>
+                    <option>Электроника</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Статус</label>
+                <select class="form-select" name="status" required>
+                    <option value="">Выберите статус</option>
+                    <option>Хороший</option>
+                    <option>Работаем</option>
+                    <option>Не дозвон</option>
+                    <option>Не нужно</option>
+                    <option>Позже</option>
+                    <option>Позвонить</option>
+                    <option>Горячий</option>
+                    <option>Холодный</option>
+                    <option>Теплый</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">Дата звонка</label>
+                <input type="date" class="form-control" name="call_date">
+                <span class="form-hint">Запланированная дата звонка</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">Краткий комментарий</label>
+                <textarea class="form-control" name="short_comment" rows="3" maxlength="500"></textarea>
+                <span class="form-hint">Макс. 500 символов</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">Полное описание</label>
+                <textarea class="form-control textarea-auto-resize" name="full_description" rows="3"
+                    placeholder="Описание компании, ссылки, иконки..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Секція файлів -->
+    <div class="form-section">
+        <div class="form-group">
+            <label class="form-group__label">Логотип</label>
+            <input type="file" class="form-control" name="logo" accept="image/*">
+            <div class="image-preview"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-group__label">Фотографии</label>
+            <input type="file" class="form-control" name="photos" accept="image/*" multiple>
+            <div class="images-preview"></div>
+        </div>
+    </div>
+
+    <!-- Кнопки дій -->
+    <div class="form-actions">
+        <button type="submit" class="button button--primary">Сохранить</button>
+        <a href="/companies/" hx-get="/companies/" hx-target="#main-content" hx-push-url="true"
+            class="button button--secondary">Отмена</a>
+    </div>
+</form>
+
+<script defer>
+    // Додавання нових телефонів
+    document.querySelector('[data-action="add-phone"]').addEventListener('click', function () {
+        const phoneList = document.getElementById('phone-list');
+        const index = phoneList.children.length;
+        const html = `
+            <div class="phone-input-group">
+                <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567">
+                <input type="text" class="form-control" name="contact_names[]" placeholder="Ім'я контакту">
+                <label class="phone-favorite">
+                    <input type="radio" name="favorite_phone" value="${index}">
+                    <span class="favorite-star">⭐</span>
+                </label>
+                <button type="button" class="button button--sm button--danger remove-phone">−</button>
+            </div>
+        `;
+        phoneList.insertAdjacentHTML('beforeend', html);
+    });
+
+    // Видалення телефону
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.remove-phone')) {
+            e.target.closest('.phone-input-group').remove();
+        }
+    });
+
+    // Перевірка дублів (MOCK)
+    const mockDuplicates = {
+        phones: ['+380991111111', '+380992222222'],
+        websites: ['https://existing.com'],
+        instagrams: ['@existing'],
+        telegrams: ['@existing_tg']
+    };
+
+    document.querySelectorAll('input[name="phones[]"]').forEach(input => {
+        input.addEventListener('blur', function () {
+            if (mockDuplicates.phones.includes(this.value)) {
+                this.classList.add('input-error');
+                const hint = document.createElement('span');
+                hint.className = 'form-error';
+                hint.textContent = '⚠️ Такой телефон уже существует';
+                this.parentElement.appendChild(hint);
+            }
+        });
+    });
+
+    document.querySelector('input[name="website"]').addEventListener('blur', function () {
+        if (this.value && mockDuplicates.websites.includes(this.value)) {
+            this.classList.add('input-error');
+            const hint = document.createElement('span');
+            hint.className = 'form-error';
+            hint.textContent = '⚠️ Такой сайт уже существует';
+            this.parentElement.appendChild(hint);
+        }
+    });
+
+    document.querySelector('input[name="instagram"]').addEventListener('blur', function () {
+        if (this.value && mockDuplicates.instagrams.includes(this.value)) {
+            this.classList.add('input-error');
+            const hint = document.createElement('span');
+            hint.className = 'form-error';
+            hint.textContent = '⚠️ Такой Instagram уже существует';
+            this.parentElement.appendChild(hint);
+        }
+    });
+
+    document.querySelector('input[name="telegram"]').addEventListener('blur', function () {
+        if (this.value && mockDuplicates.telegrams.includes(this.value)) {
+            this.classList.add('input-error');
+            const hint = document.createElement('span');
+            hint.className = 'form-error';
+            hint.textContent = '⚠️ Такой Telegram уже существует';
+            this.parentElement.appendChild(hint);
+        }
+    });
+</script>

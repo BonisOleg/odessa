@@ -1,0 +1,216 @@
+{% load static %}
+
+<!-- Тільки контент для HTMX (без layout) -->
+<!-- Header + Actions -->
+<div class="card company-header">
+    <div class="company-header-top">
+        <div class="company-header-info">
+            <img src="{{ company.logo }}" alt="{{ company.name }}" class="company-logo-detail">
+            <div>
+                <h1>{{ company.name }}</h1>
+                <span class="badge {{ company.status_badge }}">{{ company.status }}</span>
+            </div>
+        </div>
+        <div class="company-actions">
+            <a href="/companies/{{ company.id }}/edit/" hx-get="/companies/{{ company.id }}/edit/" hx-target="#main-content" hx-push-url="true"
+                class="button button--sm button--primary">✏️ Редактировать</a>
+            <button type="button" class="button button--sm button--danger">🗑️ Удалить</button>
+            <button type="button" class="button button--sm button--secondary">📊 Экспорт</button>
+        </div>
+    </div>
+    <div class="company-id">ID: {{ company.client_id }}</div>
+</div>
+
+<!-- Контент (2 колонки) -->
+<div class="company-content">
+    <!-- Ліва колонка (70%) -->
+    <div class="company-main">
+        <!-- Контакты -->
+        <div class="card">
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label">📞 Телефоны:</span>
+                    <div class="phone-list">
+                        {% for phone in company.phones %}
+                        <div class="phone-item">
+                            <span>{{ phone.number }}</span>
+                            {% if phone.favorite %}<span class="phone-star">⭐</span>{% endif %}
+                            <span class="phone-name">{{ phone.name }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if company.telegram %}
+                <div class="info-item">
+                    <span class="info-label">💬 Telegram:</span>
+                    <a href="https://t.me/{{ company.telegram|slice:"1:" }}" target="_blank" rel="noopener" class="telegram-link">{{ company.telegram }}</a>
+                </div>
+                {% endif %}
+                {% if company.website %}
+                <div class="info-item">
+                    <span class="info-label">🌐 Сайт:</span>
+                    <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website|slice:"8:" }}</a>
+                </div>
+                {% endif %}
+                {% if company.instagram %}
+                <div class="info-item">
+                    <span class="info-label">📷 Instagram:</span>
+                    <a href="https://instagram.com/{{ company.instagram|slice:"1:" }}" target="_blank" rel="noopener">{{ company.instagram }}</a>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <span class="info-label">📍 Город:</span>
+                    <span>{{ company.city }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">🏷️ Раздел:</span>
+                    <span class="badge {{ company.category_badge }}">{{ company.category }}</span>
+                </div>
+                {% if company.keywords %}
+                <div class="info-item">
+                    <span class="info-label">🔑 Ключевые слова:</span>
+                    <div class="tags-list">
+                        {% for keyword in company.keywords %}
+                        <span class="tag">{{ keyword }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Короткий комментарий -->
+        <div class="card">
+            <div class="short-comment-block">
+                <h4>Короткий комментарий</h4>
+                <p class="short-comment-text" contenteditable="true">{{ company.short_comment }}</p>
+                <small class="text-muted">Кликните для редактирования</small>
+            </div>
+        </div>
+
+        <!-- Полное описание -->
+        <div class="card">
+            <h4>Полное описание</h4>
+            <p>{{ company.full_description }}</p>
+        </div>
+    </div>
+
+    <!-- Права колонка (30%) -->
+    <div class="company-sidebar">
+        <!-- Дата звонка -->
+        <div class="card call-date-card">
+            <h4>📞 Позвонить</h4>
+            <div class="call-date-display">
+                <span class="call-date-value" contenteditable="false">{{ company.call_date_display }}</span>
+                <button class="btn-edit-date" title="Редактировать">✏️</button>
+            </div>
+            <input type="date" class="call-date-input" style="display:none;" value="{{ company.call_date }}">
+        </div>
+
+        <!-- Даты -->
+        <div class="card">
+            <div class="info-item">
+                <span class="info-label">📅 Создано:</span>
+                <span>{{ company.created_date }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">📅 Обновлено:</span>
+                <span>{{ company.updated_date }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🔖 Статус:</span>
+                <span class="badge {{ company.status_badge }}">{{ company.status }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Слайдер фотографій -->
+{% if company.photos %}
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Фотографии</h3>
+    </div>
+    <div class="photo-slider">
+        <button type="button" class="slider-btn slider-btn--prev">←</button>
+        {% for photo in company.photos %}
+        <img src="{{ photo }}" alt="Фото {{ forloop.counter }}">
+        {% endfor %}
+        <button type="button" class="slider-btn slider-btn--next">→</button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Коментарі -->
+<div class="card comments-card">
+    <h3>История комментариев</h3>
+
+    <div class="comments-timeline" id="comments-list">
+        {% for comment in company.comments %}
+        <div class="comment{% if forloop.counter > 3 %} comment--hidden{% endif %}">
+            <div class="comment-header">
+                <span class="comment-author">👤 {{ comment.author }}</span>
+                <span class="comment-date">{{ comment.date }}</span>
+                <button class="btn-delete-comment" title="Удалить">🗑️</button>
+            </div>
+            <div class="comment-text">
+                {{ comment.text }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if company.comments|length > 3 %}
+    <button class="btn-expand-comments" style="display: block;">Показать все комментарии</button>
+    {% endif %}
+
+    <!-- Форма додавання коментаря -->
+    <form class="add-comment-form">
+        {% csrf_token %}
+        <textarea class="form-control" name="comment" rows="2" placeholder="Добавить комментарий..."
+            required></textarea>
+        <button type="submit" class="button button--primary button--sm">Отправить</button>
+    </form>
+</div>
+
+<script defer>
+    // Редагування дати звонка
+    document.querySelector('.btn-edit-date').addEventListener('click', function() {
+        const display = document.querySelector('.call-date-display');
+        const input = document.querySelector('.call-date-input');
+        display.style.display = 'none';
+        input.style.display = 'block';
+        input.focus();
+        
+        input.addEventListener('change', function() {
+            const date = new Date(this.value);
+            const formatted = date.toLocaleDateString('ru-RU');
+            document.querySelector('.call-date-value').textContent = formatted;
+            display.style.display = 'flex';
+            input.style.display = 'none';
+        });
+    });
+
+    // Видалення коментаря
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-delete-comment')) {
+            e.target.closest('.comment').remove();
+        }
+    });
+
+    // Розгорнення коментарів
+    const expandBtn = document.querySelector('.btn-expand-comments');
+    if (expandBtn) {
+        const hiddenComments = document.querySelectorAll('.comment--hidden');
+        if (hiddenComments.length === 0) {
+            expandBtn.style.display = 'none';
+        }
+        
+        expandBtn.addEventListener('click', function() {
+            hiddenComments.forEach(function(c) {
+                c.classList.remove('comment--hidden');
+            });
+            this.style.display = 'none';
+        });
+    }
+</script>

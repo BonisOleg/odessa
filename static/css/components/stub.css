@@ -1,0 +1,49 @@
+/* ==========================================================================
+   Stub Component - CRM Nice
+   ========================================================================== */
+
+.stub-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: var(--spacing-2xl);
+}
+
+.stub-icon {
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+.stub-page h1 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+    margin-bottom: var(--spacing-md);
+}
+
+.stub-page p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-light);
+    margin-bottom: var(--spacing-xl);
+    max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .stub-page {
+        padding: var(--spacing-lg);
+        min-height: 50vh;
+    }
+
+    .stub-icon {
+        font-size: var(--font-size-3xl);
+    }
+
+    .stub-page h1 {
+        font-size: var(--font-size-xl);
+    }
+}
+
+
