@@ -1,3 +1,6 @@
+# Використовуйте цю конфігурацію ТІЛЬКИ якщо у вас немає активної free tier бази даних
+# Або якщо ви плануєте використовувати paid plan для бази даних
+
 services:
   - type: web
     name: crm-nice
@@ -17,6 +20,14 @@ services:
       - key: ALLOWED_HOSTS
         sync: false
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: crm-nice-db
+          property: connectionString
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
+
+databases:
+  - name: crm-nice-db
+    plan: free
+    databaseName: crm_nice
+    user: crm_nice
