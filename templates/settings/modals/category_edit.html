@@ -7,7 +7,7 @@
             <h2 class="modal__title">Редактировать раздел</h2>
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
-        <form method="post" hx-post="{% url 'myapp:category_update' category.pk %}" hx-target="#main-content" hx-swap="innerHTML">
+        <form method="post" action="{% url 'myapp:category_update' category.pk %}" hx-post="{% url 'myapp:category_update' category.pk %}" hx-target="#main-content" hx-swap="innerHTML">
             {% csrf_token %}
             <div class="modal__body">
                 <div class="form-group">

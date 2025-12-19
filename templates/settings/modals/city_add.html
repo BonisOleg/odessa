@@ -7,7 +7,7 @@
             <h2 class="modal__title">Добавить город</h2>
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
-        <form method="post" hx-post="{% url 'myapp:city_create' %}" hx-target="#main-content" hx-swap="innerHTML">
+        <form method="post" action="{% url 'myapp:city_create' %}" hx-post="{% url 'myapp:city_create' %}" hx-target="#main-content" hx-swap="innerHTML">
             {% csrf_token %}
             <div class="modal__body">
                 <div class="form-group">
