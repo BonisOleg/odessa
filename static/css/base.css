@@ -69,3 +69,125 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg-light);
 }
+
+/* ==========================================================================
+   Запобігання розривів HTML тегів та небажаних переносів тексту
+   ========================================================================== */
+
+/* Запобігання розривів для навігації, кнопок, лейблів */
+nav a,
+button,
+.button,
+.btn,
+.label,
+.badge,
+.tag,
+.nav-item,
+.dropdown__item,
+.topbar__nav-link {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Безпечний перенос для текстового контенту */
+p,
+.text-content,
+.description,
+.content,
+.message__text,
+.comment-text,
+.short-comment-text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
+}
+
+/* Покращений перенос з дефісами для заголовків */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  -moz-hyphens: auto;
+}
+
+/* Спеціальна обробка для URL та email */
+a[href^="http"],
+a[href^="mailto"],
+a[href^="tel"],
+.url,
+.email,
+.telegram-link,
+.website-link {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* Flex/Grid контейнери - дозволяють дочірнім елементам стискатися */
+.flex-container,
+.grid-container,
+[class*="flex"],
+[class*="grid"] {
+  min-width: 0;
+}
+
+/* Flex елементи, які містять текст, що може переноситися */
+.flex-item,
+[class*="flex"]>* {
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Адаптивні правила для мобільних пристроїв
+   ========================================================================== */
+
+@media (max-width: 767px) {
+
+  /* На мобільних дозволяємо перенос для довгих текстів */
+  a[href^="http"],
+  a[href^="mailto"],
+  a[href^="tel"],
+  .url,
+  .email,
+  .telegram-link,
+  .website-link {
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+
+  /* Але залишаємо nowrap для критичних елементів */
+  nav a,
+  button,
+  .button,
+  .btn,
+  .label,
+  .badge,
+  .tag,
+  .nav-item,
+  .dropdown__item,
+  .topbar__nav-link {
+    white-space: nowrap;
+  }
+
+  /* Заголовки на мобільних - дозволяємо перенос з дефісами */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+  }
+}

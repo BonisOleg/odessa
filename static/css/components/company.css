@@ -149,6 +149,8 @@
   border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Short Comment */
@@ -178,6 +180,10 @@
   font-family: var(--font-family-base);
   font-size: var(--font-size-base);
   line-height: var(--line-height-base);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .short-comment-text:focus {
@@ -301,6 +307,7 @@
   color: var(--color-text-light);
   margin-left: auto;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btn-delete-comment {
@@ -324,6 +331,10 @@
   color: var(--color-text);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-base);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .btn-expand-comments {

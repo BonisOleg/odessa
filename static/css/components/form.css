@@ -13,6 +13,8 @@
   font-weight: var(--font-weight-medium);
   color: var(--color-text);
   font-size: var(--font-size-base);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .form-group__label--required::after {
@@ -99,7 +101,7 @@ textarea.textarea-auto-resize {
   transition: opacity var(--transition-fast);
 }
 
-.phone-favorite input[type="radio"]:checked + .favorite-star {
+.phone-favorite input[type="radio"]:checked+.favorite-star {
   opacity: 1;
 }
 
@@ -258,6 +260,8 @@ textarea.textarea-auto-resize {
   color: var(--color-bg);
   border-radius: var(--radius-base);
   font-size: var(--font-size-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tag button,

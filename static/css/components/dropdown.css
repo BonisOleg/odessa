@@ -65,6 +65,7 @@
   font-size: var(--font-size-sm);
   transition: background-color var(--transition-fast);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dropdown__item:hover {

@@ -15,6 +15,8 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   line-height: var(--line-height-base);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .button:focus {

@@ -26,6 +26,7 @@
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .table__th:hover {
@@ -45,6 +46,7 @@
   padding: var(--spacing-md) var(--spacing-sm);
   color: var(--color-text);
   vertical-align: middle;
+  min-width: 0;
 }
 
 /* Company table specific */
@@ -172,6 +174,7 @@
 
 .call-date {
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .call-date.past {
@@ -209,11 +212,11 @@
   .filters {
     flex-direction: column;
   }
-  
+
   .filter-group {
     width: 100%;
   }
-  
+
   .table-responsive {
     margin: 0 calc(-1 * var(--spacing-lg));
     padding: 0 var(--spacing-lg);

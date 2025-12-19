@@ -18,6 +18,10 @@
 .message__text {
     font-size: var(--font-size-sm);
     line-height: var(--line-height-relaxed);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    min-width: 0;
 }
 
 /* Success message */
@@ -63,5 +67,3 @@
 .message--info .message__title {
     color: #1e40af;
 }
-
-
