@@ -23,6 +23,15 @@
 
 <div class="layout">
     <main id="main-content" class="layout__main">
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="message message--{{ message.tags|default:'info' }}" role="alert">
+                <div class="message__text">{{ message }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% block page_content %}{% endblock %}
     </main>
 </div>

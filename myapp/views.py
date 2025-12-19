@@ -6,11 +6,16 @@ Views для CRM Nice.
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
+from datetime import timedelta
 
-from .forms import LoginForm, UserProfileForm
+from .forms import CompanyForm, LoginForm, UserProfileForm
+from .models import Category, City, Company, CompanyPhone, Status
 
 
 def is_htmx_request(request: HttpRequest) -> bool:
@@ -22,9 +27,32 @@ def is_htmx_request(request: HttpRequest) -> bool:
 # Компанії
 # ============================================================================
 
-# Порожня структура для наповнення через адмінку
-# TODO: Підключити реальну модель Company після створення
-MOCK_COMPANIES = {}
+def _process_company_phones(company: Company, phones_data: list, contact_names: list, favorite_phone_index: str | None) -> None:
+    """Обробка телефонів компанії при створенні/оновленні."""
+    # Видаляємо старі телефони
+    CompanyPhone.objects.filter(company=company).delete()
+    
+    # Створюємо нові телефони
+    favorite_index = int(favorite_phone_index) if favorite_phone_index and favorite_phone_index.isdigit() else None
+    
+    for index, phone in enumerate(phones_data):
+        if phone.strip():  # Пропускаємо порожні телефони
+            contact_name = contact_names[index] if index < len(contact_names) else ''
+            is_favorite = (favorite_index is not None and index == favorite_index)
+            
+            CompanyPhone.objects.create(
+                company=company,
+                number=phone.strip(),
+                contact_name=contact_name.strip(),
+                is_favorite=is_favorite
+            )
+    
+    # Якщо вказано favorite_phone, але він не встановлений, встановлюємо перший телефон як favorite
+    if favorite_index is None and phones_data:
+        first_phone = CompanyPhone.objects.filter(company=company).first()
+        if first_phone:
+            first_phone.is_favorite = True
+            first_phone.save()
 
 
 @login_required
@@ -34,28 +62,83 @@ def company_list(request):
     # Отримуємо пошуковий запит
     search_query = request.GET.get('search', '').strip()
     
-    # Конвертуємо MOCK_COMPANIES dict в список для шаблону
-    companies_list = list(MOCK_COMPANIES.values())
+    # Отримуємо параметри фільтрації
+    status_filter = request.GET.getlist('status')
+    city_filter = request.GET.getlist('city')
+    category_filter = request.GET.get('category', '')
+    date_updated_filter = request.GET.get('date_updated', '')
+    call_date_filter = request.GET.get('call_date', '')
+    
+    # Отримуємо всі компанії з БД
+    companies_queryset = Company.objects.select_related('city', 'category', 'status').prefetch_related('phones').all()
     
     # Фільтрація по пошуковому запиту
     if search_query:
-        search_lower = search_query.lower()
-        companies_list = [
-            c for c in companies_list 
-            if (search_lower in c.get('name', '').lower() or
-                search_lower in c.get('short_comment', '').lower() or
-                search_lower in c.get('city', '').lower() or
-                search_lower in c.get('category', '').lower() or
-                search_lower in c.get('client_id', '').lower())
-        ]
+        companies_queryset = companies_queryset.filter(
+            Q(name__icontains=search_query) |
+            Q(short_comment__icontains=search_query) |
+            Q(client_id__icontains=search_query) |
+            Q(city__name__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
+            Q(keywords__icontains=search_query) |
+            Q(phones__number__icontains=search_query) |
+            Q(phones__contact_name__icontains=search_query)
+        ).distinct()
+    
+    # Фільтрація по статусу
+    if status_filter:
+        companies_queryset = companies_queryset.filter(status__name__in=status_filter)
+    
+    # Фільтрація по місту
+    if city_filter:
+        companies_queryset = companies_queryset.filter(city__name__in=city_filter)
+    
+    # Фільтрація по розділу
+    if category_filter:
+        companies_queryset = companies_queryset.filter(category__name=category_filter)
+    
+    # Фільтрація по даті оновлення
+    if date_updated_filter:
+        today = timezone.now().date()
+        if date_updated_filter == 'today':
+            companies_queryset = companies_queryset.filter(updated_at__date=today)
+        elif date_updated_filter == 'yesterday':
+            yesterday = today - timedelta(days=1)
+            companies_queryset = companies_queryset.filter(updated_at__date=yesterday)
+        elif date_updated_filter == 'this_week':
+            week_start = today - timedelta(days=today.weekday())
+            companies_queryset = companies_queryset.filter(updated_at__date__gte=week_start)
+        elif date_updated_filter == 'this_month':
+            companies_queryset = companies_queryset.filter(updated_at__year=today.year, updated_at__month=today.month)
+    
+    # Фільтрація по даті дзвінка
+    if call_date_filter:
+        today = timezone.now().date()
+        if call_date_filter == 'overdue':
+            companies_queryset = companies_queryset.filter(call_date__lt=today)
+        elif call_date_filter == 'today':
+            companies_queryset = companies_queryset.filter(call_date=today)
+        elif call_date_filter == 'this_week':
+            week_end = today + timedelta(days=6 - today.weekday())
+            companies_queryset = companies_queryset.filter(call_date__gte=today, call_date__lte=week_end)
     
     # Сортуємо за датою оновлення (нові зверху)
-    companies_list.sort(key=lambda x: x.get('updated_date', ''), reverse=True)
+    companies_queryset = companies_queryset.order_by('-updated_at')
+    
+    # Підрахунок нових компаній за останні 30 днів
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    new_count = Company.objects.filter(created_at__gte=thirty_days_ago).count()
+    
+    # Пагінація
+    paginator = Paginator(companies_queryset, 20)  # 20 компаній на сторінку
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
     
     context = {
-        'companies': companies_list,
-        'total_count': len(companies_list),
-        'new_count': 0,  # Буде підраховуватись з реальної БД
+        'companies': page_obj,
+        'page_obj': page_obj,
+        'total_count': paginator.count,
+        'new_count': new_count,
         'search_query': search_query
     }
     
@@ -67,18 +150,40 @@ def company_list(request):
 @require_http_methods(["GET", "POST"])
 def company_create(request):
     """Форма додавання компанії"""
+    if request.method == "POST":
+        form = CompanyForm(request.POST, request.FILES)
+        phones_data = request.POST.getlist('phones[]')
+        contact_names = request.POST.getlist('contact_names[]')
+        favorite_phone_index = request.POST.get('favorite_phone')
+        
+        if form.is_valid():
+            company = form.save()
+            _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+            messages.success(request, f'Компанія "{company.name}" успішно створена.')
+            if is_htmx_request(request):
+                return redirect('myapp:company_detail', pk=company.pk)
+            return redirect('myapp:company_detail', pk=company.pk)
+    else:
+        form = CompanyForm()
+    
     template = 'companies/create_content.html' if is_htmx_request(request) else 'companies/create.html'
-    return render(request, template)
+    context = {
+        'form': form,
+        'cities': City.objects.all().order_by('name'),
+        'categories': Category.objects.all().order_by('name'),
+        'statuses': Status.objects.all().order_by('name'),
+    }
+    return render(request, template, context)
 
 
 @login_required
 @require_http_methods(["GET"])
 def company_detail(request, pk):
     """Карточка компанії"""
-    company = MOCK_COMPANIES.get(pk)
-    if not company:
-        messages.error(request, 'Компанія не знайдена.')
-        return redirect('myapp:company_list')
+    company = get_object_or_404(
+        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'comments'),
+        pk=pk
+    )
     
     context = {
         'company': company,
@@ -104,9 +209,35 @@ def company_delete(request, pk):
 @require_http_methods(["GET", "POST"])
 def company_edit(request, pk):
     """Форма редагування компанії"""
+    company = get_object_or_404(
+        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones'),
+        pk=pk
+    )
+    
+    if request.method == "POST":
+        form = CompanyForm(request.POST, request.FILES, instance=company)
+        phones_data = request.POST.getlist('phones[]')
+        contact_names = request.POST.getlist('contact_names[]')
+        favorite_phone_index = request.POST.get('favorite_phone')
+        
+        if form.is_valid():
+            company = form.save()
+            _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+            messages.success(request, f'Компанія "{company.name}" успішно оновлена.')
+            if is_htmx_request(request):
+                return redirect('myapp:company_detail', pk=company.pk)
+            return redirect('myapp:company_detail', pk=company.pk)
+    else:
+        form = CompanyForm(instance=company)
+    
     template = 'companies/edit_content.html' if is_htmx_request(request) else 'companies/edit.html'
     context = {
-        'company_id': pk
+        'form': form,
+        'company': company,
+        'company_id': pk,
+        'cities': City.objects.all().order_by('name'),
+        'categories': Category.objects.all().order_by('name'),
+        'statuses': Status.objects.all().order_by('name'),
     }
     return render(request, template, context)
 

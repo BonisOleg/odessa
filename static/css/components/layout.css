@@ -23,12 +23,37 @@
 /* Responsive */
 @media (max-width: 767px) {
   .layout {
-    margin-top: auto;
-    /* Topbar має auto height на мобільних */
+    /* Topbar має auto height на мобільних через flex-wrap.
+       Використовуємо CSS змінну для мобільної висоти topbar */
+    margin-top: calc(var(--topbar-height-mobile, 120px) + var(--safe-area-inset-top));
   }
 
   .layout__main {
     padding: var(--spacing-md);
     padding-bottom: calc(var(--spacing-md) + var(--safe-area-inset-bottom));
+  }
+}
+
+/* Планшети (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .layout {
+    margin-top: var(--topbar-height, 60px);
+  }
+
+  .layout__main {
+    padding: var(--spacing-lg);
+    padding-bottom: calc(var(--spacing-lg) + var(--safe-area-inset-bottom));
+  }
+}
+
+/* Десктопи (1024px+) */
+@media (min-width: 1024px) {
+  .layout {
+    margin-top: var(--topbar-height, 60px);
+  }
+
+  .layout__main {
+    padding: var(--spacing-lg);
+    padding-bottom: calc(var(--spacing-lg) + var(--safe-area-inset-bottom));
   }
 }

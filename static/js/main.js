@@ -39,6 +39,32 @@
     });
 
     // ==========================================================================
+    // HTMX Error Handling
+    // ==========================================================================
+
+    document.body.addEventListener('htmx:responseError', function (event) {
+        console.error('HTMX Error:', event.detail);
+        const target = event.detail.target;
+        if (target) {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'message message--error';
+            errorMsg.innerHTML = '<div class="message__text">Помилка завантаження. Спробуйте ще раз.</div>';
+            target.insertBefore(errorMsg, target.firstChild);
+        }
+    });
+
+    document.body.addEventListener('htmx:sendError', function (event) {
+        console.error('HTMX Send Error:', event.detail);
+        const target = event.detail.target;
+        if (target) {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'message message--error';
+            errorMsg.innerHTML = '<div class="message__text">Помилка відправки запиту. Перевірте з\'єднання.</div>';
+            target.insertBefore(errorMsg, target.firstChild);
+        }
+    });
+
+    // ==========================================================================
     // Topbar Active State Management
     // ==========================================================================
 

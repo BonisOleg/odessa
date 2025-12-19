@@ -2,6 +2,31 @@
 
 <!-- Тільки контент для HTMX (без layout) -->
 
+{% if messages %}
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="message message--{{ message.tags|default:'info' }}" role="alert">
+        <div class="message__text">{{ message }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if form.errors %}
+<div class="message message--error" role="alert">
+    <div class="message__title">Помилки валідації</div>
+    <div class="message__text">
+        <ul>
+            {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+            <li>{{ field }}: {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
 <form class="card" method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
@@ -10,7 +35,12 @@
         <div class="form-column">
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Название компании</label>
-                <input type="text" class="form-control" name="name" placeholder="Введите название" required>
+                <input type="text" class="form-control {% if form.name.errors %}form-control--error{% endif %}" name="name" value="{{ form.name.value|default:'' }}" placeholder="Введите название" required>
+                {% if form.name.errors %}
+                {% for error in form.name.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
@@ -34,27 +64,45 @@
                 <label class="form-group__label">
                     💬 Telegram
                 </label>
-                <input type="text" class="form-control" name="telegram"
-                    placeholder="@username или https://t.me/username">
+                <input type="text" class="form-control {% if form.telegram.errors %}form-control--error{% endif %}" name="telegram" value="{{ form.telegram.value|default:'' }}" placeholder="@username или https://t.me/username">
+                {% if form.telegram.errors %}
+                {% for error in form.telegram.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label">Сайт</label>
-                <input type="url" class="form-control" name="website" placeholder="https://example.com">
+                <input type="url" class="form-control {% if form.website.errors %}form-control--error{% endif %}" name="website" value="{{ form.website.value|default:'' }}" placeholder="https://example.com">
                 <span class="form-hint">Будет проверка на дубли</span>
+                {% if form.website.errors %}
+                {% for error in form.website.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label">Instagram</label>
-                <input type="text" class="form-control" name="instagram" placeholder="@username">
+                <input type="text" class="form-control {% if form.instagram.errors %}form-control--error{% endif %}" name="instagram" value="{{ form.instagram.value|default:'' }}" placeholder="@username">
                 <span class="form-hint">Будет проверка на дубли</span>
+                {% if form.instagram.errors %}
+                {% for error in form.instagram.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label">Ключевые слова</label>
-                <textarea class="form-control" name="keywords" rows="3"
-                    placeholder="CRM, Django, разработка, консалтинг"></textarea>
+                <textarea class="form-control {% if form.keywords.errors %}form-control--error{% endif %}" name="keywords" rows="3" placeholder="CRM, Django, разработка, консалтинг">{{ form.keywords.value|default:'' }}</textarea>
                 <span class="form-hint">Через запятую для точного поиска</span>
+                {% if form.keywords.errors %}
+                {% for error in form.keywords.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
         </div>
 
@@ -62,60 +110,79 @@
         <div class="form-column">
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Город</label>
-                <select class="form-select" name="city" required>
+                <select class="form-select {% if form.city.errors %}form-control--error{% endif %}" name="city" required>
                     <option value="">Выберите город</option>
-                    <option>Киев</option>
-                    <option>Харьков</option>
-                    <option>Львов</option>
-                    <option>Одесса</option>
-                    <option>Днепр</option>
+                    {% for city in cities %}
+                    <option value="{{ city.id }}" {% if form.city.value|stringformat:"s" == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+                    {% endfor %}
                 </select>
+                {% if form.city.errors %}
+                {% for error in form.city.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Раздел</label>
-                <select class="form-select" name="category" required>
+                <select class="form-select {% if form.category.errors %}form-control--error{% endif %}" name="category" required>
                     <option value="">Выберите раздел</option>
-                    <option>IT-услуги</option>
-                    <option>Ресторан</option>
-                    <option>Образование</option>
-                    <option>Недвижимость</option>
-                    <option>Электроника</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if form.category.value|stringformat:"s" == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
                 </select>
+                {% if form.category.errors %}
+                {% for error in form.category.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Статус</label>
-                <select class="form-select" name="status" required>
+                <select class="form-select {% if form.status.errors %}form-control--error{% endif %}" name="status" required>
                     <option value="">Выберите статус</option>
-                    <option>Хороший</option>
-                    <option>Работаем</option>
-                    <option>Не дозвон</option>
-                    <option>Не нужно</option>
-                    <option>Позже</option>
-                    <option>Позвонить</option>
-                    <option>Горячий</option>
-                    <option>Холодный</option>
-                    <option>Теплый</option>
+                    {% for status in statuses %}
+                    <option value="{{ status.id }}" {% if form.status.value|stringformat:"s" == status.id|stringformat:"s" %}selected{% endif %}>{{ status.name }}</option>
+                    {% endfor %}
                 </select>
+                {% if form.status.errors %}
+                {% for error in form.status.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label">Дата звонка</label>
-                <input type="date" class="form-control" name="call_date">
+                <input type="date" class="form-control {% if form.call_date.errors %}form-control--error{% endif %}" name="call_date" value="{{ form.call_date.value|default:'' }}">
                 <span class="form-hint">Запланированная дата звонка</span>
+                {% if form.call_date.errors %}
+                {% for error in form.call_date.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label">Краткий комментарий</label>
-                <textarea class="form-control" name="short_comment" rows="3" maxlength="500"></textarea>
+                <textarea class="form-control {% if form.short_comment.errors %}form-control--error{% endif %}" name="short_comment" rows="3" maxlength="500">{{ form.short_comment.value|default:'' }}</textarea>
                 <span class="form-hint">Макс. 500 символов</span>
+                {% if form.short_comment.errors %}
+                {% for error in form.short_comment.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
 
             <div class="form-group">
                 <label class="form-group__label">Полное описание</label>
-                <textarea class="form-control textarea-auto-resize" name="full_description" rows="3"
-                    placeholder="Описание компании, ссылки, иконки..."></textarea>
+                <textarea class="form-control textarea-auto-resize {% if form.full_description.errors %}form-control--error{% endif %}" name="full_description" rows="3" placeholder="Описание компании, ссылки, иконки...">{{ form.full_description.value|default:'' }}</textarea>
+                {% if form.full_description.errors %}
+                {% for error in form.full_description.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>

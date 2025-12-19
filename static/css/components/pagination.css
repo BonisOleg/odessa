@@ -43,14 +43,17 @@
   cursor: not-allowed;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .pagination {
     flex-direction: column;
     text-align: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
   }
-  
-  .pagination .button {
+
+  .pagination__btn {
     width: 100%;
+    min-height: 44px;
   }
 }
 

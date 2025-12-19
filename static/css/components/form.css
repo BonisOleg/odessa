@@ -180,6 +180,7 @@ textarea.textarea-auto-resize {
   .form-grid,
   .form-grid-2 {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
   }
 
   /* Запобігання zoom на iOS при фокусі - font-size має бути мінімум 16px */
@@ -198,6 +199,38 @@ textarea.textarea-auto-resize {
     .form-select {
       min-height: 48px;
     }
+  }
+
+  /* Phone input group на мобільних */
+  .phone-input-group {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .phone-input-group .form-control {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .phone-favorite {
+    flex-shrink: 0;
+    order: -1;
+  }
+
+  .remove-phone {
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Form group spacing на мобільних */
+  .form-group {
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* Form hint на мобільних */
+  .form-hint {
+    font-size: var(--font-size-xs);
   }
 }
 

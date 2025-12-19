@@ -428,17 +428,70 @@
   .company-actions {
     width: 100%;
     flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .company-actions .button {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .company-header-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
   }
 
   .company-header-info h1 {
     font-size: var(--font-size-xl);
+    word-break: break-word;
+  }
+
+  .company-logo-detail {
+    width: 48px;
+    height: 48px;
   }
 
   .info-list {
     gap: var(--spacing-sm);
   }
 
+  .info-item {
+    gap: var(--spacing-xs);
+  }
+
+  .info-label {
+    font-size: var(--font-size-xs);
+  }
+
   .phone-item {
     flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .phone-item .button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Photo slider на мобільних */
+  .photo-slider {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+
+  .photo-slider img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    scroll-snap-align: start;
+  }
+
+  .slider-btn {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
   }
 }

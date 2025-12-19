@@ -113,8 +113,12 @@
   gap: var(--spacing-lg);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .settings-menu {
     grid-template-columns: 1fr;
+  }
+
+  .card {
+    padding: var(--spacing-md);
   }
 }

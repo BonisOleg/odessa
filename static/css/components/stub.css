@@ -31,9 +31,9 @@
     max-width: 600px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .stub-page {
-        padding: var(--spacing-lg);
+        padding: var(--spacing-md);
         min-height: 50vh;
     }
 
@@ -45,5 +45,3 @@
         font-size: var(--font-size-xl);
     }
 }
-
-

@@ -196,6 +196,11 @@
 
 /* Малі телефони (менше 390px) */
 @media (max-width: 389px) {
+    .topbar {
+        padding: var(--spacing-xs);
+        padding-top: calc(var(--spacing-xs) + var(--safe-area-inset-top));
+    }
+
     .topbar__nav-link {
         font-size: var(--font-size-xs);
         padding: var(--spacing-xs);
@@ -203,14 +208,69 @@
 
     .topbar__datetime {
         font-size: var(--font-size-xs);
+        display: none;
+        /* Приховуємо дату на дуже малих екранах */
     }
 
     .topbar__search-input {
-        width: 100px;
+        width: 80px;
         font-size: 13px;
     }
 
     .topbar__search-input:focus {
-        width: 140px;
+        width: 120px;
+    }
+
+    .topbar__left,
+    .topbar__right {
+        gap: var(--spacing-xs);
+    }
+}
+
+/* Планшети (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .topbar {
+        height: var(--topbar-height, 60px);
+        flex-wrap: nowrap;
+    }
+
+    .topbar__nav {
+        flex: 1 1 auto;
+        order: 2;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .topbar__left {
+        order: 1;
+    }
+
+    .topbar__right {
+        order: 3;
+    }
+}
+
+/* Десктопи (1024px+) */
+@media (min-width: 1024px) {
+    .topbar {
+        height: var(--topbar-height, 60px);
+        flex-wrap: nowrap;
+    }
+
+    .topbar__nav {
+        flex: 1 1 auto;
+        order: 2;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .topbar__left {
+        order: 1;
+    }
+
+    .topbar__right {
+        order: 3;
     }
 }

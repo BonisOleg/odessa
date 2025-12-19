@@ -48,6 +48,7 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --topbar-height: 60px;
+  --topbar-height-mobile: 120px;
 
   /* iOS Safe Areas */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);

@@ -68,6 +68,21 @@
   flex-shrink: 0;
 }
 
+.company-logo--placeholder {
+  background-color: var(--color-bg-light);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  font-size: var(--font-size-xs);
+}
+
+.company-logo--placeholder::before {
+  content: "🏢";
+  font-size: 1.2rem;
+}
+
 .phone-cell {
   display: flex;
   flex-direction: column;
@@ -236,5 +251,49 @@
   .table__td {
     padding: var(--spacing-sm) var(--spacing-xs);
     font-size: var(--font-size-xs);
+  }
+
+  /* Company cell на мобільних */
+  .company-cell {
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+
+  .company-logo {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .company-name-link {
+    font-size: var(--font-size-sm);
+    word-break: break-word;
+  }
+
+  /* Phone cell на мобільних */
+  .phone-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .phone-number {
+    font-size: var(--font-size-xs);
+  }
+
+  .contact-name {
+    font-size: var(--font-size-xs);
+  }
+
+  /* Table actions на мобільних */
+  .table-actions {
+    gap: var(--spacing-xs);
+    flex-wrap: nowrap;
+  }
+
+  .icon-btn {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: var(--font-size-sm);
   }
 }

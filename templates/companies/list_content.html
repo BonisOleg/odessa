@@ -126,16 +126,16 @@
                 </tr>
             </thead>
             <tbody>
-                {% for company in companies %}
-                {% with favorite_phone=company.phones|first %}
-                <tr class="table__row" data-status="{{ company.status }}" data-city="{{ company.city }}"
-                    data-updated="{{ company.updated_date|slice:" :10" }}">
+                {% for company in page_obj %}
+                {% with favorite_phone=company.phones.all.0 %}
+                <tr class="table__row" data-status="{{ company.status.name|default:'' }}" data-city="{{ company.city.name|default:'' }}"
+                    data-updated="{{ company.updated_at|date:'Y-m-d' }}">
                     <td class="table__td">
-                        <span class="text-muted">{{ company.client_id }}</span>
+                        <span class="text-muted">{{ company.client_id|default:company.id }}</span>
                     </td>
                     <td class="table__td">
                         <div class="company-cell">
-                            <img src="{{ company.logo }}" alt="{{ company.name }}" class="company-logo">
+                            <div class="company-logo company-logo--placeholder" title="{{ company.name }}"></div>
                             <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/"
                                 hx-target="#main-content" hx-push-url="true" class="company-name-link">{{ company.name }}</a>
                         </div>
@@ -144,14 +144,14 @@
                         <div class="phone-cell">
                             {% if favorite_phone %}
                             <span class="phone-number">{{ favorite_phone.number }}</span>
-                            {% if favorite_phone.favorite %}<span class="phone-star">⭐</span>{% endif %}
-                            <span class="contact-name">{{ favorite_phone.name }}</span>
+                            {% if favorite_phone.is_favorite %}<span class="phone-star">⭐</span>{% endif %}
+                            <span class="contact-name">{{ favorite_phone.contact_name|default:'' }}</span>
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
                         </div>
                     </td>
-                    <td class="table__td">{% if company.telegram %}{{ company.telegram }}{% else %}-{% endif %}</td>
+                    <td class="table__td">{% if company.instagram %}{{ company.instagram }}{% else %}-{% endif %}</td>
                     <td class="table__td">
                         {% if company.website %}
                         <a href="{{ company.website }}" target="_blank" rel="noopener" class="website-link">🌐</a>
@@ -159,21 +159,22 @@
                         -
                         {% endif %}
                     </td>
-                    <td class="table__td"><span class="badge {{ company.status_badge }}">{{ company.status }}</span>
-                    </td>
-                    <td class="table__td">{{ company.city }}</td>
-                    <td class="table__td">{{ company.updated_date|slice:":10" }}</td>
                     <td class="table__td">
-                        <span class="badge {{ company.category_badge }}">{{ company.category }}</span>
+                        <span class="badge {{ company.status_badge_class }}">{{ company.status.name|default:'-' }}</span>
+                    </td>
+                    <td class="table__td">{{ company.city.name|default:'-' }}</td>
+                    <td class="table__td">{{ company.updated_at|date:"d.m.Y" }}</td>
+                    <td class="table__td">
+                        <span class="badge {{ company.category_badge_class }}">{{ company.category.name|default:'-' }}</span>
                     </td>
                     <td class="table__td">
                         {% if company.call_date %}
-                        <span class="call-date" data-call-date="{{ company.call_date }}">{{ company.call_date_display }}</span>
+                        <span class="call-date" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date|date:"d.m.Y" }}</span>
                         {% else %}
                         <span class="call-date" data-call-date="">-</span>
                         {% endif %}
                     </td>
-                    <td class="table__td">{{ company.short_comment|default:"-" }}</td>
+                    <td class="table__td">{{ company.short_comment|default:"-"|truncatewords:5 }}</td>
                     <td class="table__td">
                         <div class="table-actions">
                             <button type="button" class="icon-btn favorite-btn" data-id="{{ company.id }}"
@@ -204,11 +205,31 @@
     </div>
 
     <!-- Пагінація -->
+    {% if page_obj.has_other_pages %}
     <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+           hx-get="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="pagination__btn pagination__btn--prev">← Назад</a>
+        {% else %}
         <button type="button" class="pagination__btn pagination__btn--prev" disabled>← Назад</button>
-        <span class="pagination__info">Страница 1 из 2</span>
-        <button type="button" class="pagination__btn pagination__btn--next">Вперед →</button>
+        {% endif %}
+        
+        <span class="pagination__info">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+           hx-get="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+           hx-target="#main-content" 
+           hx-push-url="true"
+           class="pagination__btn pagination__btn--next">Вперед →</a>
+        {% else %}
+        <button type="button" class="pagination__btn pagination__btn--next" disabled>Вперед →</button>
+        {% endif %}
     </div>
+    {% endif %}
 </div>
 
 <script defer>
