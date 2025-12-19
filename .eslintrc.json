@@ -1,0 +1,30 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-var": "error",
+    "prefer-const": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-global-assign": "error",
+    "no-implicit-globals": "error",
+    "strict": "off",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "prefer-arrow-callback": "warn",
+    "no-lonely-if": "warn",
+    "no-else-return": "warn",
+    "prefer-template": "warn",
+    "no-undef": "warn"
+  },
+  "globals": {
+    "htmx": "readonly"
+  }
+}

@@ -251,6 +251,11 @@
   border-radius: var(--radius-base);
   font-size: var(--font-size-base);
   cursor: pointer;
+  display: none;
+}
+
+.call-date-input.is-visible {
+  display: block;
 }
 
 /* Comments */
@@ -347,6 +352,11 @@
   font-weight: var(--font-weight-medium);
   transition: all var(--transition-fast);
   margin-bottom: var(--spacing-md);
+  display: block;
+}
+
+.btn-expand-comments.is-hidden {
+  display: none;
 }
 
 .btn-expand-comments:hover {

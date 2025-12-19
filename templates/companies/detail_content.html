@@ -104,7 +104,7 @@
                 <span class="call-date-value" contenteditable="false">{{ company.call_date_display }}</span>
                 <button class="btn-edit-date" title="Редактировать">✏️</button>
             </div>
-            <input type="date" class="call-date-input" style="display:none;" value="{{ company.call_date }}">
+            <input type="date" class="call-date-input" value="{{ company.call_date }}">
         </div>
 
         <!-- Даты -->
@@ -161,7 +161,7 @@
     </div>
 
     {% if company.comments|length > 3 %}
-    <button class="btn-expand-comments" style="display: block;">Показать все комментарии</button>
+    <button class="btn-expand-comments">Показать все комментарии</button>
     {% endif %}
 
     <!-- Форма додавання коментаря -->
@@ -172,45 +172,3 @@
         <button type="submit" class="button button--primary button--sm">Отправить</button>
     </form>
 </div>
-
-<script defer>
-    // Редагування дати звонка
-    document.querySelector('.btn-edit-date').addEventListener('click', function() {
-        const display = document.querySelector('.call-date-display');
-        const input = document.querySelector('.call-date-input');
-        display.style.display = 'none';
-        input.style.display = 'block';
-        input.focus();
-        
-        input.addEventListener('change', function() {
-            const date = new Date(this.value);
-            const formatted = date.toLocaleDateString('ru-RU');
-            document.querySelector('.call-date-value').textContent = formatted;
-            display.style.display = 'flex';
-            input.style.display = 'none';
-        });
-    });
-
-    // Видалення коментаря
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.btn-delete-comment')) {
-            e.target.closest('.comment').remove();
-        }
-    });
-
-    // Розгорнення коментарів
-    const expandBtn = document.querySelector('.btn-expand-comments');
-    if (expandBtn) {
-        const hiddenComments = document.querySelectorAll('.comment--hidden');
-        if (hiddenComments.length === 0) {
-            expandBtn.style.display = 'none';
-        }
-        
-        expandBtn.addEventListener('click', function() {
-            hiddenComments.forEach(function(c) {
-                c.classList.remove('comment--hidden');
-            });
-            this.style.display = 'none';
-        });
-    }
-</script>

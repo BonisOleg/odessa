@@ -1,0 +1,35 @@
+{
+  "name": "crm-nice-linters",
+  "private": true,
+  "scripts": {
+    "lint": "npm run lint:css && npm run lint:js && npm run lint:html",
+    "lint:css": "stylelint \"static/css/**/*.css\"",
+    "lint:js": "eslint \"static/js/**/*.js\"",
+    "lint:html": "htmlhint \"templates/**/*.html\"",
+    "lint:fix": "npm run lint:css -- --fix && npm run lint:js -- --fix",
+    "check:rules": "bash scripts/check-all-rules.sh",
+    "fix:rules": "bash scripts/fix-rules.sh",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-order": "^6.0.4",
+    "stylelint-declaration-block-no-ignored-properties": "^2.8.0",
+    "stylelint-high-performance-animation": "^1.10.0",
+    "stylelint-no-unsupported-browser-features": "^8.0.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-compat": "^4.2.0",
+    "htmlhint": "^1.1.4",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0"
+  },
+  "browserslist": [
+    "Chrome >= 90",
+    "Firefox >= 88",
+    "Safari >= 14",
+    "Edge >= 90",
+    "iOS >= 14",
+    "Android >= 90"
+  ]
+}

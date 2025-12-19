@@ -17,7 +17,7 @@
                 <label class="form-group__label form-group__label--required">Телефоны + Имена контактов</label>
                 <div class="phone-inputs" id="phone-list">
                     <div class="phone-input-group">
-                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" required>
+                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" required>
                         <input type="text" class="form-control" name="contact_names[]" placeholder="Иван Петров">
                         <label class="phone-favorite">
                             <input type="radio" name="favorite_phone" value="0">
@@ -150,7 +150,7 @@
         const index = phoneList.children.length;
         const html = `
             <div class="phone-input-group">
-                <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567">
+                <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel">
                 <input type="text" class="form-control" name="contact_names[]" placeholder="Ім'я контакту">
                 <label class="phone-favorite">
                     <input type="radio" name="favorite_phone" value="${index}">

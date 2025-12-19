@@ -83,7 +83,7 @@
 
 .modal__body {
     padding: var(--spacing-lg);
-    flex: 1;
+    flex: 1 0 0;
     overflow-y: auto;
 }
 
@@ -119,5 +119,3 @@
         width: 100%;
     }
 }
-
-

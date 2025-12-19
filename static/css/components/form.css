@@ -76,7 +76,7 @@ textarea.textarea-auto-resize {
 }
 
 .phone-input-group .form-control {
-  flex: 1;
+  flex: 1 0 0;
 }
 
 .phone-favorite {
@@ -258,7 +258,7 @@ textarea.textarea-auto-resize {
 }
 
 .tags-input input {
-  flex: 1;
+  flex: 1 0 0;
   min-width: 120px;
   border: none;
   padding: var(--spacing-xs);

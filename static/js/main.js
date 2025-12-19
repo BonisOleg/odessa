@@ -6,6 +6,20 @@
     'use strict';
 
     // ==========================================================================
+    // bfcache (Back/Forward Cache) Support
+    // ==========================================================================
+
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            // Сторінка відновлена з bfcache
+            // Примусово знімаємо лоадери або активуємо кнопки
+            document.body.classList.remove('is-loading');
+            // Перезапускаємо ініціалізацію компонентів
+            updateTopbarActiveState();
+        }
+    });
+
+    // ==========================================================================
     // HTMX CSRF Configuration
     // ==========================================================================
 
@@ -160,14 +174,14 @@
 
     function initFavorites() {
         const favoriteButtons = document.querySelectorAll('.favorite-btn');
-        
-        favoriteButtons.forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
+
+        favoriteButtons.forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
                 e.preventDefault();
                 const companyId = this.getAttribute('data-id');
                 const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
                 const index = favorites.indexOf(companyId);
-                
+
                 if (index > -1) {
                     favorites.splice(index, 1);
                     this.classList.remove('icon-btn--active');
@@ -175,16 +189,16 @@
                     favorites.push(companyId);
                     this.classList.add('icon-btn--active');
                 }
-                
+
                 localStorage.setItem('favorites', JSON.stringify(favorites));
                 // Пересортувати таблицю
                 sortTableByFavorites();
             });
         });
-        
+
         // Установити активні стани для закріплених
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        favorites.forEach(function(id) {
+        favorites.forEach(function (id) {
             const btn = document.querySelector('.favorite-btn[data-id="' + id + '"]');
             if (btn) {
                 btn.classList.add('icon-btn--active');
@@ -195,20 +209,20 @@
     function sortTableByFavorites() {
         const table = document.querySelector('table');
         if (!table) return;
-        
+
         const tbody = table.querySelector('tbody');
         const rows = Array.from(tbody.querySelectorAll('tr'));
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        
-        rows.sort(function(a, b) {
+
+        rows.sort(function (a, b) {
             const aId = a.querySelector('.favorite-btn')?.getAttribute('data-id');
             const bId = b.querySelector('.favorite-btn')?.getAttribute('data-id');
             const aFav = favorites.includes(aId) ? 0 : 1;
             const bFav = favorites.includes(bId) ? 0 : 1;
             return aFav - bFav;
         });
-        
-        rows.forEach(function(row) {
+
+        rows.forEach(function (row) {
             tbody.appendChild(row);
         });
     }
@@ -223,9 +237,9 @@
     function initPagination() {
         const prevBtn = document.querySelector('.pagination__btn--prev');
         const nextBtn = document.querySelector('.pagination__btn--next');
-        
+
         if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
+            prevBtn.addEventListener('click', function () {
                 if (!this.disabled) {
                     const currentPage = parseInt(document.querySelector('.pagination__info').textContent.match(/\d+/)[0]);
                     if (currentPage > 1) {
@@ -235,9 +249,9 @@
                 }
             });
         }
-        
+
         if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
+            nextBtn.addEventListener('click', function () {
                 if (!this.disabled) {
                     const currentPage = parseInt(document.querySelector('.pagination__info').textContent.match(/\d+/)[0]);
                     const totalPages = parseInt(document.querySelector('.pagination__info').textContent.match(/\d+/g)[1]);
@@ -255,15 +269,15 @@
         const info = document.querySelector('.pagination__info');
         const prevBtn = document.querySelector('.pagination__btn--prev');
         const nextBtn = document.querySelector('.pagination__btn--next');
-        
+
         if (info) {
             info.textContent = `Страница ${page} из ${totalPages}`;
         }
-        
+
         if (prevBtn) {
             prevBtn.disabled = page === 1;
         }
-        
+
         if (nextBtn) {
             nextBtn.disabled = page === totalPages;
         }
@@ -276,7 +290,7 @@
     // Telegram Notification
     // ==========================================================================
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const telegramBtn = e.target.closest('.telegram-btn');
         if (telegramBtn) {
             e.preventDefault();
@@ -294,8 +308,8 @@
         textarea.style.height = Math.min(textarea.scrollHeight, 300) + 'px';
     }
 
-    document.querySelectorAll('.textarea-auto-resize').forEach(function(textarea) {
-        textarea.addEventListener('input', function() {
+    document.querySelectorAll('.textarea-auto-resize').forEach(function (textarea) {
+        textarea.addEventListener('input', function () {
             autoResizeTextarea(this);
         });
         autoResizeTextarea(textarea);
@@ -399,7 +413,7 @@
     // Comment Deletion
     // ==========================================================================
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.closest('.btn-delete-comment')) {
             e.preventDefault();
             const comment = e.target.closest('.comment');
@@ -415,29 +429,29 @@
 
     function initCallDateEditor() {
         const editBtns = document.querySelectorAll('.btn-edit-date');
-        editBtns.forEach(function(btn) {
-            btn.addEventListener('click', function() {
+        editBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
                 const display = this.closest('.call-date-display');
                 const input = this.closest('.call-date-card').querySelector('.call-date-input');
-                
+
                 if (!input) return;
-                
+
                 display.style.display = 'none';
-                input.style.display = 'block';
+                input.classList.add('is-visible');
                 input.focus();
-                
+
                 function saveDate() {
                     const date = new Date(input.value);
-                    const formatted = ('0' + date.getDate()).slice(-2) + '.' + 
-                                    ('0' + (date.getMonth() + 1)).slice(-2) + '.' + 
-                                    date.getFullYear();
-                    
+                    const formatted = ('0' + date.getDate()).slice(-2) + '.' +
+                        ('0' + (date.getMonth() + 1)).slice(-2) + '.' +
+                        date.getFullYear();
+
                     const valueSpan = display.querySelector('.call-date-value');
                     valueSpan.textContent = formatted;
                     display.style.display = 'flex';
-                    input.style.display = 'none';
+                    input.classList.remove('is-visible');
                 }
-                
+
                 input.addEventListener('change', saveDate);
                 input.addEventListener('blur', saveDate);
             });
@@ -446,5 +460,29 @@
 
     initCallDateEditor();
     document.body.addEventListener('htmx:afterSwap', initCallDateEditor);
+
+    // ==========================================================================
+    // Company Detail Page - Expand Comments
+    // ==========================================================================
+
+    function initExpandComments() {
+        const expandBtn = document.querySelector('.btn-expand-comments');
+        if (expandBtn) {
+            const hiddenComments = document.querySelectorAll('.comment--hidden');
+            if (hiddenComments.length === 0) {
+                expandBtn.classList.add('is-hidden');
+            }
+
+            expandBtn.addEventListener('click', function () {
+                hiddenComments.forEach(function (c) {
+                    c.classList.remove('comment--hidden');
+                });
+                this.classList.add('is-hidden');
+            });
+        }
+    }
+
+    initExpandComments();
+    document.body.addEventListener('htmx:afterSwap', initExpandComments);
 
 })();
