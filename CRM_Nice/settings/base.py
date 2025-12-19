@@ -63,8 +63,6 @@ TEMPLATES = [
                 "django.template.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "lstrip_blocks": True,
-            "trim_blocks": True,
             "autoescape": True,
         },
     },
