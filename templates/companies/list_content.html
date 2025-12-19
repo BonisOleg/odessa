@@ -128,15 +128,17 @@
             <tbody>
                 {% for company in companies %}
                 {% with favorite_phone=company.phones|first %}
-                <tr class="table__row" data-status="{{ company.status }}" data-city="{{ company.city }}" data-updated="{{ company.updated_date|slice:":10" }}">
+                <tr class="table__row" data-status="{{ company.status }}" data-city="{{ company.city }}"
+                    data-updated="{{ company.updated_date|slice:" :10" }}">
                     <td class="table__td">
                         <span class="text-muted">{{ company.client_id }}</span>
                     </td>
                     <td class="table__td">
                         <div class="company-cell">
                             <img src="{{ company.logo }}" alt="{{ company.name }}" class="company-logo">
-                            <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/" hx-target="#main-content" hx-push-url="true"
-                                class="company-name-link">{{ company.name }}</a>
+                            <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/"
+                                hx-target="#main-content" hx-push-url="true" class="company-name-link">{{ company.name
+                                }}</a>
                         </div>
                     </td>
                     <td class="table__td">
@@ -158,7 +160,8 @@
                         -
                         {% endif %}
                     </td>
-                    <td class="table__td"><span class="badge {{ company.status_badge }}">{{ company.status }}</span></td>
+                    <td class="table__td"><span class="badge {{ company.status_badge }}">{{ company.status }}</span>
+                    </td>
                     <td class="table__td">{{ company.city }}</td>
                     <td class="table__td">{{ company.updated_date|slice:":10" }}</td>
                     <td class="table__td">
@@ -166,7 +169,8 @@
                     </td>
                     <td class="table__td">
                         {% if company.call_date %}
-                        <span class="call-date" data-call-date="{{ company.call_date }}">{{ company.call_date_display }}</span>
+                        <span class="call-date" data-call-date="{{ company.call_date }}">{{ company.call_date_display
+                            }}</span>
                         {% else %}
                         <span class="call-date" data-call-date="">-</span>
                         {% endif %}
@@ -174,14 +178,18 @@
                     <td class="table__td">{{ company.short_comment|default:"-" }}</td>
                     <td class="table__td">
                         <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn" data-id="{{ company.id }}" title="В избранное">⭐</button>
+                            <button type="button" class="icon-btn favorite-btn" data-id="{{ company.id }}"
+                                title="В избранное">⭐</button>
                             {% if company.telegram %}
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="{{ company.telegram }}" title="Telegram">💬</button>
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="{{ company.telegram }}"
+                                title="Telegram">💬</button>
                             {% endif %}
-                            <a href="/companies/{{ company.id }}/edit/" hx-get="/companies/{{ company.id }}/edit/" hx-target="#main-content"
-                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
-                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/{{ company.id }}/delete/"
-                                hx-target="body" hx-swap="beforeend">🗑️</button>
+                            <a href="/companies/{{ company.id }}/edit/" hx-get="/companies/{{ company.id }}/edit/"
+                                hx-target="#main-content" hx-push-url="true" class="icon-btn"
+                                title="Редактировать">✏️</a>
+                            <button type="button" class="icon-btn" title="Удалить"
+                                hx-get="/companies/{{ company.id }}/delete/" hx-target="body"
+                                hx-swap="beforeend">🗑️</button>
                         </div>
                     </td>
                 </tr>
@@ -209,19 +217,19 @@
     // ==========================================================================
     // Multiselect Dropdown
     // ==========================================================================
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const trigger = e.target.closest('.multiselect-trigger');
         if (trigger) {
             e.preventDefault();
             e.stopPropagation();
             const dropdown = trigger.closest('.multiselect-dropdown');
             const isOpen = dropdown.classList.contains('is-open');
-            
+
             // Закрити всі інші
-            document.querySelectorAll('.multiselect-dropdown.is-open').forEach(function(open) {
+            document.querySelectorAll('.multiselect-dropdown.is-open').forEach(function (open) {
                 if (open !== dropdown) open.classList.remove('is-open');
             });
-            
+
             // Перемкнути поточний
             if (isOpen) {
                 dropdown.classList.remove('is-open');
@@ -230,7 +238,7 @@
             }
         } else if (!e.target.closest('.multiselect-dropdown')) {
             // Закрити всі при кліку поза
-            document.querySelectorAll('.multiselect-dropdown.is-open').forEach(function(dropdown) {
+            document.querySelectorAll('.multiselect-dropdown.is-open').forEach(function (dropdown) {
                 dropdown.classList.remove('is-open');
             });
         }
@@ -258,27 +266,27 @@
         const cityChecks = document.querySelectorAll('input[data-filter="city"]:checked');
         const selectedStatuses = Array.from(statusChecks).map(cb => cb.value);
         const selectedCities = Array.from(cityChecks).map(cb => cb.value);
-        
+
         const rows = document.querySelectorAll('tbody tr');
-        rows.forEach(function(row) {
+        rows.forEach(function (row) {
             let show = true;
-            
+
             if (selectedStatuses.length > 0) {
                 const rowStatus = row.getAttribute('data-status');
                 if (!selectedStatuses.includes(rowStatus)) show = false;
             }
-            
+
             if (selectedCities.length > 0) {
                 const rowCity = row.getAttribute('data-city');
                 if (!selectedCities.includes(rowCity)) show = false;
             }
-            
+
             row.style.display = show ? '' : 'none';
         });
     }
 
     // Обробка змін checkbox
-    document.addEventListener('change', function(e) {
+    document.addEventListener('change', function (e) {
         if (e.target.matches('input[data-filter]')) {
             const dropdown = e.target.closest('.multiselect-dropdown');
             updateMultiselectText(dropdown);
@@ -292,24 +300,24 @@
     function sortTableByDate() {
         const tbody = document.querySelector('tbody');
         if (!tbody) return;
-        
+
         const rows = Array.from(tbody.querySelectorAll('tr'));
         const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        
-        rows.sort(function(a, b) {
+
+        rows.sort(function (a, b) {
             const aId = a.querySelector('.favorite-btn')?.getAttribute('data-id');
             const bId = b.querySelector('.favorite-btn')?.getAttribute('data-id');
             const aFav = favorites.includes(aId) ? 0 : 1;
             const bFav = favorites.includes(bId) ? 0 : 1;
-            
+
             if (aFav !== bFav) return aFav - bFav;
-            
+
             const aDate = a.getAttribute('data-updated') || '';
             const bDate = b.getAttribute('data-updated') || '';
             return bDate.localeCompare(aDate);
         });
-        
-        rows.forEach(function(row) {
+
+        rows.forEach(function (row) {
             tbody.appendChild(row);
         });
     }
@@ -320,14 +328,14 @@
     function checkCallDates() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        document.querySelectorAll('.call-date[data-call-date]').forEach(function(el) {
+
+        document.querySelectorAll('.call-date[data-call-date]').forEach(function (el) {
             const dateStr = el.getAttribute('data-call-date');
             if (!dateStr || dateStr === '-') return;
-            
+
             const callDate = new Date(dateStr);
             callDate.setHours(0, 0, 0, 0);
-            
+
             el.classList.remove('past', 'future');
             if (callDate < today) {
                 el.classList.add('past');
@@ -340,9 +348,9 @@
     // Ініціалізація
     sortTableByDate();
     checkCallDates();
-    
+
     // Після HTMX
-    document.body.addEventListener('htmx:afterSwap', function() {
+    document.body.addEventListener('htmx:afterSwap', function () {
         sortTableByDate();
         checkCallDates();
     });
