@@ -7,15 +7,15 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 
-from .forms import CompanyForm, LoginForm, UserProfileForm
-from .models import Category, City, Company, CompanyPhone, Status
+from .forms import CategoryForm, CityForm, CompanyForm, CountryForm, LoginForm, StatusForm, UserProfileForm
+from .models import Category, City, Company, CompanyPhone, Country, Status
 
 
 def is_htmx_request(request: HttpRequest) -> bool:
@@ -255,35 +255,65 @@ def settings_dashboard(request):
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def settings_countries(request):
     """Управління країнами"""
+    countries = Country.objects.annotate(
+        cities_count=Count('cities', distinct=True)
+    ).order_by('name')
+    
     template = 'settings/countries_content.html' if is_htmx_request(request) else 'settings/countries.html'
-    return render(request, template)
+    context = {'countries': countries}
+    return render(request, template, context)
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def settings_cities(request):
     """Управління містами"""
+    country_filter = request.GET.get('country', '')
+    cities_queryset = City.objects.select_related('country').annotate(
+        companies_count=Count('companies', distinct=True)
+    ).order_by('name')
+    
+    if country_filter:
+        cities_queryset = cities_queryset.filter(country_id=country_filter)
+    
+    countries = Country.objects.all().order_by('name')
+    
     template = 'settings/cities_content.html' if is_htmx_request(request) else 'settings/cities.html'
-    return render(request, template)
+    context = {
+        'cities': cities_queryset,
+        'countries': countries,
+        'selected_country': country_filter,
+    }
+    return render(request, template, context)
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def settings_categories(request):
     """Управління розділами"""
+    categories = Category.objects.annotate(
+        companies_count=Count('companies', distinct=True)
+    ).order_by('name')
+    
     template = 'settings/categories_content.html' if is_htmx_request(request) else 'settings/categories.html'
-    return render(request, template)
+    context = {'categories': categories}
+    return render(request, template, context)
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def settings_statuses(request):
     """Управління статусами"""
+    statuses = Status.objects.annotate(
+        companies_count=Count('companies', distinct=True)
+    ).order_by('-is_default', 'name')
+    
     template = 'settings/statuses_content.html' if is_htmx_request(request) else 'settings/statuses.html'
-    return render(request, template)
+    context = {'statuses': statuses}
+    return render(request, template, context)
 
 
 @login_required
@@ -302,92 +332,326 @@ def settings_users(request):
 @require_http_methods(["GET"])
 def settings_country_add(request):
     """Модальне вікно додавання країни"""
-    return render(request, 'settings/modals/country_add.html')
+    form = CountryForm()
+    return render(request, 'settings/modals/country_add.html', {'form': form})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_country_edit(request, pk):
     """Модальне вікно редагування країни"""
-    context = {'country_id': pk}
-    return render(request, 'settings/modals/country_edit.html', context)
+    country = get_object_or_404(Country, pk=pk)
+    form = CountryForm(instance=country)
+    return render(request, 'settings/modals/country_edit.html', {'form': form, 'country': country})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_country_delete(request, pk):
     """Модальне вікно підтвердження видалення країни"""
-    context = {'country_id': pk, 'country_name': 'Украина'}
-    return render(request, 'settings/modals/country_delete.html', context)
+    country = get_object_or_404(Country, pk=pk)
+    cities_count = country.cities.count()
+    return render(request, 'settings/modals/country_delete.html', {'country': country, 'cities_count': cities_count})
+
+
+@login_required
+@require_http_methods(["POST"])
+def country_create(request):
+    """Створення країни через HTMX"""
+    form = CountryForm(request.POST)
+    if form.is_valid():
+        country = form.save()
+        messages.success(request, f'Країна "{country.name}" успішно додана.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_countries')
+        return redirect('myapp:settings_countries')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        return render(request, 'settings/modals/country_add.html', {'form': form}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def country_update(request, pk):
+    """Оновлення країни через HTMX"""
+    country = get_object_or_404(Country, pk=pk)
+    form = CountryForm(request.POST, instance=country)
+    if form.is_valid():
+        country = form.save()
+        messages.success(request, f'Країна "{country.name}" успішно оновлена.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_countries')
+        return redirect('myapp:settings_countries')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        return render(request, 'settings/modals/country_edit.html', {'form': form, 'country': country}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def country_delete(request, pk):
+    """Видалення країни через HTMX"""
+    country = get_object_or_404(Country, pk=pk)
+    cities_count = country.cities.count()
+    if cities_count > 0:
+        messages.error(request, f'Неможливо видалити країну "{country.name}", оскільки до неї прив\'язано {cities_count} міст.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_countries')
+        return redirect('myapp:settings_countries')
+    
+    country_name = country.name
+    country.delete()
+    messages.success(request, f'Країна "{country_name}" успішно видалена.')
+    if is_htmx_request(request):
+        return redirect('myapp:settings_countries')
+    return redirect('myapp:settings_countries')
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_city_add(request):
     """Модальне вікно додавання міста"""
-    return render(request, 'settings/modals/city_add.html')
+    form = CityForm()
+    countries = Country.objects.all().order_by('name')
+    return render(request, 'settings/modals/city_add.html', {'form': form, 'countries': countries})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_city_edit(request, pk):
     """Модальне вікно редагування міста"""
-    context = {'city_id': pk}
-    return render(request, 'settings/modals/city_edit.html', context)
+    city = get_object_or_404(City, pk=pk)
+    form = CityForm(instance=city)
+    countries = Country.objects.all().order_by('name')
+    return render(request, 'settings/modals/city_edit.html', {'form': form, 'city': city, 'countries': countries})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_city_delete(request, pk):
     """Модальне вікно підтвердження видалення міста"""
-    context = {'city_id': pk, 'city_name': 'Киев'}
-    return render(request, 'settings/modals/city_delete.html', context)
+    city = get_object_or_404(City, pk=pk)
+    companies_count = city.companies.count()
+    return render(request, 'settings/modals/city_delete.html', {'city': city, 'companies_count': companies_count})
+
+
+@login_required
+@require_http_methods(["POST"])
+def city_create(request):
+    """Створення міста через HTMX"""
+    form = CityForm(request.POST)
+    if form.is_valid():
+        city = form.save()
+        messages.success(request, f'Місто "{city.name}" успішно додане.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_cities')
+        return redirect('myapp:settings_cities')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        countries = Country.objects.all().order_by('name')
+        return render(request, 'settings/modals/city_add.html', {'form': form, 'countries': countries}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def city_update(request, pk):
+    """Оновлення міста через HTMX"""
+    city = get_object_or_404(City, pk=pk)
+    form = CityForm(request.POST, instance=city)
+    if form.is_valid():
+        city = form.save()
+        messages.success(request, f'Місто "{city.name}" успішно оновлене.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_cities')
+        return redirect('myapp:settings_cities')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        countries = Country.objects.all().order_by('name')
+        return render(request, 'settings/modals/city_edit.html', {'form': form, 'city': city, 'countries': countries}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def city_delete(request, pk):
+    """Видалення міста через HTMX"""
+    city = get_object_or_404(City, pk=pk)
+    companies_count = city.companies.count()
+    if companies_count > 0:
+        messages.error(request, f'Неможливо видалити місто "{city.name}", оскільки до нього прив\'язано {companies_count} компаній.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_cities')
+        return redirect('myapp:settings_cities')
+    
+    city_name = city.name
+    city.delete()
+    messages.success(request, f'Місто "{city_name}" успішно видалене.')
+    if is_htmx_request(request):
+        return redirect('myapp:settings_cities')
+    return redirect('myapp:settings_cities')
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_category_add(request):
     """Модальне вікно додавання розділу"""
-    return render(request, 'settings/modals/category_add.html')
+    form = CategoryForm()
+    return render(request, 'settings/modals/category_add.html', {'form': form})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_category_edit(request, pk):
     """Модальне вікно редагування розділу"""
-    context = {'category_id': pk}
-    return render(request, 'settings/modals/category_edit.html', context)
+    category = get_object_or_404(Category, pk=pk)
+    form = CategoryForm(instance=category)
+    return render(request, 'settings/modals/category_edit.html', {'form': form, 'category': category})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_category_delete(request, pk):
     """Модальне вікно підтвердження видалення розділу"""
-    context = {'category_id': pk, 'category_name': 'IT-услуги'}
-    return render(request, 'settings/modals/category_delete.html', context)
+    category = get_object_or_404(Category, pk=pk)
+    companies_count = category.companies.count()
+    return render(request, 'settings/modals/category_delete.html', {'category': category, 'companies_count': companies_count})
+
+
+@login_required
+@require_http_methods(["POST"])
+def category_create(request):
+    """Створення категорії через HTMX"""
+    form = CategoryForm(request.POST)
+    if form.is_valid():
+        category = form.save()
+        messages.success(request, f'Розділ "{category.name}" успішно додано.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_categories')
+        return redirect('myapp:settings_categories')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        return render(request, 'settings/modals/category_add.html', {'form': form}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def category_update(request, pk):
+    """Оновлення категорії через HTMX"""
+    category = get_object_or_404(Category, pk=pk)
+    form = CategoryForm(request.POST, instance=category)
+    if form.is_valid():
+        category = form.save()
+        messages.success(request, f'Розділ "{category.name}" успішно оновлено.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_categories')
+        return redirect('myapp:settings_categories')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        return render(request, 'settings/modals/category_edit.html', {'form': form, 'category': category}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def category_delete(request, pk):
+    """Видалення категорії через HTMX"""
+    category = get_object_or_404(Category, pk=pk)
+    companies_count = category.companies.count()
+    if companies_count > 0:
+        messages.error(request, f'Неможливо видалити розділ "{category.name}", оскільки до нього прив\'язано {companies_count} компаній.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_categories')
+        return redirect('myapp:settings_categories')
+    
+    category_name = category.name
+    category.delete()
+    messages.success(request, f'Розділ "{category_name}" успішно видалено.')
+    if is_htmx_request(request):
+        return redirect('myapp:settings_categories')
+    return redirect('myapp:settings_categories')
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_status_add(request):
     """Модальне вікно додавання статусу"""
-    return render(request, 'settings/modals/status_add.html')
+    form = StatusForm()
+    return render(request, 'settings/modals/status_add.html', {'form': form})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_status_edit(request, pk):
     """Модальне вікно редагування статусу"""
-    context = {'status_id': pk}
-    return render(request, 'settings/modals/status_edit.html', context)
+    status = get_object_or_404(Status, pk=pk)
+    form = StatusForm(instance=status)
+    return render(request, 'settings/modals/status_edit.html', {'form': form, 'status': status})
 
 
 @login_required
 @require_http_methods(["GET"])
 def settings_status_delete(request, pk):
     """Модальне вікно підтвердження видалення статусу"""
-    context = {'status_id': pk, 'status_name': 'В работе'}
-    return render(request, 'settings/modals/status_delete.html', context)
+    status = get_object_or_404(Status, pk=pk)
+    companies_count = status.companies.count()
+    return render(request, 'settings/modals/status_delete.html', {'status': status, 'companies_count': companies_count})
+
+
+@login_required
+@require_http_methods(["POST"])
+def status_create(request):
+    """Створення статусу через HTMX"""
+    form = StatusForm(request.POST)
+    if form.is_valid():
+        # Якщо встановлено is_default=True, скидаємо інші
+        if form.cleaned_data.get('is_default'):
+            Status.objects.filter(is_default=True).update(is_default=False)
+        status = form.save()
+        messages.success(request, f'Статус "{status.name}" успішно додано.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_statuses')
+        return redirect('myapp:settings_statuses')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        return render(request, 'settings/modals/status_add.html', {'form': form}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def status_update(request, pk):
+    """Оновлення статусу через HTMX"""
+    status = get_object_or_404(Status, pk=pk)
+    form = StatusForm(request.POST, instance=status)
+    if form.is_valid():
+        # Якщо встановлено is_default=True, скидаємо інші
+        if form.cleaned_data.get('is_default'):
+            Status.objects.filter(is_default=True).exclude(pk=pk).update(is_default=False)
+        status = form.save()
+        messages.success(request, f'Статус "{status.name}" успішно оновлено.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_statuses')
+        return redirect('myapp:settings_statuses')
+    else:
+        messages.error(request, 'Помилка валідації форми.')
+        return render(request, 'settings/modals/status_edit.html', {'form': form, 'status': status}, status=400)
+
+
+@login_required
+@require_http_methods(["POST"])
+def status_delete(request, pk):
+    """Видалення статусу через HTMX"""
+    status = get_object_or_404(Status, pk=pk)
+    companies_count = status.companies.count()
+    if companies_count > 0:
+        messages.error(request, f'Неможливо видалити статус "{status.name}", оскільки до нього прив\'язано {companies_count} компаній.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_statuses')
+        return redirect('myapp:settings_statuses')
+    
+    status_name = status.name
+    status.delete()
+    messages.success(request, f'Статус "{status_name}" успішно видалено.')
+    if is_htmx_request(request):
+        return redirect('myapp:settings_statuses')
+    return redirect('myapp:settings_statuses')
 
 
 @login_required

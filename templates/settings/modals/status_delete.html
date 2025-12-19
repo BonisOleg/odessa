@@ -8,12 +8,21 @@
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
         <div class="modal__body">
-            <p>Вы уверены, что хотите удалить статус <strong>{{ status_name }}</strong>?</p>
+            <p>Вы уверены, что хотите удалить статус <strong>{{ status.name }}</strong>?</p>
+            {% if companies_count > 0 %}
+            <p class="text-muted">Невозможно удалить статус, так как к нему привязано {{ companies_count }} компаний.</p>
+            {% else %}
             <p class="text-muted">Это действие нельзя отменить.</p>
+            {% endif %}
         </div>
         <div class="modal__footer">
             <button type="button" class="button button--secondary" data-action="close-modal">Отмена</button>
-            <button type="button" class="button button--danger">Удалить</button>
+            {% if companies_count == 0 %}
+            <form method="post" hx-post="{% url 'myapp:status_delete' status.pk %}" hx-target="#main-content" hx-swap="innerHTML" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="button button--danger">Удалить</button>
+            </form>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -7,25 +7,30 @@
             <h2 class="modal__title">Добавить статус</h2>
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
-        <form method="post">
+        <form method="post" hx-post="{% url 'myapp:status_create' %}" hx-target="#main-content" hx-swap="innerHTML">
             {% csrf_token %}
             <div class="modal__body">
                 <div class="form-group">
-                    <label class="form-group__label form-group__label--required">Название статуса</label>
-                    <input type="text" class="form-control" name="name" placeholder="В работе" required>
+                    <label class="form-group__label form-group__label--required">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="form-group__error">{{ form.name.errors }}</div>
+                    {% endif %}
                 </div>
                 <div class="form-group">
-                    <label class="form-group__label form-group__label--required">Цвет фона</label>
-                    <input type="color" class="form-control" name="bg_color" value="#D1FAE5" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-group__label form-group__label--required">Цвет текста</label>
-                    <input type="color" class="form-control" name="text_color" value="#065F46" required>
+                    <label class="form-group__label form-group__label--required">{{ form.badge_class.label }}</label>
+                    {{ form.badge_class }}
+                    {% if form.badge_class.errors %}
+                    <div class="form-group__error">{{ form.badge_class.errors }}</div>
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     <label class="form-group__label">
-                        <input type="checkbox" name="is_default"> По умолчанию
+                        {{ form.is_default }} {{ form.is_default.label }}
                     </label>
+                    {% if form.is_default.errors %}
+                    <div class="form-group__error">{{ form.is_default.errors }}</div>
+                    {% endif %}
                 </div>
             </div>
             <div class="modal__footer">

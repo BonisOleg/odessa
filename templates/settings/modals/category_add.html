@@ -7,16 +7,29 @@
             <h2 class="modal__title">Добавить раздел</h2>
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
-        <form method="post">
+        <form method="post" hx-post="{% url 'myapp:category_create' %}" hx-target="#main-content" hx-swap="innerHTML">
             {% csrf_token %}
             <div class="modal__body">
                 <div class="form-group">
-                    <label class="form-group__label form-group__label--required">Название раздела</label>
-                    <input type="text" class="form-control" name="name" placeholder="IT-услуги" required>
+                    <label class="form-group__label form-group__label--required">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="form-group__error">{{ form.name.errors }}</div>
+                    {% endif %}
                 </div>
                 <div class="form-group">
-                    <label class="form-group__label form-group__label--required">Цвет</label>
-                    <input type="color" class="form-control" name="color" value="#3B82F6" required>
+                    <label class="form-group__label form-group__label--required">{{ form.badge_color_bg.label }}</label>
+                    {{ form.badge_color_bg }}
+                    {% if form.badge_color_bg.errors %}
+                    <div class="form-group__error">{{ form.badge_color_bg.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-group__label form-group__label--required">{{ form.badge_color_fg.label }}</label>
+                    {{ form.badge_color_fg }}
+                    {% if form.badge_color_fg.errors %}
+                    <div class="form-group__error">{{ form.badge_color_fg.errors }}</div>
+                    {% endif %}
                 </div>
             </div>
             <div class="modal__footer">

@@ -51,7 +51,7 @@
 
 /* Company table specific */
 .company-table {
-  min-width: 1200px;
+  min-width: 100%;
 }
 
 .company-cell {
@@ -295,5 +295,23 @@
     min-width: 40px;
     min-height: 40px;
     font-size: var(--font-size-sm);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .company-table {
+    display: table;
+    white-space: nowrap;
+  }
+
+  .table__th,
+  .table__td {
+    min-width: 100px;
   }
 }

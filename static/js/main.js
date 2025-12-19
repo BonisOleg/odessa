@@ -404,18 +404,26 @@
     // Закриття по ESC
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
-            const openModal = document.querySelector('.modal.is-open');
-            if (openModal) {
-                closeModal(openModal);
+            const openModalEl = document.querySelector('.modal.is-open');
+            if (openModalEl) {
+                closeModal(openModalEl);
             }
         }
     });
 
     // Відкриття модального вікна після HTMX завантаження
     document.body.addEventListener('htmx:afterSwap', function (event) {
+        // Якщо завантажено модальне вікно
         const modal = event.detail.target.querySelector('.modal');
         if (modal) {
             openModal(modal);
+        }
+        // Якщо оновлено #main-content (успішний submit), закриваємо всі модальні вікна
+        if (event.detail.target.id === 'main-content') {
+            const openModals = document.querySelectorAll('.modal.is-open');
+            openModals.forEach(function (modal) {
+                closeModal(modal);
+            });
         }
     });
 

@@ -26,81 +26,24 @@
             </tr>
         </thead>
         <tbody>
+            {% for category in categories %}
             <tr class="table__row">
-                <td class="table__td">IT-услуги</td>
+                <td class="table__td">{{ category.name }}</td>
                 <td class="table__td">
-                    <div class="color-preview" data-color="#3B82F6"></div>
-                    <span class="text-muted">#3B82F6</span>
+                    <div class="color-preview" data-color="{{ category.badge_color_bg }}"></div>
+                    <span class="text-muted">{{ category.badge_color_bg }}</span>
                 </td>
-                <td class="table__td">45</td>
+                <td class="table__td">{{ category.companies_count }}</td>
                 <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/categories/1/edit/" hx-target="body"
-                        hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/categories/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
+                    <button type="button" class="button button--sm button--secondary" hx-get="{% url 'myapp:settings_category_edit' category.pk %}" hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="{% url 'myapp:settings_category_delete' category.pk %}" hx-target="body" hx-swap="beforeend">Удалить</button>
                 </td>
             </tr>
+            {% empty %}
             <tr class="table__row">
-                <td class="table__td">Ресторан</td>
-                <td class="table__td">
-                    <div class="color-preview" data-color="#EF4444"></div>
-                    <span class="text-muted">#EF4444</span>
-                </td>
-                <td class="table__td">32</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/categories/1/edit/" hx-target="body"
-                        hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/categories/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
+                <td class="table__td" colspan="4">Нет данных</td>
             </tr>
-            <tr class="table__row">
-                <td class="table__td">Образование</td>
-                <td class="table__td">
-                    <div class="color-preview" data-color="#10B981"></div>
-                    <span class="text-muted">#10B981</span>
-                </td>
-                <td class="table__td">28</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/categories/1/edit/" hx-target="body"
-                        hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/categories/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
-            </tr>
-            <tr class="table__row">
-                <td class="table__td">Недвижимость</td>
-                <td class="table__td">
-                    <div class="color-preview" data-color="#F59E0B"></div>
-                    <span class="text-muted">#F59E0B</span>
-                </td>
-                <td class="table__td">19</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/categories/1/edit/" hx-target="body"
-                        hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/categories/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
-            </tr>
-            <tr class="table__row">
-                <td class="table__td">Электроника</td>
-                <td class="table__td">
-                    <div class="color-preview" data-color="#8B5CF6"></div>
-                    <span class="text-muted">#8B5CF6</span>
-                </td>
-                <td class="table__td">15</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/categories/1/edit/" hx-target="body"
-                        hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/categories/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

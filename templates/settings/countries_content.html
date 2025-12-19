@@ -28,58 +28,23 @@
             </tr>
         </thead>
         <tbody>
+            {% for country in countries %}
             <tr class="table__row">
-                <td class="table__td">🇺🇦</td>
-                <td class="table__td">Украина</td>
-                <td class="table__td">UA</td>
-                <td class="table__td">25</td>
-                <td class="table__td">15</td>
+                <td class="table__td">{{ country.flag_emoji }}</td>
+                <td class="table__td">{{ country.name }}</td>
+                <td class="table__td">{{ country.code }}</td>
+                <td class="table__td">{{ country.cities_count }}</td>
+                <td class="table__td">0</td>
                 <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/countries/1/edit/" hx-target="body" hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/countries/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
+                    <button type="button" class="button button--sm button--secondary" hx-get="{% url 'myapp:settings_country_edit' country.pk %}" hx-target="body" hx-swap="beforeend">Редактировать</button>
+                    <button type="button" class="button button--sm button--danger" hx-get="{% url 'myapp:settings_country_delete' country.pk %}" hx-target="body" hx-swap="beforeend">Удалить</button>
                 </td>
             </tr>
+            {% empty %}
             <tr class="table__row">
-                <td class="table__td">🇵🇱</td>
-                <td class="table__td">Польша</td>
-                <td class="table__td">PL</td>
-                <td class="table__td">10</td>
-                <td class="table__td">8</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/countries/1/edit/" hx-target="body" hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/countries/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
+                <td class="table__td" colspan="6">Нет данных</td>
             </tr>
-            <tr class="table__row">
-                <td class="table__td">🇩🇪</td>
-                <td class="table__td">Германия</td>
-                <td class="table__td">DE</td>
-                <td class="table__td">15</td>
-                <td class="table__td">12</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/countries/1/edit/" hx-target="body" hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/countries/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
-            </tr>
-            <tr class="table__row">
-                <td class="table__td">🇨🇿</td>
-                <td class="table__td">Чехия</td>
-                <td class="table__td">CZ</td>
-                <td class="table__td">8</td>
-                <td class="table__td">5</td>
-                <td class="table__td">
-                    <button type="button" class="button button--sm button--secondary"
-                        hx-get="/settings/countries/1/edit/" hx-target="body" hx-swap="beforeend">Редактировать</button>
-                    <button type="button" class="button button--sm button--danger"
-                        hx-get="/settings/countries/1/delete/" hx-target="body" hx-swap="beforeend">Удалить</button>
-                </td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

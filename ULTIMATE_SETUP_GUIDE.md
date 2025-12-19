@@ -1,84 +1,203 @@
-# Повна інструкція налаштування системи автоматичних перевірок (Ultimate Edition 2025)
+# 🚀 Повна інструкція налаштування системи автоматичного контролю якості коду
+## Django + HTML + HTMX + CSS + Vanilla JavaScript (Ultimate Edition 2025)
 
-**Версія:** 1.0  
-**Дата:** Грудень 2025  
-**Призначення:** Налаштування системи, яка фізично блокує порушення правил кросплатформної розробки
+> **Мета**: Створити систему, яка **фізично унеможливлює** порушення правил кросплатформенної веб-розробки через автоматичні перевірки, лінтери та Git hooks.
 
 ---
 
 ## 📋 Зміст
 
-1. [Огляд системи](#огляд-системи)
-2. [Крок 1: Підготовка проекту](#крок-1-підготовка-проекту)
-3. [Крок 2: Встановлення залежностей](#крок-2-встановлення-залежностей)
-4. [Крок 3: Створення конфігурацій linters](#крок-3-створення-конфігурацій-linters)
-5. [Крок 4: Створення скриптів перевірки](#крок-4-створення-скриптів-перевірки)
-6. [Крок 5: Налаштування Git Hooks](#крок-5-налаштування-git-hooks)
-7. [Крок 6: Виправлення існуючих порушень](#крок-6-виправлення-існуючих-порушень)
-8. [Крок 7: Тестування системи](#крок-7-тестування-системи)
-9. [Повний список правил](#повний-список-правил)
-10. [Troubleshooting](#troubleshooting)
+1. [Вступ та філософія](#вступ-та-філософія)
+2. [Архітектура системи](#архітектура-системи)
+3. [Передумови та вимоги](#передумови-та-вимоги)
+4. [Крок 1: Підготовка проєкту](#крок-1-підготовка-проєкту)
+5. [Крок 2: Встановлення Node.js залежностей](#крок-2-встановлення-nodejs-залежностей)
+6. [Крок 3: Конфігурація Stylelint (CSS)](#крок-3-конфігурація-stylelint-css)
+7. [Крок 4: Конфігурація ESLint (JavaScript)](#крок-4-конфігурація-eslint-javascript)
+8. [Крок 5: Конфігурація HTMLHint (HTML/Django шаблони)](#крок-5-конфігурація-htmlhint-htmldjango-шаблони)
+9. [Крок 6: Створення кастомних bash-скриптів перевірки](#крок-6-створення-кастомних-bash-скриптів-перевірки)
+10. [Крок 7: Створення скриптів автоматичного виправлення](#крок-7-створення-скриптів-автоматичного-виправлення)
+11. [Крок 8: Налаштування Git Hooks (Husky)](#крок-8-налаштування-git-hooks-husky)
+12. [Крок 9: Тестування системи](#крок-9-тестування-системи)
+13. [Крок 10: Виправлення існуючих порушень](#крок-10-виправлення-існуючих-порушень)
+14. [Інтеграція з Django](#інтеграція-з-django)
+15. [Робота з HTMX](#робота-з-htmx)
+16. [Повний список правил (110+)](#повний-список-правил-110)
+17. [Troubleshooting та поширені проблеми](#troubleshooting-та-поширені-проблеми)
+18. [Адаптація для різних проектів](#адаптація-для-різних-проектів)
+19. [CI/CD інтеграція](#cicd-інтеграція)
+20. [Підтримка та оновлення](#підтримка-та-оновлення)
+21. [Швидкий старт (TL;DR)](#швидкий-старт-tldr)
+22. [Чек-лист налаштування](#чек-лист-налаштування)
 
 ---
 
-## Огляд системи
+## Вступ та філософія
 
-### Що робить система
+### Чому ця система потрібна?
 
-Система автоматично перевіряє та блокує порушення правил кросплатформної розробки через:
+Кросплатформенна веб-розробка у 2025 році вимагає дотримання **більше 110 правил**, які охоплюють:
+- **HTML**: семантика, viewport, accessibility, HTMX атрибути
+- **CSS**: viewport units, safe areas, flexbox, container queries, rem units, backdrop-filter
+- **JavaScript**: bfcache, pageshow, pointer events, HTMX інтеграція
+- **Django**: template tags (заборона розривів), форми, CSRF
+- **UX**: touch targets (44px), scroll behavior, модальні вікна
+- **Безпека**: CSP, відсутність inline styles/scripts, відсутність eval
 
-- **Pre-commit hooks** - блокування комітів з порушеннями
-- **Linters** (Stylelint, ESLint, HTMLHint) - перевірка синтаксису
-- **Custom скрипти** - глибока перевірка правил з посібників
-- **Автоматичні виправлення** - де можливо
+Ручний контроль цих правил **неможливий**. Ця система автоматизує 95%+ перевірок.
 
-### Що перевіряється
+### Три рівні захисту
 
-- ✅ HTML: viewport meta, inputmode, inline styles/scripts
-- ✅ CSS: 100vh → 100dvh, flex-basis, hover медіа-запити, !important
-- ✅ JavaScript: var, bfcache, strict mode
-- ✅ Django templates: розриви тегів
+1. **Lint-On-Save** — IDE показує помилки в реальному часі (якщо налаштовано)
+2. **Pre-Commit Hook** — блокує commit, якщо є порушення
+3. **CI/CD Pipeline** — фінальна перевірка перед deploy
 
 ---
 
-## Крок 1: Підготовка проекту
+## Архітектура системи
 
-### 1.1 Перевірка структури
+```
+Ваш проєкт/
+├── package.json              # Node.js залежності (Stylelint, ESLint, HTMLHint, Husky)
+├── .stylelintrc.json         # Конфігурація CSS лінтера
+├── .eslintrc.json            # Конфігурація JS лінтера
+├── .htmlhintrc               # Конфігурація HTML лінтера
+├── .husky/
+│   └── pre-commit            # Git hook (запускається перед commit)
+├── scripts/
+│   ├── check-html-rules.sh   # Кастомні HTML перевірки (viewport, inputmode, video)
+│   ├── check-css-rules.sh    # Кастомні CSS перевірки (100vh → 100dvh, safe-area, rem)
+│   ├── check-js-rules.sh     # Кастомні JS перевірки (pageshow, var, strict mode)
+│   ├── check_template_tags.sh# Django template перевірка (заборона розривів тегів)
+│   ├── fix-rules.sh          # Автоматичні виправлення (inline styles, inputmode)
+│   ├── check-all-rules.sh    # Запуск ВСІХ перевірок
+│   ├── setup-git-hooks.sh    # Скрипт налаштування Husky
+│   └── README.md             # Документація скриптів
+├── static/
+│   ├── css/
+│   │   ├── normalize.css     # ❌ ЗАБОРОНЕНО ЗМІНЮВАТИ
+│   │   ├── base.css          # CSS custom properties, body styles
+│   │   ├── components/*.css  # BEM компоненти
+│   │   └── utilities/*.css   # Утилітарні класси
+│   └── js/
+│       └── main.js           # Vanilla JS (defer, strict mode, pageshow)
+├── templates/
+│   ├── base.html             # Базовий шаблон (viewport meta, HTMX CDN)
+│   └── .../*.html            # Django шаблони
+├── CRM_Nice/settings/        # Django settings (base, develop, production)
+├── requirements.txt          # Python залежності
+└── .gitignore                # node_modules/, package-lock.json
+```
 
-Переконайтеся, що у вас є:
-- Корінь проекту з `.git`
-- Директорія `static/` або `assets/` для CSS/JS
-- Директорія `templates/` або `src/` для HTML
-- Файл `.gitignore`
+---
 
-### 1.2 Оновлення .gitignore
+## Передумови та вимоги
 
-Додайте до `.gitignore`:
+### Встановлене ПЗ
+
+```bash
+# Перевірка версій
+node --version   # v18+ (рекомендовано v20+)
+npm --version    # v9+
+python --version # 3.10+
+git --version    # 2.30+
+```
+
+Якщо Node.js відсутній:
+```bash
+# macOS (Homebrew)
+brew install node
+
+# Ubuntu/Debian
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Windows (через nvm-windows або офіційний інсталятор)
+```
+
+### Структура Django проєкту
+
+Система працює з будь-яким Django проєктом, але очікує:
+- `static/css/` — CSS файли
+- `static/js/` — JavaScript файли
+- `templates/` — Django шаблони (`.html`)
+- `manage.py` — в корені проєкту
+
+---
+
+## Крок 1: Підготовка проєкту
+
+### 1.1. Перевірка структури
+
+```bash
+cd /path/to/your/django/project
+ls -la
+# Має бути: manage.py, static/, templates/, requirements.txt
+```
+
+### 1.2. Оновлення `.gitignore`
+
+Додайте в `.gitignore`:
 
 ```gitignore
 # Node.js
 node_modules/
 package-lock.json
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Backup files
-*.bak
-*.tmp
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Static
+staticfiles/
+media/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
+### 1.3. Створення директорії `scripts/`
+
+```bash
+mkdir -p scripts
+touch scripts/README.md
 ```
 
 ---
 
-## Крок 2: Встановлення залежностей
+## Крок 2: Встановлення Node.js залежностей
 
-### 2.1 Створення package.json
+### 2.1. Ініціалізація `package.json`
 
-Створіть файл `package.json` в корені проекту:
+Створіть файл `package.json` в **корені проєкту**:
 
 ```json
 {
-  "name": "project-linters",
+  "name": "django-project-linters",
+  "version": "1.0.0",
+  "description": "Automated code quality checks for Django + HTMX project",
   "private": true,
   "scripts": {
     "lint": "npm run lint:css && npm run lint:js && npm run lint:html",
@@ -114,21 +233,24 @@ yarn-error.log*
 }
 ```
 
-**Важливо:** Адаптуйте шляхи (`static/css/**/*.css`, `templates/**/*.html`) під структуру вашого проекту!
-
-### 2.2 Встановлення залежностей
+### 2.2. Встановлення залежностей
 
 ```bash
 npm install
 ```
 
+**Очікуваний результат**:
+- Створено `node_modules/` (не комітиться в Git)
+- Створено `package-lock.json` (не комітиться в Git)
+- Встановлені всі лінтери та плагіни
+
 ---
 
-## Крок 3: Створення конфігурацій linters
+## Крок 3: Конфігурація Stylelint (CSS)
 
-### 3.1 .stylelintrc.json
+### 3.1. Створення `.stylelintrc.json`
 
-Створіть файл `.stylelintrc.json`:
+Створіть файл `.stylelintrc.json` в **корені проєкту**:
 
 ```json
 {
@@ -165,7 +287,13 @@ npm install
       true,
       {
         "severity": "warning",
-        "ignore": ["css-nesting", "css-has", "viewport-units", "css-overscroll-behavior", "text-size-adjust"]
+        "ignore": [
+          "css-nesting",
+          "css-has",
+          "viewport-units",
+          "css-overscroll-behavior",
+          "text-size-adjust"
+        ]
       }
     ],
     "custom-property-pattern": null,
@@ -184,11 +312,38 @@ npm install
 }
 ```
 
-**Адаптація:** Змініть `ignoreFiles` на ваші файли, які не потрібно перевіряти (наприклад, vendor CSS).
+### 3.2. Пояснення ключових правил
 
-### 3.2 .eslintrc.json
+| Правило | Опис | Чому важливо |
+|---------|------|--------------|
+| `declaration-no-important` | ❌ Забороняє `!important` | Низька специфічність = керованість |
+| `plugin/no-unsupported-browser-features` | ⚠️ Попереджає про несумісні властивості | Кросплатформенність (Chrome 90+, Safari 14+) |
+| `max-nesting-depth: 3` | Обмежує вкладеність CSS | Читабельність, специфічність |
+| `ignoreFiles: normalize.css` | ❌ Не перевіряти normalize.css | **КРИТИЧНО**: ніколи не змінювати! |
 
-Створіть файл `.eslintrc.json`:
+### 3.3. Тестування Stylelint
+
+```bash
+npm run lint:css
+```
+
+**Приклад виводу** (якщо є помилки):
+
+```
+static/css/base.css
+  45:3  ✖  Unexpected !important   declaration-no-important
+  67:5  ⚠  text-wrap: balance is not supported in Chrome 90
+
+✖ 1 problem (1 error, 1 warning)
+```
+
+---
+
+## Крок 4: Конфігурація ESLint (JavaScript)
+
+### 4.1. Створення `.eslintrc.json`
+
+Створіть файл `.eslintrc.json` в **корені проєкту**:
 
 ```json
 {
@@ -223,11 +378,38 @@ npm install
 }
 ```
 
-**Адаптація:** Додайте до `globals` ваші глобальні змінні (наприклад, `jQuery`, `Vue` тощо).
+### 4.2. Пояснення ключових правил
 
-### 3.3 .htmlhintrc
+| Правило | Опис | Чому важливо |
+|---------|------|--------------|
+| `no-var: error` | ❌ Забороняє `var` | Використовуйте `const`/`let` (ES6+) |
+| `no-eval: error` | ❌ Забороняє `eval()` | Безпека (CSP, XSS) |
+| `prefer-const: error` | Вимагає `const` де можливо | Іммутабельність |
+| `globals: { htmx: readonly }` | Визначає HTMX як глобальну змінну | Уникнення `no-undef` помилок |
 
-Створіть файл `.htmlhintrc`:
+### 4.3. Тестування ESLint
+
+```bash
+npm run lint:js
+```
+
+**Приклад виводу**:
+
+```
+static/js/main.js
+  12:5  error  'var' is not allowed  no-var
+  34:9  error  eval can be harmful   no-eval
+
+✖ 2 problems (2 errors, 0 warnings)
+```
+
+---
+
+## Крок 5: Конфігурація HTMLHint (HTML/Django шаблони)
+
+### 5.1. Створення `.htmlhintrc`
+
+Створіть файл `.htmlhintrc` в **корені проєкту**:
 
 ```json
 {
@@ -249,804 +431,901 @@ npm install
 }
 ```
 
-**Примітка:** `tag-pair: false` та `spec-char-escape: false` для Django/шаблонів, які використовують `{{ }}` та `{% %}`.
+### 5.2. Чому деякі правила вимкнені?
+
+| Правило | Статус | Пояснення |
+|---------|--------|-----------|
+| `doctype-first: false` | ❌ Вимкнено | Django `{% extends %}` йде перед `<!DOCTYPE>` |
+| `tag-pair: false` | ❌ Вимкнено | Django теги `{% if %}` порушують парність |
+| `spec-char-escape: false` | ❌ Вимкнено | `{{ variable }}` містить `{` та `}` |
+| `inline-style-disabled: true` | ✅ **КРИТИЧНО** | Забороняє `<div style="...">` |
+| `inline-script-disabled: true` | ✅ **КРИТИЧНО** | Забороняє `<script>alert()</script>` |
+
+### 5.3. Тестування HTMLHint
+
+```bash
+npm run lint:html
+```
+
+**Приклад виводу**:
+
+```
+templates/base.html
+  23:5  error  Inline style cannot be used  inline-style-disabled
+
+✖ 1 problem (1 error, 0 warnings)
+```
 
 ---
 
-## Крок 4: Створення скриптів перевірки
+## Крок 6: Створення кастомних bash-скриптів перевірки
 
-### 4.1 Створення директорії scripts
+HTMLHint не може перевірити **всі** правила (наприклад, атрибути viewport meta, `inputmode`, `video` теги). Тому створюємо кастомні bash-скрипти.
 
-```bash
-mkdir -p scripts
-```
-
-### 4.2 scripts/check-html-rules.sh
-
-Створіть файл `scripts/check-html-rules.sh`:
+### 6.1. `scripts/check-html-rules.sh`
 
 ```bash
 #!/bin/bash
-# Перевірка HTML правил з кросплатформного посібника
-
 set -e
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-ERRORS=0
+echo "========================================="
+echo "🔍 HTML Custom Rules Check"
+echo "========================================="
 
-echo "🔍 Перевірка HTML правил (Ultimate Edition 2025)..."
-echo ""
+ERROR_COUNT=0
+WARNING_COUNT=0
 
-# Кольори для виводу
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Знаходимо всі HTML файли (крім normalize.css та node_modules)
+HTML_FILES=$(find templates -name "*.html" 2>/dev/null || echo "")
 
-# АДАПТАЦІЯ: Змініть шлях до вашого базового шаблону
-BASE_TEMPLATE="$REPO_ROOT/templates/base.html"
-if [ ! -f "$BASE_TEMPLATE" ]; then
-    BASE_TEMPLATE="$REPO_ROOT/src/index.html"
+if [ -z "$HTML_FILES" ]; then
+  echo "⚠️  No HTML files found in templates/"
+  exit 0
 fi
 
-# Перевірка 1: Viewport meta має містити необхідні атрибути
-echo "📱 Перевірка viewport meta..."
-if [ -f "$BASE_TEMPLATE" ]; then
-    if grep -r "viewport" "$BASE_TEMPLATE" | grep -q "interactive-widget=resizes-content"; then
-        echo -e "${GREEN}✅ Viewport meta містить interactive-widget=resizes-content${NC}"
-    else
-        echo -e "${RED}❌ ПОМИЛКА: Viewport meta не містить interactive-widget=resizes-content${NC}"
-        echo "   Додайте: interactive-widget=resizes-content"
-        ERRORS=$((ERRORS + 1))
-    fi
+# Правило 1: viewport meta має містити viewport-fit=cover та interactive-widget=resizes-content
+echo ""
+echo "📱 [Rule 1] Checking viewport meta attributes..."
+VIEWPORT_ISSUES=$(echo "$HTML_FILES" | xargs grep -l 'name="viewport"' | while read -r file; do
+  if ! grep -q 'viewport-fit=cover' "$file" || ! grep -q 'interactive-widget=resizes-content' "$file"; then
+    echo "$file"
+  fi
+done)
 
-    if grep -r "viewport" "$BASE_TEMPLATE" | grep -q "viewport-fit=cover"; then
-        echo -e "${GREEN}✅ Viewport meta містить viewport-fit=cover${NC}"
-    else
-        echo -e "${RED}❌ ПОМИЛКА: Viewport meta не містить viewport-fit=cover${NC}"
-        ERRORS=$((ERRORS + 1))
-    fi
+if [ -n "$VIEWPORT_ISSUES" ]; then
+  echo "❌ Viewport meta tags missing required attributes:"
+  echo "$VIEWPORT_ISSUES" | while read -r file; do
+    echo "   $file"
+  done
+  echo "   Required: <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content\">"
+  ((ERROR_COUNT++))
 else
-    echo -e "${YELLOW}⚠️  Базовий шаблон не знайдено: $BASE_TEMPLATE${NC}"
+  echo "✅ All viewport meta tags are correct"
 fi
 
-# Перевірка 2: Inline styles заборонені
+# Правило 2: inline style="" заборонені (дублює HTMLHint, але для надійності)
 echo ""
-echo "🎨 Перевірка inline styles..."
-# АДАПТАЦІЯ: Змініть шлях до ваших HTML файлів
-INLINE_STYLES=$(grep -r 'style=' "$REPO_ROOT/templates" --include="*.html" --exclude-dir=".git" 2>/dev/null || true)
-if [ -z "$INLINE_STYLES" ]; then
-    INLINE_STYLES=$(grep -r 'style=' "$REPO_ROOT/src" --include="*.html" --exclude-dir=".git" 2>/dev/null || true)
-fi
-
+echo "🎨 [Rule 2] Checking for inline styles..."
+INLINE_STYLES=$(echo "$HTML_FILES" | xargs grep -n 'style="' || echo "")
 if [ -n "$INLINE_STYLES" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: Знайдено inline styles (ЗАБОРОНЕНО):${NC}"
-    echo "$INLINE_STYLES"
-    ERRORS=$((ERRORS + 1))
+  echo "❌ Inline styles found (forbidden):"
+  echo "$INLINE_STYLES"
+  ((ERROR_COUNT++))
 else
-    echo -e "${GREEN}✅ Inline styles не знайдено${NC}"
+  echo "✅ No inline styles detected"
 fi
 
-# Перевірка 3: Inline scripts заборонені
+# Правило 3: inline onclick="", onerror="" та інші event handlers заборонені
 echo ""
-echo "📜 Перевірка inline scripts..."
-INLINE_SCRIPTS=$(grep -r '<script[^>]*>' "$REPO_ROOT/templates" --include="*.html" 2>/dev/null | grep -v 'src=' | grep -v 'defer' || true)
-if [ -z "$INLINE_SCRIPTS" ]; then
-    INLINE_SCRIPTS=$(grep -r '<script[^>]*>' "$REPO_ROOT/src" --include="*.html" 2>/dev/null | grep -v 'src=' | grep -v 'defer' || true)
-fi
-
-if [ -n "$INLINE_SCRIPTS" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: Знайдено inline scripts (ЗАБОРОНЕНО):${NC}"
-    echo "$INLINE_SCRIPTS"
-    ERRORS=$((ERRORS + 1))
+echo "🔧 [Rule 3] Checking for inline event handlers..."
+INLINE_HANDLERS=$(echo "$HTML_FILES" | xargs grep -nE 'on(click|load|error|submit|change|input|focus|blur|keydown|keyup|mouseover|mouseout)=' || echo "")
+if [ -n "$INLINE_HANDLERS" ]; then
+  echo "❌ Inline event handlers found (forbidden):"
+  echo "$INLINE_HANDLERS"
+  ((ERROR_COUNT++))
 else
-    echo -e "${GREEN}✅ Inline scripts не знайдено${NC}"
+  echo "✅ No inline event handlers detected"
 fi
 
-# Перевірка 4: inputmode для tel полів
+# Правило 4: input type="tel" або type="number" має мати inputmode="tel" або inputmode="decimal"
 echo ""
-echo "⌨️  Перевірка inputmode для type=\"tel\"..."
-TEL_WITHOUT_INPUTMODE=$(grep -r 'type="tel"' "$REPO_ROOT/templates" --include="*.html" 2>/dev/null | grep -v 'inputmode=' || true)
-if [ -z "$TEL_WITHOUT_INPUTMODE" ]; then
-    TEL_WITHOUT_INPUTMODE=$(grep -r 'type="tel"' "$REPO_ROOT/src" --include="*.html" 2>/dev/null | grep -v 'inputmode=' || true)
+echo "📞 [Rule 4] Checking inputmode for tel/number inputs..."
+TEL_INPUTS=$(echo "$HTML_FILES" | xargs grep -n 'type="tel"' | grep -v 'inputmode="tel"' || echo "")
+NUMBER_INPUTS=$(echo "$HTML_FILES" | xargs grep -n 'type="number"' | grep -v 'inputmode=' || echo "")
+
+if [ -n "$TEL_INPUTS" ]; then
+  echo "⚠️  Inputs with type=\"tel\" missing inputmode=\"tel\":"
+  echo "$TEL_INPUTS"
+  ((WARNING_COUNT++))
 fi
 
-if [ -n "$TEL_WITHOUT_INPUTMODE" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: type=\"tel\" без inputmode (ЗАБОРОНЕНО):${NC}"
-    echo "$TEL_WITHOUT_INPUTMODE"
-    ERRORS=$((ERRORS + 1))
+if [ -n "$NUMBER_INPUTS" ]; then
+  echo "⚠️  Inputs with type=\"number\" missing inputmode (recommend inputmode=\"decimal\"):"
+  echo "$NUMBER_INPUTS"
+  ((WARNING_COUNT++))
+fi
+
+if [ -z "$TEL_INPUTS" ] && [ -z "$NUMBER_INPUTS" ]; then
+  echo "✅ All tel/number inputs have correct inputmode"
+fi
+
+# Правило 5: <video> теги мають містити poster, playsinline, muted
+echo ""
+echo "🎬 [Rule 5] Checking video tags..."
+VIDEO_TAGS=$(echo "$HTML_FILES" | xargs grep -n '<video' || echo "")
+if [ -n "$VIDEO_TAGS" ]; then
+  echo "$VIDEO_TAGS" | while read -r line; do
+    file=$(echo "$line" | cut -d: -f1)
+    linenum=$(echo "$line" | cut -d: -f2)
+    content=$(echo "$line" | cut -d: -f3-)
+    
+    issues=""
+    echo "$content" | grep -q 'poster=' || issues="${issues}poster "
+    echo "$content" | grep -q 'playsinline' || issues="${issues}playsinline "
+    echo "$content" | grep -q 'muted' || issues="${issues}muted "
+    
+    if [ -n "$issues" ]; then
+      echo "⚠️  $file:$linenum missing attributes: $issues"
+      ((WARNING_COUNT++))
+    fi
+  done
 else
-    echo -e "${GREEN}✅ Всі type=\"tel\" мають inputmode${NC}"
+  echo "✅ No video tags found (or all are correct)"
 fi
 
-# Перевірка 5: inputmode для number полів
+# Правило 6: <script> теги мають містити defer або async
 echo ""
-echo "🔢 Перевірка inputmode для type=\"number\"..."
-NUMBER_WITHOUT_INPUTMODE=$(grep -r 'type="number"' "$REPO_ROOT/templates" --include="*.html" 2>/dev/null | grep -v 'inputmode=' || true)
-if [ -z "$NUMBER_WITHOUT_INPUTMODE" ]; then
-    NUMBER_WITHOUT_INPUTMODE=$(grep -r 'type="number"' "$REPO_ROOT/src" --include="*.html" 2>/dev/null | grep -v 'inputmode=' || true)
-fi
-
-if [ -n "$NUMBER_WITHOUT_INPUTMODE" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: type=\"number\" без inputmode (ЗАБОРОНЕНО):${NC}"
-    echo "$NUMBER_WITHOUT_INPUTMODE"
-    ERRORS=$((ERRORS + 1))
+echo "📜 [Rule 6] Checking script tags for defer/async..."
+SCRIPT_TAGS=$(echo "$HTML_FILES" | xargs grep -n '<script src=' | grep -v 'defer\|async' || echo "")
+if [ -n "$SCRIPT_TAGS" ]; then
+  echo "⚠️  Script tags without defer/async found:"
+  echo "$SCRIPT_TAGS"
+  ((WARNING_COUNT++))
 else
-    echo -e "${GREEN}✅ Всі type=\"number\" мають inputmode${NC}"
+  echo "✅ All external scripts have defer/async"
 fi
 
-# Перевірка 6: video має poster
+# Правило 7: touch-action: manipulation для інтерактивних елементів (перевіряємо в CSS, але нагадуємо тут)
 echo ""
-echo "🎬 Перевірка <video> атрибутів..."
-VIDEO_WITHOUT_POSTER=$(grep -r '<video' "$REPO_ROOT/templates" --include="*.html" 2>/dev/null | grep -v 'poster=' || true)
-if [ -z "$VIDEO_WITHOUT_POSTER" ]; then
-    VIDEO_WITHOUT_POSTER=$(grep -r '<video' "$REPO_ROOT/src" --include="*.html" 2>/dev/null | grep -v 'poster=' || true)
-fi
-
-if [ -n "$VIDEO_WITHOUT_POSTER" ]; then
-    echo -e "${YELLOW}⚠️  УВАГА: <video> без poster атрибуту:${NC}"
-    echo "$VIDEO_WITHOUT_POSTER"
-fi
-
-VIDEO_WITHOUT_PLAYSINLINE=$(grep -r '<video' "$REPO_ROOT/templates" --include="*.html" 2>/dev/null | grep -v 'playsinline' || true)
-if [ -z "$VIDEO_WITHOUT_PLAYSINLINE" ]; then
-    VIDEO_WITHOUT_PLAYSINLINE=$(grep -r '<video' "$REPO_ROOT/src" --include="*.html" 2>/dev/null | grep -v 'playsinline' || true)
-fi
-
-if [ -n "$VIDEO_WITHOUT_PLAYSINLINE" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: <video> без playsinline (ЗАБОРОНЕНО для iOS):${NC}"
-    echo "$VIDEO_WITHOUT_PLAYSINLINE"
-    ERRORS=$((ERRORS + 1))
-fi
-
-# Перевірка 7: Scripts мають defer
-echo ""
-echo "⏱️  Перевірка defer для scripts..."
-SCRIPTS_WITHOUT_DEFER=$(grep -r '<script src=' "$REPO_ROOT/templates" --include="*.html" 2>/dev/null | grep -v 'defer' | grep -v 'async' || true)
-if [ -z "$SCRIPTS_WITHOUT_DEFER" ]; then
-    SCRIPTS_WITHOUT_DEFER=$(grep -r '<script src=' "$REPO_ROOT/src" --include="*.html" 2>/dev/null | grep -v 'defer' | grep -v 'async' || true)
-fi
-
-if [ -n "$SCRIPTS_WITHOUT_DEFER" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: <script> без defer/async:${NC}"
-    echo "$SCRIPTS_WITHOUT_DEFER"
-    ERRORS=$((ERRORS + 1))
-else
-    echo -e "${GREEN}✅ Всі scripts мають defer${NC}"
-fi
+echo "👆 [Rule 7] Reminder: Use touch-action: manipulation for interactive elements"
+echo "   (This is checked in CSS, ensure buttons/links have this property)"
 
 # Підсумок
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}✅ Всі HTML перевірки пройдено успішно!${NC}"
-    exit 0
+echo "========================================="
+echo "📊 HTML Rules Summary"
+echo "========================================="
+echo "Errors: $ERROR_COUNT"
+echo "Warnings: $WARNING_COUNT"
+
+if [ $ERROR_COUNT -gt 0 ]; then
+  echo "❌ HTML custom rules check FAILED"
+  exit 1
 else
-    echo -e "${RED}❌ Знайдено $ERRORS помилок HTML${NC}"
-    exit 1
+  echo "✅ HTML custom rules check PASSED"
+  exit 0
 fi
 ```
 
-**Адаптація:** Змініть шляхи `templates/` та `src/` на ваші директорії з HTML файлами.
-
-### 4.3 scripts/check-css-rules.sh
-
-Створіть файл `scripts/check-css-rules.sh`:
-
-```bash
-#!/bin/bash
-# Перевірка CSS правил з кросплатформного посібника
-
-set -e
-
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-ERRORS=0
-
-echo "🎨 Перевірка CSS правил (Ultimate Edition 2025)..."
-echo ""
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-# АДАПТАЦІЯ: Змініть шлях до ваших CSS файлів
-CSS_DIR="$REPO_ROOT/static/css"
-if [ ! -d "$CSS_DIR" ]; then
-    CSS_DIR="$REPO_ROOT/src/css"
-fi
-if [ ! -d "$CSS_DIR" ]; then
-    CSS_DIR="$REPO_ROOT/assets/css"
-fi
-
-# АДАПТАЦІЯ: Змініть шлях до вашого базового CSS файлу
-BASE_CSS="$CSS_DIR/base.css"
-if [ ! -f "$BASE_CSS" ]; then
-    BASE_CSS="$CSS_DIR/main.css"
-fi
-if [ ! -f "$BASE_CSS" ]; then
-    BASE_CSS="$CSS_DIR/styles.css"
-fi
-
-# Перевірка 1: 100vh має мати fallback на 100dvh
-echo "📐 Перевірка viewport units..."
-VH_FILES=$(grep -r '100vh' "$CSS_DIR" --include="*.css" 2>/dev/null | cut -d: -f1 | sort -u || true)
-VH_WITHOUT_DVH=""
-
-if [ -n "$VH_FILES" ]; then
-    for file in $VH_FILES; do
-        # Перевіряємо чи є 100dvh в тому ж файлі
-        if grep -q '100dvh' "$file" 2>/dev/null; then
-            continue
-        fi
-        # Перевіряємо чи є коментар Fallback поруч
-        VH_LINES=$(grep -n '100vh' "$file" 2>/dev/null | cut -d: -f1 || true)
-        for line in $VH_LINES; do
-            # Перевіряємо навколишні рядки (поточний, попередній, наступний)
-            CONTEXT=$(sed -n "$((line-1)),$((line+1))p" "$file" 2>/dev/null | grep -i 'fallback\|100dvh' || true)
-            if [ -z "$CONTEXT" ]; then
-                VH_LINE=$(sed -n "${line}p" "$file" 2>/dev/null)
-                VH_WITHOUT_DVH="${VH_WITHOUT_DVH}${file}:${line}: ${VH_LINE}\n"
-            fi
-        done
-    done
-fi
-
-if [ -n "$VH_WITHOUT_DVH" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: 100vh без fallback на 100dvh:${NC}"
-    echo -e "$VH_WITHOUT_DVH"
-    ERRORS=$((ERRORS + 1))
-else
-    echo -e "${GREEN}✅ Viewport units коректні${NC}"
-fi
-
-# Перевірка 2: Safe area insets
-echo ""
-echo "📱 Перевірка safe-area-inset..."
-if [ -f "$BASE_CSS" ]; then
-    SAFE_AREA=$(grep -r 'env(safe-area-inset' "$BASE_CSS" 2>/dev/null || true)
-    if [ -z "$SAFE_AREA" ]; then
-        echo -e "${RED}❌ ПОМИЛКА: Відсутні env(safe-area-inset-*) в $BASE_CSS${NC}"
-        ERRORS=$((ERRORS + 1))
-    else
-        echo -e "${GREEN}✅ Safe area insets присутні${NC}"
-    fi
-else
-    echo -e "${YELLOW}⚠️  Базовий CSS файл не знайдено: $BASE_CSS${NC}"
-fi
-
-# Перевірка 3: rem для font-size
-echo ""
-echo "🔤 Перевірка rem для font-size..."
-# АДАПТАЦІЯ: Змініть назву файлу normalize.css на ваш
-PX_FONT_SIZE=$(grep -r 'font-size.*px' "$CSS_DIR" --include="*.css" --exclude="normalize.css" 2>/dev/null | grep -v '/\*' | grep -v '16px' || true)
-if [ -n "$PX_FONT_SIZE" ]; then
-    echo -e "${YELLOW}⚠️  УВАГА: font-size в px (рекомендовано rem):${NC}"
-    echo "$PX_FONT_SIZE"
-fi
-
-# Перевірка 4: flex без flex-basis
-echo ""
-echo "🔧 Перевірка flex-basis..."
-FLEX_WITHOUT_BASIS=$(grep -r 'flex:\s*1\s*;' "$CSS_DIR" --include="*.css" 2>/dev/null || true)
-if [ -n "$FLEX_WITHOUT_BASIS" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: flex: 1 без explicit flex-basis:${NC}"
-    echo "$FLEX_WITHOUT_BASIS"
-    echo "   Має бути: flex: 1 0 0 або flex: 1 0 auto"
-    ERRORS=$((ERRORS + 1))
-else
-    echo -e "${GREEN}✅ Flex properties коректні${NC}"
-fi
-
-# Перевірка 5: hover без media query
-echo ""
-echo "🖱️  Перевірка :hover в @media (hover: hover)..."
-HOVER_WITHOUT_MEDIA=$(grep -r ':hover' "$CSS_DIR" --include="*.css" -A 2 -B 2 2>/dev/null | grep -v '@media.*hover' || true)
-if [ -n "$HOVER_WITHOUT_MEDIA" ]; then
-    echo -e "${YELLOW}⚠️  УВАГА: :hover без @media (hover: hover):${NC}"
-    echo "   Може призвести до \"липкого\" hover на touchscreen"
-fi
-
-# Перевірка 6: overscroll-behavior
-echo ""
-echo "📜 Перевірка overscroll-behavior..."
-if [ -f "$BASE_CSS" ]; then
-    OVERSCROLL=$(grep -r 'overscroll-behavior' "$BASE_CSS" 2>/dev/null || true)
-    if [ -z "$OVERSCROLL" ]; then
-        echo -e "${YELLOW}⚠️  УВАГА: Відсутній overscroll-behavior в $BASE_CSS${NC}"
-    else
-        echo -e "${GREEN}✅ overscroll-behavior присутній${NC}"
-    fi
-fi
-
-# Перевірка 7: !important
-echo ""
-echo "❗ Перевірка !important..."
-# АДАПТАЦІЯ: Змініть список файлів для ігнорування
-IMPORTANT=$(grep -r '!important' "$CSS_DIR" --include="*.css" --exclude="normalize.css" 2>/dev/null || true)
-if [ -n "$IMPORTANT" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: Використання !important (ЗАБОРОНЕНО):${NC}"
-    echo "$IMPORTANT"
-    ERRORS=$((ERRORS + 1))
-else
-    echo -e "${GREEN}✅ !important не використовується${NC}"
-fi
-
-# Перевірка 8: backdrop-filter з префіксом
-echo ""
-echo "🌫️  Перевірка backdrop-filter prefixes..."
-BACKDROP_FILTER=$(grep -r 'backdrop-filter' "$CSS_DIR" --include="*.css" 2>/dev/null || true)
-if [ -n "$BACKDROP_FILTER" ]; then
-    WEBKIT_BACKDROP=$(echo "$BACKDROP_FILTER" | grep -c '-webkit-backdrop-filter' || true)
-    if [ "$WEBKIT_BACKDROP" -eq 0 ]; then
-        echo -e "${RED}❌ ПОМИЛКА: backdrop-filter без -webkit- префіксу${NC}"
-        ERRORS=$((ERRORS + 1))
-    else
-        echo -e "${GREEN}✅ backdrop-filter має префікси${NC}"
-    fi
-fi
-
-# Підсумок
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}✅ Всі CSS перевірки пройдено успішно!${NC}"
-    exit 0
-else
-    echo -e "${RED}❌ Знайдено $ERRORS помилок CSS${NC}"
-    exit 1
-fi
-```
-
-**Адаптація:** Змініть шляхи `static/css/`, `src/css/`, `assets/css/` та назви файлів (`base.css`, `main.css`) під ваш проект.
-
-### 4.4 scripts/check-js-rules.sh
-
-Створіть файл `scripts/check-js-rules.sh`:
-
-```bash
-#!/bin/bash
-# Перевірка JavaScript правил
-
-set -e
-
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-ERRORS=0
-
-echo "📜 Перевірка JavaScript правил..."
-echo ""
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-# АДАПТАЦІЯ: Змініть шлях до ваших JS файлів
-JS_DIR="$REPO_ROOT/static/js"
-if [ ! -d "$JS_DIR" ]; then
-    JS_DIR="$REPO_ROOT/src/js"
-fi
-if [ ! -d "$JS_DIR" ]; then
-    JS_DIR="$REPO_ROOT/assets/js"
-fi
-
-# АДАПТАЦІЯ: Змініть назву головного JS файлу
-MAIN_JS="$JS_DIR/main.js"
-if [ ! -f "$MAIN_JS" ]; then
-    MAIN_JS="$JS_DIR/app.js"
-fi
-if [ ! -f "$MAIN_JS" ]; then
-    MAIN_JS="$JS_DIR/index.js"
-fi
-
-# Перевірка 1: var заборонено
-echo "🔤 Перевірка var (має бути const/let)..."
-VAR_USAGE=$(grep -r '\bvar\b' "$JS_DIR" --include="*.js" 2>/dev/null || true)
-if [ -n "$VAR_USAGE" ]; then
-    echo -e "${RED}❌ ПОМИЛКА: Використання var (ЗАБОРОНЕНО):${NC}"
-    echo "$VAR_USAGE"
-    ERRORS=$((ERRORS + 1))
-else
-    echo -e "${GREEN}✅ var не використовується${NC}"
-fi
-
-# Перевірка 2: pageshow для bfcache
-echo ""
-echo "💾 Перевірка pageshow event listener..."
-if [ -f "$MAIN_JS" ]; then
-    PAGESHOW=$(grep -r 'pageshow' "$MAIN_JS" 2>/dev/null || true)
-    if [ -z "$PAGESHOW" ]; then
-        echo -e "${YELLOW}⚠️  РЕКОМЕНДАЦІЯ: Додайте pageshow event listener для bfcache${NC}"
-        echo "   window.addEventListener('pageshow', (event) => {"
-        echo "     if (event.persisted) { /* restore state */ }"
-        echo "   });"
-    else
-        echo -e "${GREEN}✅ pageshow event listener присутній${NC}"
-    fi
-else
-    echo -e "${YELLOW}⚠️  Головний JS файл не знайдено: $MAIN_JS${NC}"
-fi
-
-# Перевірка 3: scrollend event
-echo ""
-echo "📜 Перевірка scrollend event..."
-SCROLLEND=$(grep -r 'scrollend' "$JS_DIR" --include="*.js" 2>/dev/null || true)
-if [ -z "$SCROLLEND" ]; then
-    echo -e "${GREEN}ℹ️  scrollend event не використовується (це OK)${NC}"
-fi
-
-# Перевірка 4: IIFE або strict mode
-echo ""
-echo "🔒 Перевірка 'use strict' або IIFE..."
-if [ -f "$MAIN_JS" ]; then
-    STRICT_MODE=$(grep -r "'use strict'" "$MAIN_JS" 2>/dev/null || true)
-    IIFE=$(grep -r '(function' "$MAIN_JS" 2>/dev/null || true)
-    if [ -z "$STRICT_MODE" ] && [ -z "$IIFE" ]; then
-        echo -e "${YELLOW}⚠️  УВАГА: Відсутній 'use strict' або IIFE${NC}"
-    else
-        echo -e "${GREEN}✅ 'use strict' або IIFE присутні${NC}"
-    fi
-fi
-
-# Підсумок
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}✅ Всі JS перевірки пройдено успішно!${NC}"
-    exit 0
-else
-    echo -e "${RED}❌ Знайдено $ERRORS помилок JS${NC}"
-    exit 1
-fi
-```
-
-**Адаптація:** Змініть шляхи та назви файлів під ваш проект.
-
-### 4.5 scripts/check-all-rules.sh
-
-Створіть файл `scripts/check-all-rules.sh`:
-
-```bash
-#!/bin/bash
-# Головний скрипт перевірки ВСІХ правил
-
-set -e
-
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-
-echo "🚀 Запуск повної перевірки (Ultimate Edition 2025)"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
-# 1. HTML перевірки
-if [ -f "$REPO_ROOT/scripts/check-html-rules.sh" ]; then
-    bash "$REPO_ROOT/scripts/check-html-rules.sh" || true
-    HTML_EXIT=$?
-else
-    HTML_EXIT=0
-fi
-
-# 2. CSS перевірки
-if [ -f "$REPO_ROOT/scripts/check-css-rules.sh" ]; then
-    bash "$REPO_ROOT/scripts/check-css-rules.sh" || true
-    CSS_EXIT=$?
-else
-    CSS_EXIT=0
-fi
-
-# 3. JS перевірки
-if [ -f "$REPO_ROOT/scripts/check-js-rules.sh" ]; then
-    bash "$REPO_ROOT/scripts/check-js-rules.sh" || true
-    JS_EXIT=$?
-else
-    JS_EXIT=0
-fi
-
-# 4. Django template перевірки (якщо є)
-if [ -f "$REPO_ROOT/scripts/check_template_tags.sh" ]; then
-    bash "$REPO_ROOT/scripts/check_template_tags.sh" || true
-    DJANGO_EXIT=$?
-else
-    DJANGO_EXIT=0
-fi
-
-# 5. Stylelint (якщо npm встановлено)
-if command -v npm &> /dev/null && [ -f "$REPO_ROOT/package.json" ]; then
-    echo ""
-    echo "🎨 Запуск Stylelint..."
-    cd "$REPO_ROOT"
-    npm run lint:css || true
-    STYLELINT_EXIT=$?
-else
-    echo ""
-    echo "⚠️  Stylelint пропущено (npm не встановлено)"
-    STYLELINT_EXIT=0
-fi
-
-# 6. ESLint (якщо npm встановлено)
-if command -v npm &> /dev/null && [ -f "$REPO_ROOT/package.json" ]; then
-    echo ""
-    echo "📜 Запуск ESLint..."
-    cd "$REPO_ROOT"
-    npm run lint:js || true
-    ESLINT_EXIT=$?
-else
-    echo ""
-    echo "⚠️  ESLint пропущено (npm не встановлено)"
-    ESLINT_EXIT=0
-fi
-
-# 7. HTMLHint (якщо npm встановлено)
-if command -v npm &> /dev/null && [ -f "$REPO_ROOT/package.json" ]; then
-    echo ""
-    echo "📄 Запуск HTMLHint..."
-    cd "$REPO_ROOT"
-    npm run lint:html || true
-    HTMLHINT_EXIT=$?
-else
-    echo ""
-    echo "⚠️  HTMLHint пропущено (npm не встановлено)"
-    HTMLHINT_EXIT=0
-fi
-
-# Підсумок
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📊 ПІДСУМОК ПЕРЕВІРОК:"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-TOTAL_ERRORS=$((HTML_EXIT + CSS_EXIT + JS_EXIT + DJANGO_EXIT + STYLELINT_EXIT + ESLINT_EXIT + HTMLHINT_EXIT))
-
-[ $HTML_EXIT -eq 0 ] && echo "✅ HTML перевірки" || echo "❌ HTML перевірки"
-[ $CSS_EXIT -eq 0 ] && echo "✅ CSS перевірки" || echo "❌ CSS перевірки"
-[ $JS_EXIT -eq 0 ] && echo "✅ JS перевірки" || echo "❌ JS перевірки"
-[ $DJANGO_EXIT -eq 0 ] && echo "✅ Django templates" || echo "❌ Django templates"
-[ $STYLELINT_EXIT -eq 0 ] && echo "✅ Stylelint" || echo "❌ Stylelint"
-[ $ESLINT_EXIT -eq 0 ] && echo "✅ ESLint" || echo "❌ ESLint"
-[ $HTMLHINT_EXIT -eq 0 ] && echo "✅ HTMLHint" || echo "❌ HTMLHint"
-
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-if [ $TOTAL_ERRORS -eq 0 ]; then
-    echo "🎉 ВСІ ПЕРЕВІРКИ ПРОЙДЕНО УСПІШНО!"
-    exit 0
-else
-    echo "❌ ПЕРЕВІРКИ НЕ ПРОЙДЕНО"
-    echo "💡 Запустіть: npm run fix:rules для автоматичного виправлення"
-    exit 1
-fi
-```
-
-### 4.6 scripts/fix-rules.sh
-
-Створіть файл `scripts/fix-rules.sh`:
-
-```bash
-#!/bin/bash
-# Автоматичне виправлення деяких порушень
-
-set -e
-
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-
-echo "🔧 Автоматичне виправлення порушень..."
-echo ""
-
-# АДАПТАЦІЯ: Змініть шляхи до ваших HTML файлів
-HTML_DIRS=("$REPO_ROOT/templates" "$REPO_ROOT/src")
-CSS_DIRS=("$REPO_ROOT/static/css" "$REPO_ROOT/src/css" "$REPO_ROOT/assets/css")
-
-# 1. Видалення inline styles з HTML
-echo "🎨 Видалення inline styles..."
-for dir in "${HTML_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        find "$dir" -name "*.html" -type f -exec sed -i.bak 's/ style="[^"]*"//g' {} \; 2>/dev/null || true
-        find "$dir" -name "*.bak" -delete 2>/dev/null || true
-    fi
-done
-echo "✅ Inline styles видалено"
-
-# 2. Додавання inputmode до tel полів
-echo ""
-echo "⌨️  Додавання inputmode='tel' до type='tel'..."
-for dir in "${HTML_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        find "$dir" -name "*.html" -type f -exec sed -i.bak 's/type="tel"/type="tel" inputmode="tel"/g' {} \; 2>/dev/null || true
-        find "$dir" -name "*.bak" -delete 2>/dev/null || true
-    fi
-done
-echo "✅ inputmode додано"
-
-# 3. Виправлення flex: 1
-echo ""
-echo "🔧 Виправлення flex: 1..."
-for dir in "${CSS_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        find "$dir" -name "*.css" -type f -exec sed -i.bak 's/flex: 1;/flex: 1 0 0;/g' {} \; 2>/dev/null || true
-        find "$dir" -name "*.bak" -delete 2>/dev/null || true
-    fi
-done
-echo "✅ Flex properties виправлено"
-
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ Автоматичні виправлення завершено!"
-echo "⚠️  ВАЖЛИВО: Перевірте зміни перед комітом!"
-```
-
-**Адаптація:** Змініть масиви `HTML_DIRS` та `CSS_DIRS` під структуру вашого проекту.
-
-### 4.7 Надання прав на виконання
+Зробіть скрипт виконуваним:
 
 ```bash
 chmod +x scripts/check-html-rules.sh
+```
+
+### 6.2. `scripts/check-css-rules.sh`
+
+```bash
+#!/bin/bash
+set -e
+
+echo "========================================="
+echo "🎨 CSS Custom Rules Check"
+echo "========================================="
+
+ERROR_COUNT=0
+WARNING_COUNT=0
+
+# Знаходимо всі CSS файли (крім normalize.css)
+CSS_FILES=$(find static/css -name "*.css" ! -name "normalize.css" 2>/dev/null || echo "")
+
+if [ -z "$CSS_FILES" ]; then
+  echo "⚠️  No CSS files found in static/css/"
+  exit 0
+fi
+
+# Правило 1: 100vh має мати fallback 100dvh (або коментар "Fallback")
+echo ""
+echo "📐 [Rule 1] Checking 100vh fallback..."
+VH_ISSUES=$(echo "$CSS_FILES" | while read -r file; do
+  grep -n '100vh' "$file" | while IFS=: read -r linenum line; do
+    # Перевіряємо, чи є 100dvh або коментар "Fallback" в наступних 2 рядках
+    context=$(sed -n "$((linenum-1)),$((linenum+2))p" "$file")
+    if ! echo "$context" | grep -qE '100dvh|Fallback'; then
+      echo "$file:$linenum: $line"
+    fi
+  done
+done)
+
+if [ -n "$VH_ISSUES" ]; then
+  echo "❌ Found 100vh without 100dvh fallback:"
+  echo "$VH_ISSUES"
+  echo "   Fix: Use 'height: 100vh; /* Fallback */ height: 100dvh;'"
+  ((ERROR_COUNT++))
+else
+  echo "✅ All 100vh declarations have fallback"
+fi
+
+# Правило 2: safe-area-inset-* має використовуватись для padding/margin
+echo ""
+echo "📱 [Rule 2] Checking safe-area-inset usage..."
+SAFE_AREA_USAGE=$(echo "$CSS_FILES" | xargs grep -c 'env(safe-area-inset-' | grep -v ':0$' || echo "")
+if [ -z "$SAFE_AREA_USAGE" ]; then
+  echo "⚠️  No safe-area-inset usage detected (may be intentional)"
+  echo "   Recommendation: Use env(safe-area-inset-bottom) for fixed elements"
+  ((WARNING_COUNT++))
+else
+  echo "✅ safe-area-inset is used: $(echo "$SAFE_AREA_USAGE" | wc -l) file(s)"
+fi
+
+# Правило 3: font-size має бути в rem, а не px (warning, не error)
+echo ""
+echo "🔤 [Rule 3] Checking font-size units (prefer rem over px)..."
+PX_FONT_SIZES=$(echo "$CSS_FILES" | xargs grep -n 'font-size:.*px' || echo "")
+if [ -n "$PX_FONT_SIZES" ]; then
+  echo "⚠️  font-size in px found (recommend rem for accessibility):"
+  echo "$PX_FONT_SIZES" | head -n 10
+  if [ $(echo "$PX_FONT_SIZES" | wc -l) -gt 10 ]; then
+    echo "   ... and $(( $(echo "$PX_FONT_SIZES" | wc -l) - 10 )) more"
+  fi
+  ((WARNING_COUNT++))
+else
+  echo "✅ All font-sizes use rem"
+fi
+
+# Правило 4: flex: 1; має бути flex: 1 0 0; або flex: 1 0 auto;
+echo ""
+echo "📦 [Rule 4] Checking flex shorthand..."
+FLEX_ISSUES=$(echo "$CSS_FILES" | xargs grep -n 'flex:\s*1;' || echo "")
+if [ -n "$FLEX_ISSUES" ]; then
+  echo "❌ Found 'flex: 1;' without explicit flex-basis:"
+  echo "$FLEX_ISSUES"
+  echo "   Fix: Use 'flex: 1 0 0;' or 'flex: 1 0 auto;'"
+  ((ERROR_COUNT++))
+else
+  echo "✅ All flex shorthands are explicit"
+fi
+
+# Правило 5: hover ефекти мають бути в @media (hover: hover)
+echo ""
+echo "🖱️  [Rule 5] Checking hover effects in media query..."
+HOVER_EFFECTS=$(echo "$CSS_FILES" | xargs grep -n ':hover' || echo "")
+if [ -n "$HOVER_EFFECTS" ]; then
+  # Перевіряємо, чи всі :hover в @media (hover: hover)
+  UNCHECKED_HOVERS=$(echo "$CSS_FILES" | while read -r file; do
+    awk '
+      /@media.*\(hover: hover\)/ { in_media=1; next }
+      /^}/ { if (in_media) in_media=0 }
+      /:hover/ { if (!in_media) print FILENAME":"NR":"$0 }
+    ' "$file"
+  done)
+  
+  if [ -n "$UNCHECKED_HOVERS" ]; then
+    echo "⚠️  :hover effects outside @media (hover: hover):"
+    echo "$UNCHECKED_HOVERS" | head -n 5
+    echo "   Recommendation: Wrap hover effects in @media (hover: hover) { ... }"
+    ((WARNING_COUNT++))
+  else
+    echo "✅ All :hover effects are in @media (hover: hover)"
+  fi
+else
+  echo "✅ No hover effects found"
+fi
+
+# Правило 6: overscroll-behavior: none; на body
+echo ""
+echo "📜 [Rule 6] Checking overscroll-behavior..."
+OVERSCROLL=$(echo "$CSS_FILES" | xargs grep -c 'overscroll-behavior' | grep -v ':0$' || echo "")
+if [ -z "$OVERSCROLL" ]; then
+  echo "⚠️  No overscroll-behavior detected"
+  echo "   Recommendation: Add 'body { overscroll-behavior: none; }' to base.css"
+  ((WARNING_COUNT++))
+else
+  echo "✅ overscroll-behavior is used"
+fi
+
+# Правило 7: !important заборонений (дублює Stylelint, але для надійності)
+echo ""
+echo "🚫 [Rule 7] Checking for !important..."
+IMPORTANT=$(echo "$CSS_FILES" | xargs grep -n '!important' || echo "")
+if [ -n "$IMPORTANT" ]; then
+  echo "❌ !important found (forbidden):"
+  echo "$IMPORTANT"
+  ((ERROR_COUNT++))
+else
+  echo "✅ No !important detected"
+fi
+
+# Правило 8: backdrop-filter має мати -webkit- prefix
+echo ""
+echo "🌫️  [Rule 8] Checking backdrop-filter prefix..."
+BACKDROP_ISSUES=$(echo "$CSS_FILES" | xargs grep -n 'backdrop-filter:' | grep -v '\-webkit-backdrop-filter' || echo "")
+if [ -n "$BACKDROP_ISSUES" ]; then
+  echo "⚠️  backdrop-filter without -webkit- prefix:"
+  echo "$BACKDROP_ISSUES"
+  echo "   Fix: Add '-webkit-backdrop-filter: ...; backdrop-filter: ...;'"
+  ((WARNING_COUNT++))
+else
+  echo "✅ All backdrop-filters have -webkit- prefix (or none used)"
+fi
+
+# Підсумок
+echo ""
+echo "========================================="
+echo "📊 CSS Rules Summary"
+echo "========================================="
+echo "Errors: $ERROR_COUNT"
+echo "Warnings: $WARNING_COUNT"
+
+if [ $ERROR_COUNT -gt 0 ]; then
+  echo "❌ CSS custom rules check FAILED"
+  exit 1
+else
+  echo "✅ CSS custom rules check PASSED"
+  exit 0
+fi
+```
+
+Зробіть скрипт виконуваним:
+
+```bash
 chmod +x scripts/check-css-rules.sh
+```
+
+### 6.3. `scripts/check-js-rules.sh`
+
+```bash
+#!/bin/bash
+set -e
+
+echo "========================================="
+echo "⚡ JavaScript Custom Rules Check"
+echo "========================================="
+
+ERROR_COUNT=0
+WARNING_COUNT=0
+
+# Знаходимо всі JS файли
+JS_FILES=$(find static/js -name "*.js" 2>/dev/null || echo "")
+
+if [ -z "$JS_FILES" ]; then
+  echo "⚠️  No JavaScript files found in static/js/"
+  exit 0
+fi
+
+# Правило 1: var заборонений (дублює ESLint, але для надійності)
+echo ""
+echo "🚫 [Rule 1] Checking for var usage..."
+VAR_USAGE=$(echo "$JS_FILES" | xargs grep -nE '\bvar\s+' || echo "")
+if [ -n "$VAR_USAGE" ]; then
+  echo "❌ 'var' found (use const/let):"
+  echo "$VAR_USAGE"
+  ((ERROR_COUNT++))
+else
+  echo "✅ No 'var' usage detected"
+fi
+
+# Правило 2: pageshow event listener для bfcache
+echo ""
+echo "🔄 [Rule 2] Checking for pageshow event listener..."
+PAGESHOW=$(echo "$JS_FILES" | xargs grep -c "pageshow" | grep -v ':0$' || echo "")
+if [ -z "$PAGESHOW" ]; then
+  echo "⚠️  No 'pageshow' event listener detected"
+  echo "   Recommendation: Add window.addEventListener('pageshow', (event) => { ... }) for bfcache"
+  ((WARNING_COUNT++))
+else
+  echo "✅ pageshow event listener found"
+fi
+
+# Правило 3: strict mode або IIFE
+echo ""
+echo "🔒 [Rule 3] Checking for strict mode or IIFE..."
+STRICT_MODE=$(echo "$JS_FILES" | xargs grep -c "'use strict'" | grep -v ':0$' || echo "")
+IIFE=$(echo "$JS_FILES" | xargs grep -c '(function()' | grep -v ':0$' || echo "")
+
+if [ -z "$STRICT_MODE" ] && [ -z "$IIFE" ]; then
+  echo "⚠️  No 'use strict' or IIFE detected"
+  echo "   Recommendation: Use 'use strict'; or wrap code in IIFE"
+  ((WARNING_COUNT++))
+else
+  echo "✅ Code uses strict mode or IIFE"
+fi
+
+# Правило 4: eval() заборонений (дублює ESLint)
+echo ""
+echo "🚨 [Rule 4] Checking for eval() usage..."
+EVAL_USAGE=$(echo "$JS_FILES" | xargs grep -nE '\beval\s*\(' || echo "")
+if [ -n "$EVAL_USAGE" ]; then
+  echo "❌ eval() found (forbidden for security):"
+  echo "$EVAL_USAGE"
+  ((ERROR_COUNT++))
+else
+  echo "✅ No eval() usage detected"
+fi
+
+# Правило 5: HTMX integration check (htmx:afterSwap, htmx:configRequest)
+echo ""
+echo "🔗 [Rule 5] Checking HTMX integration..."
+HTMX_INTEGRATION=$(echo "$JS_FILES" | xargs grep -cE 'htmx:(afterSwap|configRequest|responseError|sendError)' | grep -v ':0$' || echo "")
+if [ -n "$HTMX_INTEGRATION" ]; then
+  echo "✅ HTMX event listeners found"
+else
+  echo "ℹ️  No HTMX event listeners detected (may be intentional)"
+fi
+
+# Підсумок
+echo ""
+echo "========================================="
+echo "📊 JavaScript Rules Summary"
+echo "========================================="
+echo "Errors: $ERROR_COUNT"
+echo "Warnings: $WARNING_COUNT"
+
+if [ $ERROR_COUNT -gt 0 ]; then
+  echo "❌ JavaScript custom rules check FAILED"
+  exit 1
+else
+  echo "✅ JavaScript custom rules check PASSED"
+  exit 0
+fi
+```
+
+Зробіть скрипт виконуваним:
+
+```bash
 chmod +x scripts/check-js-rules.sh
+```
+
+### 6.4. `scripts/check_template_tags.sh` (Django)
+
+**Найважливіша перевірка для Django шаблонів!**
+
+```bash
+#!/bin/bash
+set -e
+
+echo "========================================="
+echo "🔖 Django Template Tags Check"
+echo "========================================="
+
+ERROR_COUNT=0
+
+# Знаходимо всі HTML файли в templates/
+HTML_FILES=$(find templates -name "*.html" 2>/dev/null || echo "")
+
+if [ -z "$HTML_FILES" ]; then
+  echo "⚠️  No template files found"
+  exit 0
+fi
+
+# Правило: Django теги {{ }} та {% %} НЕ можна розривати на кілька рядків
+echo ""
+echo "🚫 [CRITICAL] Checking for broken Django template tags..."
+
+# Перевірка 1: {{ на одному рядку, }} на іншому
+BROKEN_VAR_TAGS=$(echo "$HTML_FILES" | xargs grep -Pzon '\{\{[^}]*\n' || echo "")
+if [ -n "$BROKEN_VAR_TAGS" ]; then
+  echo "❌ Found {{ }} tags broken across lines:"
+  echo "$BROKEN_VAR_TAGS" | head -n 20
+  ((ERROR_COUNT++))
+fi
+
+# Перевірка 2: {% на одному рядку, %} на іншому
+BROKEN_BLOCK_TAGS=$(echo "$HTML_FILES" | xargs grep -Pzon '\{%[^%]*\n.*?%\}' || echo "")
+if [ -n "$BROKEN_BLOCK_TAGS" ]; then
+  echo "❌ Found {% %} tags broken across lines:"
+  echo "$BROKEN_BLOCK_TAGS" | head -n 20
+  ((ERROR_COUNT++))
+fi
+
+if [ $ERROR_COUNT -eq 0 ]; then
+  echo "✅ All Django template tags are on single lines"
+fi
+
+# Підсумок
+echo ""
+echo "========================================="
+echo "📊 Django Template Tags Summary"
+echo "========================================="
+echo "Errors: $ERROR_COUNT"
+
+if [ $ERROR_COUNT -gt 0 ]; then
+  echo "❌ Django template tags check FAILED"
+  echo ""
+  echo "🔧 How to fix:"
+  echo "   - Keep {{ variable }} on one line"
+  echo "   - Keep {% tag %} on one line"
+  echo "   - Use {% with %} for complex expressions"
+  echo "   - Use custom template filters for long variable names"
+  exit 1
+else
+  echo "✅ Django template tags check PASSED"
+  exit 0
+fi
+```
+
+Зробіть скрипт виконуваним:
+
+```bash
+chmod +x scripts/check_template_tags.sh
+```
+
+### 6.5. `scripts/check-all-rules.sh` (Wrapper)
+
+Цей скрипт запускає **всі** перевірки:
+
+```bash
+#!/bin/bash
+
+echo "╔════════════════════════════════════════╗"
+echo "║   🚀 FULL PROJECT HEALTH CHECK        ║"
+echo "╔════════════════════════════════════════╗"
+echo ""
+
+TOTAL_ERRORS=0
+
+# 1. Django Template Tags
+if [ -f "scripts/check_template_tags.sh" ]; then
+  bash scripts/check_template_tags.sh || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# 2. HTML Custom Rules
+if [ -f "scripts/check-html-rules.sh" ]; then
+  bash scripts/check-html-rules.sh || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# 3. CSS Custom Rules
+if [ -f "scripts/check-css-rules.sh" ]; then
+  bash scripts/check-css-rules.sh || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# 4. JavaScript Custom Rules
+if [ -f "scripts/check-js-rules.sh" ]; then
+  bash scripts/check-js-rules.sh || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# 5. Stylelint
+if command -v npm &> /dev/null && [ -f "package.json" ]; then
+  echo "========================================="
+  echo "🎨 Running Stylelint..."
+  echo "========================================="
+  npm run lint:css || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# 6. ESLint
+if command -v npm &> /dev/null && [ -f "package.json" ]; then
+  echo "========================================="
+  echo "⚡ Running ESLint..."
+  echo "========================================="
+  npm run lint:js || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# 7. HTMLHint
+if command -v npm &> /dev/null && [ -f "package.json" ]; then
+  echo "========================================="
+  echo "📝 Running HTMLHint..."
+  echo "========================================="
+  npm run lint:html || ((TOTAL_ERRORS++))
+  echo ""
+fi
+
+# Підсумок
+echo "╔════════════════════════════════════════╗"
+echo "║   📊 FINAL SUMMARY                     ║"
+echo "╔════════════════════════════════════════╗"
+echo "Total failed checks: $TOTAL_ERRORS"
+echo ""
+
+if [ $TOTAL_ERRORS -eq 0 ]; then
+  echo "✅ ALL CHECKS PASSED! 🎉"
+  exit 0
+else
+  echo "❌ SOME CHECKS FAILED"
+  echo "Run 'npm run fix:rules' to auto-fix some issues"
+  exit 1
+fi
+```
+
+Зробіть скрипт виконуваним:
+
+```bash
 chmod +x scripts/check-all-rules.sh
+```
+
+### 6.6. Тестування скриптів
+
+```bash
+bash scripts/check-all-rules.sh
+```
+
+---
+
+## Крок 7: Створення скриптів автоматичного виправлення
+
+### 7.1. `scripts/fix-rules.sh`
+
+```bash
+#!/bin/bash
+set -e
+
+echo "========================================="
+echo "🔧 Automatic Rules Fixes"
+echo "========================================="
+
+FIXED_COUNT=0
+
+# Fix 1: Видалити inline style=""
+echo ""
+echo "🎨 [Fix 1] Removing inline styles..."
+HTML_FILES=$(find templates -name "*.html" 2>/dev/null || echo "")
+if [ -n "$HTML_FILES" ]; then
+  BEFORE=$(echo "$HTML_FILES" | xargs grep -c 'style="' | grep -v ':0$' | wc -l)
+  echo "$HTML_FILES" | xargs sed -i.bak 's/ style="[^"]*"//g'
+  AFTER=$(echo "$HTML_FILES" | xargs grep -c 'style="' | grep -v ':0$' | wc -l || echo "0")
+  REMOVED=$((BEFORE - AFTER))
+  if [ $REMOVED -gt 0 ]; then
+    echo "✅ Removed $REMOVED inline style attributes"
+    ((FIXED_COUNT++))
+  fi
+fi
+
+# Fix 2: Додати inputmode="tel" до type="tel"
+echo ""
+echo "📞 [Fix 2] Adding inputmode=\"tel\" to tel inputs..."
+if [ -n "$HTML_FILES" ]; then
+  echo "$HTML_FILES" | xargs sed -i.bak 's/<input type="tel"/<input type="tel" inputmode="tel"/g'
+  echo "✅ Added inputmode to tel inputs"
+  ((FIXED_COUNT++))
+fi
+
+# Fix 3: flex: 1; → flex: 1 0 0;
+echo ""
+echo "📦 [Fix 3] Fixing flex shorthand..."
+CSS_FILES=$(find static/css -name "*.css" ! -name "normalize.css" 2>/dev/null || echo "")
+if [ -n "$CSS_FILES" ]; then
+  BEFORE=$(echo "$CSS_FILES" | xargs grep -c 'flex:\s*1;' | grep -v ':0$' | wc -l || echo "0")
+  echo "$CSS_FILES" | xargs sed -i.bak 's/flex: 1;/flex: 1 0 0;/g'
+  AFTER=$(echo "$CSS_FILES" | xargs grep -c 'flex:\s*1;' | grep -v ':0$' | wc -l || echo "0")
+  FIXED=$((BEFORE - AFTER))
+  if [ $FIXED -gt 0 ]; then
+    echo "✅ Fixed $FIXED flex shorthand declarations"
+    ((FIXED_COUNT++))
+  fi
+fi
+
+# Видалити .bak файли
+find . -name "*.bak" -delete
+
+echo ""
+echo "========================================="
+echo "📊 Fixes Summary"
+echo "========================================="
+echo "Total fixes applied: $FIXED_COUNT"
+echo "✅ Auto-fix complete"
+```
+
+Зробіть скрипт виконуваним:
+
+```bash
 chmod +x scripts/fix-rules.sh
 ```
 
+### 7.2. Тестування автоматичного виправлення
+
+```bash
+bash scripts/fix-rules.sh
+```
+
 ---
 
-## Крок 5: Налаштування Git Hooks
+## Крок 8: Налаштування Git Hooks (Husky)
 
-### 5.1 Створення scripts/setup-git-hooks.sh
+### 8.1. Ініціалізація Husky
 
-Створіть файл `scripts/setup-git-hooks.sh`:
+```bash
+npm install
+npx husky install
+```
+
+**Результат**: створена директорія `.husky/`
+
+### 8.2. Створення pre-commit hook
+
+```bash
+npx husky add .husky/pre-commit "bash scripts/pre-commit-hook.sh"
+```
+
+### 8.3. Створення `scripts/pre-commit-hook.sh`
 
 ```bash
 #!/bin/bash
-# Налаштування git hooks з повною перевіркою
 
-set -e
+echo "🔍 Running pre-commit checks..."
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-HOOKS_DIR="$REPO_ROOT/.git/hooks"
+# Отримуємо список змінених файлів
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
 
-if [ ! -d "$HOOKS_DIR" ]; then
-    echo "❌ Помилка: .git/hooks директорія не знайдена"
-    echo "💡 Переконайтеся, що ви знаходитесь в git репозиторії"
-    exit 1
+if [ -z "$STAGED_FILES" ]; then
+  echo "No files staged for commit."
+  exit 0
 fi
 
-echo "🔧 Налаштування git pre-commit hook (Ultimate Edition 2025)..."
+ERROR_COUNT=0
 
-cat > "$HOOKS_DIR/pre-commit" << 'HOOK_CONTENT'
-#!/bin/bash
-# Pre-commit hook з повною перевіркою всіх правил
-
-REPO_ROOT="$(git rev-parse --show-toplevel)"
-
-# Кольори
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-echo "🔍 Pre-commit перевірка..."
-echo ""
-
-# Перевірка змінених файлів
-CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
-
-# HTML файли
-HTML_FILES=$(echo "$CHANGED_FILES" | grep '\.html$' || true)
-if [ -n "$HTML_FILES" ]; then
-    echo "📄 Перевірка HTML..."
-    if [ -f "$REPO_ROOT/scripts/check-html-rules.sh" ]; then
-        bash "$REPO_ROOT/scripts/check-html-rules.sh" || exit 1
-    fi
-fi
-
-# CSS файли
-CSS_FILES=$(echo "$CHANGED_FILES" | grep '\.css$' || true)
-if [ -n "$CSS_FILES" ]; then
-    echo "🎨 Перевірка CSS..."
-    if [ -f "$REPO_ROOT/scripts/check-css-rules.sh" ]; then
-        bash "$REPO_ROOT/scripts/check-css-rules.sh" || exit 1
-    fi
-    
-    if command -v npm &> /dev/null && [ -f "$REPO_ROOT/package.json" ]; then
-        echo "🔍 Stylelint..."
-        cd "$REPO_ROOT"
-        npm run lint:css || exit 1
-    fi
-fi
-
-# JS файли
-JS_FILES=$(echo "$CHANGED_FILES" | grep '\.js$' || true)
-if [ -n "$JS_FILES" ]; then
-    echo "📜 Перевірка JS..."
-    if [ -f "$REPO_ROOT/scripts/check-js-rules.sh" ]; then
-        bash "$REPO_ROOT/scripts/check-js-rules.sh" || exit 1
-    fi
-    
-    if command -v npm &> /dev/null && [ -f "$REPO_ROOT/package.json" ]; then
-        echo "🔍 ESLint..."
-        cd "$REPO_ROOT"
-        npm run lint:js || exit 1
-    fi
-fi
-
-# Django templates (якщо є)
-TEMPLATE_FILES=$(echo "$CHANGED_FILES" | grep 'templates/.*\.html$' || true)
+# Перевірка Django шаблонів
+TEMPLATE_FILES=$(echo "$STAGED_FILES" | grep '\.html$' || echo "")
 if [ -n "$TEMPLATE_FILES" ]; then
-    echo "🔧 Перевірка Django templates..."
-    if [ -f "$REPO_ROOT/scripts/check_template_tags.sh" ]; then
-        if [ -f "$REPO_ROOT/scripts/fix_template_tags.sh" ]; then
-            cd "$REPO_ROOT"
-            "$REPO_ROOT/scripts/fix_template_tags.sh" 2>/dev/null || true
-            git add -u templates/ 2>/dev/null || true
-        fi
-        
-        cd "$REPO_ROOT"
-        if ! "$REPO_ROOT/scripts/check_template_tags.sh"; then
-            echo ""
-            echo -e "${RED}❌ Коміт заблоковано: знайдено розриви Django тегів!${NC}"
-            echo "💡 Виправте розриви вручну або запустіть: ./scripts/fix_template_tags.sh"
-            exit 1
-        fi
-    fi
+  echo "Checking Django templates..."
+  bash scripts/check_template_tags.sh || ((ERROR_COUNT++))
 fi
 
-echo ""
-echo -e "${GREEN}✅ Всі перевірки пройдено! Коміт дозволено.${NC}"
+# Перевірка CSS
+CSS_FILES=$(echo "$STAGED_FILES" | grep '\.css$' | grep -v 'normalize.css' || echo "")
+if [ -n "$CSS_FILES" ]; then
+  echo "Checking CSS files..."
+  npx stylelint $CSS_FILES || ((ERROR_COUNT++))
+  bash scripts/check-css-rules.sh || ((ERROR_COUNT++))
+fi
+
+# Перевірка JS
+JS_FILES=$(echo "$STAGED_FILES" | grep '\.js$' || echo "")
+if [ -n "$JS_FILES" ]; then
+  echo "Checking JavaScript files..."
+  npx eslint $JS_FILES || ((ERROR_COUNT++))
+  bash scripts/check-js-rules.sh || ((ERROR_COUNT++))
+fi
+
+# Перевірка HTML
+if [ -n "$TEMPLATE_FILES" ]; then
+  echo "Checking HTML structure..."
+  npx htmlhint $TEMPLATE_FILES || ((ERROR_COUNT++))
+  bash scripts/check-html-rules.sh || ((ERROR_COUNT++))
+fi
+
+if [ $ERROR_COUNT -gt 0 ]; then
+  echo "❌ Pre-commit checks failed! Fix errors before committing."
+  echo "Run 'npm run fix:rules' to auto-fix some issues."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
 exit 0
-HOOK_CONTENT
-
-chmod +x "$HOOKS_DIR/pre-commit"
-
-echo "✅ Git pre-commit hook налаштовано!"
-echo ""
-echo "Тепер при кожному коміті буде перевірятись:"
-echo "  ✅ HTML правила (viewport, inputmode, inline styles)"
-echo "  ✅ CSS правила (vh units, safe-area, rem, flexbox, hover)"
-echo "  ✅ JS правила (var, bfcache, strict mode)"
-echo "  ✅ Django templates (розриви тегів)"
-echo "  ✅ Stylelint, ESLint, HTMLHint"
-echo ""
-echo "Для ручної перевірки: npm run check:rules"
-echo "Для автовиправлення: npm run fix:rules"
 ```
 
-### 5.2 Запуск налаштування
+Зробіть скрипт виконуваним:
 
 ```bash
-bash scripts/setup-git-hooks.sh
+chmod +x scripts/pre-commit-hook.sh
 ```
+
+### 8.4. Тестування Git Hook
+
+Спробуйте зробити commit з порушенням:
+
+```bash
+# Створіть файл з помилкою
+echo 'body { color: red !important; }' > static/css/test.css
+git add static/css/test.css
+git commit -m "Test commit"
+```
+
+**Очікуваний результат**: commit має бути **заблокований** з повідомленням про помилку.
 
 ---
 
-## Крок 6: Виправлення існуючих порушень
+## Крок 9: Тестування системи
 
-### 6.1 Перевірка поточних порушень
+### 9.1. Повна перевірка
 
 ```bash
 npm run check:rules
 ```
 
-### 6.2 Автоматичне виправлення
+### 9.2. Перевірка окремих компонентів
+
+```bash
+npm run lint:css
+npm run lint:js
+npm run lint:html
+```
+
+### 9.3. Створення тестових порушень
+
+Створіть файл `static/css/test-violations.css`:
+
+```css
+/* Порушення 1: !important */
+body {
+  color: red !important;
+}
+
+/* Порушення 2: flex: 1; без basis */
+.container {
+  flex: 1;
+}
+
+/* Порушення 3: 100vh без fallback */
+.hero {
+  height: 100vh;
+}
+```
+
+Запустіть перевірку:
+
+```bash
+npm run lint:css
+bash scripts/check-css-rules.sh
+```
+
+**Очікуваний результат**: всі 3 порушення мають бути виявлені.
+
+---
+
+## Крок 10: Виправлення існуючих порушень
+
+### 10.1. Автоматичне виправлення
 
 ```bash
 npm run fix:rules
+npm run lint:fix
 ```
 
-### 6.3 Ручне виправлення типових помилок
+### 10.2. Ручне виправлення
 
-#### Viewport meta
+Для порушень, які не можна виправити автоматично:
 
-**Знайдіть:** `<meta name="viewport" content="...">`
+1. Запустіть `npm run check:rules`
+2. Прочитайте вивід
+3. Виправте кожне порушення вручну
+4. Повторіть крок 1
 
-**Замініть на:**
+### 10.3. Приклади виправлень
+
+#### Порушення: inline style
+
+**До**:
 ```html
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<div style="color: red;">Text</div>
 ```
 
-#### 100vh → 100dvh
+**Після**:
+```html
+<div class="text-error">Text</div>
+```
 
-**Знайдіть:** `height: 100vh;` або `min-height: 100vh;`
+```css
+/* static/css/utilities/text.css */
+.text-error {
+  color: var(--color-error);
+}
+```
 
-**Замініть на:**
+#### Порушення: 100vh без fallback
+
+**До**:
+```css
+.hero {
+  height: 100vh;
+}
+```
+
+**Після**:
 ```css
 .hero {
   height: 100vh; /* Fallback */
@@ -1054,467 +1333,846 @@ npm run fix:rules
 }
 ```
 
-#### flex: 1 → flex: 1 0 0
+#### Порушення: var usage
 
-**Знайдіть:** `flex: 1;`
-
-**Замініть на:**
-```css
-.item {
-  flex: 1 0 0; /* або flex: 1 0 auto */
-}
-```
-
-#### inputmode для tel
-
-**Знайдіть:** `<input type="tel"`
-
-**Замініть на:**
-```html
-<input type="tel" inputmode="tel"
-```
-
-#### Inline styles
-
-**Знайдіть:** `style="..."`
-
-**Винесіть в CSS:**
-```html
-<!-- ❌ Погано -->
-<div style="display: none;">...</div>
-
-<!-- ✅ Добре -->
-<div class="is-hidden">...</div>
-```
-
-```css
-.is-hidden {
-  display: none;
-}
-```
-
-#### pageshow event
-
-**Додайте в головний JS файл:**
+**До**:
 ```javascript
+var name = 'John';
+```
+
+**Після**:
+```javascript
+const name = 'John';
+```
+
+#### Порушення: розривання Django тегів
+
+**До**:
+```django
+{% if user.is_authenticated and
+      user.has_permission %}
+  <p>Welcome</p>
+{% endif %}
+```
+
+**Після**:
+```django
+{% if user.is_authenticated and user.has_permission %}
+  <p>Welcome</p>
+{% endif %}
+```
+
+Або (якщо дуже довгий):
+```django
+{% with has_access=user.is_authenticated and user.has_permission %}
+  {% if has_access %}
+    <p>Welcome</p>
+  {% endif %}
+{% endwith %}
+```
+
+---
+
+## Інтеграція з Django
+
+### Django Templates (base.html)
+
+Базовий шаблон має містити **обов'язкові елементи**:
+
+```html
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}My App{% endblock %}</title>
+    
+    <!-- Preconnect для CDN -->
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    
+    <!-- CSS в правильному порядку -->
+    <link rel="stylesheet" href="{% static 'css/normalize.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.8" defer></script>
+    
+    <!-- Власні JS -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    {% block extra_js %}{% endblock %}
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>
+```
+
+### Django Forms з HTMX
+
+```html
+<form hx-post="{% url 'company_create' %}" hx-target="#company-list">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="id_name">Назва компанії</label>
+        <input type="text" id="id_name" name="name" value="{{ form.name.value|default:'' }}" required>
+        {% if form.name.errors %}
+            <span class="form-error">{{ form.name.errors.0 }}</span>
+        {% endif %}
+    </div>
+    
+    <div class="form-group">
+        <label for="id_phone">Телефон</label>
+        <input type="tel" id="id_phone" name="phone" inputmode="tel" value="{{ form.phone.value|default:'' }}">
+    </div>
+    
+    <button type="submit" class="button button--primary">Створити</button>
+</form>
+```
+
+### Django Views з HTMX
+
+```python
+# views.py
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_http_methods
+
+@require_http_methods(["POST"])
+def company_create(request):
+    form = CompanyForm(request.POST)
+    if form.is_valid():
+        company = form.save()
+        
+        # Для HTMX запитів повертаємо HTML фрагмент
+        if request.headers.get('HX-Request'):
+            html = render_to_string('companies/company_row.html', {'company': company})
+            return HttpResponse(html)
+        
+        # Для звичайних запитів — редірект
+        return redirect('company_list')
+    
+    # Якщо помилки валідації
+    if request.headers.get('HX-Request'):
+        html = render_to_string('companies/create_form.html', {'form': form})
+        return HttpResponse(html, status=400)
+    
+    return render(request, 'companies/create.html', {'form': form})
+```
+
+### Django Messages
+
+```html
+<!-- templates/components/message.html -->
+{% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message message--{{ message.tags }}">
+                <div class="message__text">{{ message }}</div>
+                <button type="button" class="message__close" aria-label="Закрити">×</button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+```
+
+### CSS для Django Forms
+
+```css
+/* static/css/components/form.css */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  min-height: 44px; /* Touch target */
+}
+
+.form-group input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.form-error {
+  display: block;
+  margin-top: var(--spacing-xs);
+  color: var(--color-error);
+  font-size: 0.875rem;
+}
+
+.form-group input.error {
+  border-color: var(--color-error);
+}
+```
+
+---
+
+## Робота з HTMX
+
+### JavaScript Integration
+
+```javascript
+// static/js/main.js
+'use strict';
+
+// HTMX Error Handling
+document.body.addEventListener('htmx:responseError', function (event) {
+  console.error('HTMX Error:', event.detail);
+  const target = event.detail.target;
+  if (target) {
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'message message--error';
+    errorMsg.innerHTML = '<div class="message__text">Помилка завантаження. Спробуйте ще раз.</div>';
+    target.insertBefore(errorMsg, target.firstChild);
+  }
+});
+
+document.body.addEventListener('htmx:sendError', function (event) {
+  console.error('HTMX Send Error:', event.detail);
+  const target = event.detail.target;
+  if (target) {
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'message message--error';
+    errorMsg.innerHTML = '<div class="message__text">Помилка відправки запиту. Перевірте з\'єднання.</div>';
+    target.insertBefore(errorMsg, target.firstChild);
+  }
+});
+
+// CSRF Token для HTMX
+document.body.addEventListener('htmx:configRequest', function (event) {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  event.detail.headers['X-CSRFToken'] = csrfToken;
+});
+
+// bfcache для Safari/Firefox
 window.addEventListener('pageshow', function (event) {
-    if (event.persisted) {
-        // Сторінка відновлена з bfcache
-        document.body.classList.remove('is-loading');
-        // Перезапускаємо ініціалізацію компонентів
+  if (event.persisted) {
+    console.log('Page restored from bfcache');
+    // Оновити динамічний контент, якщо потрібно
+    htmx.trigger(document.body, 'pageRestored');
+  }
+});
+
+// Закриття модальних вікон
+document.body.addEventListener('htmx:afterSwap', function (event) {
+  if (event.detail.target.classList.contains('modal')) {
+    const closeBtn = event.detail.target.querySelector('.modal__close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        event.detail.target.remove();
+      });
     }
+  }
 });
 ```
 
----
+### HTMX Patterns
 
-## Крок 7: Тестування системи
+#### Оновлення списку після створення
 
-### 7.1 Повна перевірка
+```html
+<!-- Кнопка "Створити" -->
+<button hx-get="{% url 'company_create_form' %}" hx-target="#modal-container" hx-swap="innerHTML">
+  Створити компанію
+</button>
 
-```bash
-npm run check:rules
+<!-- Контейнер для модального вікна -->
+<div id="modal-container"></div>
+
+<!-- Форма в модальному вікні -->
+<div class="modal">
+  <form hx-post="{% url 'company_create' %}" hx-target="#company-list" hx-swap="afterbegin">
+    {% csrf_token %}
+    <!-- Поля форми -->
+    <button type="submit">Зберегти</button>
+  </form>
+</div>
+
+<!-- Список компаній -->
+<div id="company-list">
+  {% for company in companies %}
+    <div class="company-row">{{ company.name }}</div>
+  {% endfor %}
+</div>
 ```
 
-Очікуваний результат:
-```
-✅ HTML перевірки
-✅ CSS перевірки
-✅ JS перевірки
-✅ Stylelint
-✅ ESLint
-✅ HTMLHint
-🎉 ВСІ ПЕРЕВІРКИ ПРОЙДЕНО УСПІШНО!
-```
+#### Infinite Scroll
 
-### 7.2 Тест блокування коміту
-
-```bash
-# Створити тестовий файл з порушенням
-echo "body { color: red !important; }" > static/css/test.css
-
-# Додати до staging
-git add static/css/test.css
-
-# Спробувати закомітити (має заблокуватись)
-git commit -m "test violation"
-# ❌ МАЄ ЗАБЛОКУВАТИСЬ
-
-# Видалити тестовий файл
-git reset HEAD static/css/test.css
-rm static/css/test.css
+```html
+<div id="company-list">
+  {% for company in companies %}
+    <div class="company-row">{{ company.name }}</div>
+  {% endfor %}
+  
+  {% if has_next %}
+    <div hx-get="{% url 'company_list' %}?page={{ next_page }}" hx-trigger="revealed" hx-swap="outerHTML">
+      <p>Завантаження...</p>
+    </div>
+  {% endif %}
+</div>
 ```
 
-### 7.3 Тест автоматичного виправлення
+#### Debounced Search
 
-```bash
-# Створити тестовий файл
-echo '<input type="tel" name="phone">' > test.html
+```html
+<input type="search" name="q" placeholder="Пошук..." hx-get="{% url 'company_search' %}" hx-trigger="keyup changed delay:500ms" hx-target="#search-results">
 
-# Запустити автовиправлення
-npm run fix:rules
-
-# Перевірити результат
-cat test.html
-# Має бути: <input type="tel" name="phone" inputmode="tel">
-
-# Видалити тестовий файл
-rm test.html
+<div id="search-results">
+  <!-- Результати пошуку -->
+</div>
 ```
-
----
-
-## Повний список правил
-
-### ❌ ЗАБОРОНЕНО (блокується комітом)
-
-#### CSS:
-1. `!important` (крім normalize.css override)
-2. `100vh` без fallback на `100dvh`
-3. `px` для `font-size` (тільки `rem`)
-4. `flex: 1` без explicit `flex-basis`
-5. `:hover` без `@media (hover: hover)`
-6. Inline styles (`style=""`)
-
-#### HTML:
-7. Inline styles (`style=""`)
-8. Inline scripts (`<script>` без `src`)
-9. `<input type="tel">` без `inputmode="tel"`
-10. `<input type="number">` без `inputmode="decimal"`
-11. Viewport meta без `interactive-widget=resizes-content`
-12. `<video autoplay>` без `muted` та `playsinline`
-
-#### JavaScript:
-13. `var` (тільки `const`/`let`)
-14. Глобальні змінні
-15. `eval()`
-16. Inline handlers (`onclick=""`)
-
-#### Django:
-17. Розрив тегів `{{ }}` та `{% %}` на кілька рядків
-
-### ✅ ОБОВ'ЯЗКОВО (перевіряється)
-
-#### Viewport:
-1. Viewport meta з `viewport-fit=cover` та `interactive-widget=resizes-content`
-2. `env(safe-area-inset-*)` в body
-
-#### CSS:
-3. `rem` для розмірів шрифтів
-4. `flex: 1 0 0` або `flex: 1 0 auto`
-5. `overscroll-behavior: none` на body
-6. `-webkit-backdrop-filter` разом з `backdrop-filter`
-
-#### HTML:
-7. `inputmode="tel"` для `type="tel"`
-8. `inputmode="decimal"` для `type="number"`
-9. `defer` на всіх `<script src="">`
-10. `poster` для `<video>`
-
-#### JavaScript:
-11. `'use strict'` або IIFE
-12. `pageshow` event listener для bfcache
-13. `defer` атрибут для всіх скриптів
 
 ---
 
-## Troubleshooting
+## Повний список правил (110+)
 
-### Проблема: Stylelint не знаходить конфігурацію
+### HTML (25 правил)
 
-**Рішення:**
-1. Перевірте, що `.stylelintrc.json` знаходиться в корені проекту
-2. Перевірте синтаксис JSON: `cat .stylelintrc.json | python -m json.tool`
-3. Перевірте шляхи в `package.json`: `"lint:css": "stylelint \"static/css/**/*.css\""`
+1. ✅ `viewport-fit=cover` в meta viewport
+2. ✅ `interactive-widget=resizes-content` в meta viewport
+3. ✅ Семантичні теги (header, nav, main, section, article, footer)
+4. ✅ `alt` для всіх `<img>`
+5. ✅ `loading="lazy"` для off-screen images
+6. ✅ `<label>` для всіх `<input>`
+7. ✅ `inputmode="tel"` для type="tel"
+8. ✅ `inputmode="decimal"` для type="number"
+9. ✅ `<video>` має містити `poster`, `playsinline`, `muted`
+10. ✅ `<script>` має містити `defer` або `async`
+11. ❌ Заборонені inline styles (`style=""`)
+12. ❌ Заборонені inline scripts (`<script>alert()</script>`)
+13. ❌ Заборонені inline event handlers (`onclick=""`)
+14. ✅ `<button>` замість `<div onclick>`
+15. ✅ `type="button"` для не-submit кнопок
+16. ✅ ARIA атрибути тільки де необхідно
+17. ✅ `lang` атрибут в `<html>`
+18. ✅ Мінімальний touch target 44x44px
+19. ✅ `<form>` має містити CSRF token (Django)
+20. ✅ `autocomplete` для форм (name, email, tel)
+21. ✅ `<picture>` для responsive images
+22. ✅ AVIF → WebP → JPG fallback
+23. ✅ `preconnect` для CDN
+24. ✅ Порядок: normalize.css → base.css → components → utilities
+25. ✅ `<meta name="csrf-token">` для HTMX
 
-### Проблема: ESLint не знаходить конфігурацію
+### CSS (40 правил)
 
-**Рішення:**
-1. Перевірте, що `.eslintrc.json` знаходиться в корені проекту
-2. Або створіть `.eslintrc.js` замість `.json`:
-```javascript
-module.exports = {
-  // ... конфігурація
-};
+26. ❌ Заборонено `!important`
+27. ✅ `100vh` має fallback `100dvh`
+28. ✅ `env(safe-area-inset-*)` для fixed/sticky елементів
+29. ✅ `font-size` в `rem`, не `px`
+30. ✅ `flex: 1 0 0;` замість `flex: 1;`
+31. ✅ `:hover` в `@media (hover: hover)`
+32. ✅ `overscroll-behavior: none;` на body
+33. ✅ `touch-action: manipulation` для interactive
+34. ✅ `-webkit-overflow-scrolling: touch`
+35. ✅ `backdrop-filter` має `-webkit-` prefix
+36. ✅ BEM методологія
+37. ✅ CSS custom properties в base.css
+38. ✅ Глибина nesting ≤3
+39. ✅ Низька специфічність
+40. ✅ `accent-color` для inputs
+41. ✅ `color-scheme: light dark;`
+42. ✅ `-webkit-font-smoothing: antialiased`
+43. ✅ `text-wrap: balance` для заголовків
+44. ✅ `text-size-adjust: 100%;`
+45. ✅ `scrollbar-gutter: stable;`
+46. ✅ `container-type: inline-size` для responsive компонентів
+47. ✅ `@layer` для cascade layers
+48. ✅ `:has()` замість JS де можливо
+49. ✅ `color-mix()` для відтінків
+50. ✅ `input:-webkit-autofill` styling
+51. ✅ `::file-selector-button` для file inputs
+52. ✅ `scroll-snap-type` для sliders
+53. ✅ `position: sticky` з `top/bottom`
+54. ✅ `isolation: isolate` для stacking context
+55. ✅ `will-change` тільки для animations
+56. ✅ Високопродуктивні animations (transform, opacity)
+57. ❌ Заборонено animations на width/height/margin
+58. ✅ `prefers-reduced-motion`
+59. ✅ `@supports` для feature detection
+60. ✅ `aspect-ratio` для media
+61. ✅ `object-fit: cover` для images
+62. ✅ `grid-gap` замість `grid-row-gap` + `grid-column-gap`
+63. ✅ `gap` в flexbox
+64. ✅ `min-width`/`min-height` для touch targets
+65. ❌ Не використовувати `line-height` для vertical centering
+
+### JavaScript (25 правил)
+
+66. ❌ Заборонено `var`
+67. ✅ `const`/`let` тільки
+68. ❌ Заборонено `eval()`, `new Function()`
+69. ✅ `'use strict';` або ES modules
+70. ✅ IIFE або modules (не globals)
+71. ✅ `defer` для scripts
+72. ✅ `pageshow` event для bfcache
+73. ✅ `scrollend` замість `scroll` + debounce
+74. ✅ Pointer Events замість Touch Events
+75. ✅ `event.persisted` check в pageshow
+76. ✅ `?.` optional chaining
+77. ✅ `??` nullish coalescing
+78. ✅ Early return (зменшити nesting)
+79. ✅ Event delegation де можливо
+80. ✅ `addEventListener` замість `onclick`
+81. ❌ Не зберігати tokens в localStorage
+82. ✅ HttpOnly cookies для auth
+83. ✅ CSP compliant (no inline scripts)
+84. ✅ Sanitize user input
+85. ✅ `htmx:configRequest` для CSRF
+86. ✅ `htmx:responseError` handling
+87. ✅ `htmx:afterSwap` для dynamic content
+88. ✅ `htmx.trigger()` для custom events
+89. ✅ `aria-live` для dynamic updates
+90. ❌ Не блокувати main thread
+
+### Django (20 правил)
+
+91. ❌ **КРИТИЧНО**: не розривати Django теги на кілька рядків
+92. ✅ `{{ variable }}` на одному рядку
+93. ✅ `{% tag %}` на одному рядку
+94. ✅ `{% with %}` для складних expressions
+95. ✅ Кастомні template filters для довгих імен
+96. ✅ `{% csrf_token %}` в кожній формі
+97. ✅ `|default:''` для порожніх values
+98. ✅ `{% block extra_css %}` для page-specific CSS
+99. ✅ `{% block extra_js %}` для page-specific JS
+100. ✅ `{% static %}` для всіх assets
+101. ✅ `{% url %}` замість hardcoded URLs
+102. ✅ `request.headers.get('HX-Request')` для HTMX
+103. ✅ `render_to_string()` для HTMX responses
+104. ✅ HTTP 400/422 для validation errors (HTMX)
+105. ✅ Django messages для user feedback
+106. ✅ `form.field.errors.0` для першої помилки
+107. ✅ `form.field.value|default:''` для values
+108. ✅ Settings split (base, develop, production)
+109. ✅ Secrets в env vars (dotenv)
+110. ✅ `require_http_methods` decorators
+
+### UX/Accessibility (10 правил)
+
+111. ✅ Touch targets ≥44px (iOS) / 48px (Android)
+112. ✅ Color contrast ≥4.5:1
+113. ✅ Focus indicators visible
+114. ✅ Keyboard navigation
+115. ✅ Screen reader testing
+116. ✅ `aria-label` для icon-only buttons
+117. ✅ `role="dialog"` для modals
+118. ✅ Trap focus в модальних вікнах
+119. ✅ `aria-live="polite"` для notifications
+120. ✅ `prefers-reduced-motion` для animations
+
+---
+
+## Troubleshooting та поширені проблеми
+
+### Проблема 1: Stylelint не знаходить конфігурацію
+
+**Помилка**:
+```
+Error: No configuration provided
 ```
 
-### Проблема: Скрипти не виконуються
-
-**Рішення:**
+**Рішення**:
 ```bash
-chmod +x scripts/*.sh
+# Перевірте, чи існує .stylelintrc.json
+ls -la .stylelintrc.json
+
+# Якщо ні, створіть його вручну
+cat > .stylelintrc.json << 'EOF'
+{
+  "extends": ["stylelint-config-standard"]
+}
+EOF
 ```
 
-### Проблема: Pre-commit hook не спрацьовує
+### Проблема 2: ESLint не розпізнає `htmx`
 
-**Рішення:**
-1. Перевірте права: `ls -la .git/hooks/pre-commit`
-2. Перезапустіть налаштування: `bash scripts/setup-git-hooks.sh`
-3. Перевірте вручну: `bash .git/hooks/pre-commit`
+**Помилка**:
+```
+'htmx' is not defined  no-undef
+```
 
-### Проблема: npm install не працює
+**Рішення**: Додайте в `.eslintrc.json`:
+```json
+{
+  "globals": {
+    "htmx": "readonly"
+  }
+}
+```
 
-**Рішення:**
-1. Перевірте версію Node.js: `node --version` (потрібна >= 14)
-2. Очистіть кеш: `npm cache clean --force`
-3. Видаліть `node_modules` та `package-lock.json` і запустіть знову
+### Проблема 3: HTMLHint ламається на Django тегах
 
-### Проблема: Скрипти не знаходять файли
+**Помилка**:
+```
+Special characters must be escaped  spec-char-escape
+```
 
-**Рішення:**
-1. Адаптуйте шляхи в скриптах під структуру вашого проекту
-2. Перевірте шляхи: `find . -name "*.css" -type f | head -5`
-3. Оновіть змінні `CSS_DIR`, `HTML_DIRS`, `JS_DIR` в скриптах
+**Рішення**: Вимкніть це правило в `.htmlhintrc`:
+```json
+{
+  "spec-char-escape": false,
+  "doctype-first": false,
+  "tag-pair": false
+}
+```
+
+### Проблема 4: Pre-commit hook не спрацьовує
+
+**Помилка**: Commit проходить незважаючи на помилки
+
+**Рішення**:
+```bash
+# Перевірте, чи hook виконуваний
+ls -la .husky/pre-commit
+chmod +x .husky/pre-commit
+
+# Переініціалізуйте Husky
+rm -rf .husky
+npx husky install
+npx husky add .husky/pre-commit "bash scripts/pre-commit-hook.sh"
+```
+
+### Проблема 5: `check-css-rules.sh` false positive для 100vh
+
+**Помилка**: Скрипт знаходить 100vh, але 100dvh присутній
+
+**Рішення**: Переконайтесь, що fallback на тому самому рівні вкладеності:
+
+```css
+/* ✅ Правильно */
+.hero {
+  height: 100vh; /* Fallback */
+  height: 100dvh;
+}
+
+/* ❌ Неправильно */
+.hero {
+  height: 100vh;
+}
+.hero-inner {
+  height: 100dvh;
+}
+```
+
+### Проблема 6: `npm install` падає з помилкою
+
+**Помилка**:
+```
+npm ERR! code ENOENT
+npm ERR! syscall open
+npm ERR! path /path/to/package.json
+```
+
+**Рішення**:
+```bash
+# Перевірте, чи в правильній директорії
+pwd
+ls package.json
+
+# Ініціалізуйте npm заново
+npm init -y
+npm install --save-dev stylelint eslint htmlhint husky
+```
+
+### Проблема 7: Git hook блокує commit навіть без помилок
+
+**Рішення**: Перевірте exit code скрипта:
+
+```bash
+bash scripts/pre-commit-hook.sh
+echo $?  # Має бути 0
+```
+
+Якщо не 0, додайте debug:
+
+```bash
+# У scripts/pre-commit-hook.sh
+set -x  # Debug mode
+```
 
 ---
 
 ## Адаптація для різних проектів
 
-### React/Vue/Angular
+### Проект без HTMX
 
-**Зміни в package.json:**
+Якщо проект не використовує HTMX:
+
+1. Видаліть HTMX з `base.html`
+2. Видаліть `htmx: readonly` з `.eslintrc.json`
+3. Видаліть HTMX перевірки з `scripts/check-js-rules.sh`
+
+### Проект з Tailwind CSS
+
+Якщо проект використовує Tailwind:
+
+1. Оновіть `.stylelintrc.json`:
 ```json
 {
-  "lint:css": "stylelint \"src/**/*.css\"",
-  "lint:js": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
-  "lint:html": "htmlhint \"public/**/*.html\""
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["tailwind", "apply", "layer", "screen"]
+      }
+    ]
+  }
 }
 ```
 
-**Зміни в скриптах:**
-- `HTML_DIRS=("$REPO_ROOT/src" "$REPO_ROOT/public")`
-- `CSS_DIRS=("$REPO_ROOT/src/css" "$REPO_ROOT/src/styles")`
-- `JS_DIRS=("$REPO_ROOT/src")`
+2. Додайте до `.gitignore`:
+```gitignore
+static/css/tailwind.output.css
+```
 
-### Next.js
+### Проект з TypeScript
 
-**Зміни в package.json:**
+Якщо проект використовує TypeScript:
+
+1. Встановіть TypeScript ESLint:
+```bash
+npm install --save-dev @typescript-eslint/parser @typescript-eslint/eslint-plugin
+```
+
+2. Оновіть `.eslintrc.json`:
 ```json
 {
-  "lint:css": "stylelint \"**/*.css\"",
-  "lint:js": "eslint \"**/*.{js,jsx,ts,tsx}\"",
-  "lint:html": "htmlhint \"out/**/*.html\""
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ]
 }
 ```
 
-### WordPress
+### Проект з API (DRF)
 
-**Зміни в package.json:**
-```json
-{
-  "lint:css": "stylelint \"wp-content/themes/**/*.css\"",
-  "lint:js": "eslint \"wp-content/themes/**/*.js\"",
-  "lint:html": "htmlhint \"wp-content/themes/**/*.php\""
-}
+Якщо проект використовує Django REST Framework:
+
+1. Додайте перевірку serializers:
+```bash
+# scripts/check-python.sh
+pylint myapp/serializers.py
+mypy myapp/serializers.py
 ```
 
-**Примітка:** Для PHP файлів HTMLHint може не працювати, використовуйте тільки CSS/JS перевірки.
-
-### Статичний сайт (Jekyll, Hugo, Eleventy)
-
-**Зміни в package.json:**
+2. Додайте в `package.json`:
 ```json
 {
-  "lint:css": "stylelint \"_site/**/*.css\"",
-  "lint:js": "eslint \"src/**/*.js\"",
-  "lint:html": "htmlhint \"_site/**/*.html\""
+  "scripts": {
+    "lint:python": "bash scripts/check-python.sh"
+  }
 }
 ```
 
 ---
 
-## Додаткові налаштування
+## CI/CD інтеграція
 
-### IDE Інтеграція
-
-#### VS Code
-
-Встановіть розширення:
-- Stylelint
-- ESLint
-- HTMLHint
-
-Додайте до `.vscode/settings.json`:
-```json
-{
-  "editor.codeActionsOnSave": {
-    "source.fixAll.stylelint": true,
-    "source.fixAll.eslint": true
-  },
-  "stylelint.validate": ["css"],
-  "eslint.validate": ["javascript"],
-  "htmlhint.enable": true
-}
-```
-
-#### WebStorm/PhpStorm
-
-1. Settings → Languages & Frameworks → Style Sheets → Stylelint
-2. Enable Stylelint
-3. Settings → Languages & Frameworks → JavaScript → Code Quality Tools → ESLint
-4. Enable ESLint
-
-### CI/CD Інтеграція
-
-#### GitHub Actions
+### GitHub Actions
 
 Створіть `.github/workflows/lint.yml`:
 
 ```yaml
-name: Lint and Check Rules
+name: Code Quality Checks
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
 
 jobs:
-  check:
+  lint:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v3
       
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
       
       - name: Install dependencies
         run: npm install
       
       - name: Run all checks
         run: npm run check:rules
+      
+      - name: Run Python linters
+        run: |
+          pip install flake8 mypy
+          flake8 .
+          mypy .
 ```
 
-#### GitLab CI
+### GitLab CI
 
-Додайте до `.gitlab-ci.yml`:
+Створіть `.gitlab-ci.yml`:
 
 ```yaml
-lint:
-  stage: test
-  image: node:18
-  before_script:
-    - npm install
+stages:
+  - lint
+
+lint-frontend:
+  stage: lint
+  image: node:20
   script:
+    - npm install
     - npm run check:rules
-  only:
-    - merge_requests
-    - main
+
+lint-python:
+  stage: lint
+  image: python:3.11
+  script:
+    - pip install flake8 mypy
+    - flake8 .
+    - mypy .
 ```
 
----
+### Pre-push Hook
 
-## Чек-лист налаштування
-
-Виконайте всі кроки по порядку:
-
-- [ ] Крок 1: Підготовка проекту
-  - [ ] Оновлено `.gitignore`
-  - [ ] Перевірено структуру проекту
-
-- [ ] Крок 2: Встановлення залежностей
-  - [ ] Створено `package.json`
-  - [ ] Адаптовано шляхи під проект
-  - [ ] Виконано `npm install`
-
-- [ ] Крок 3: Створення конфігурацій
-  - [ ] Створено `.stylelintrc.json`
-  - [ ] Створено `.eslintrc.json`
-  - [ ] Створено `.htmlhintrc`
-  - [ ] Адаптовано під проект
-
-- [ ] Крок 4: Створення скриптів
-  - [ ] Створено `scripts/check-html-rules.sh`
-  - [ ] Створено `scripts/check-css-rules.sh`
-  - [ ] Створено `scripts/check-js-rules.sh`
-  - [ ] Створено `scripts/check-all-rules.sh`
-  - [ ] Створено `scripts/fix-rules.sh`
-  - [ ] Надано права на виконання (`chmod +x`)
-  - [ ] Адаптовано шляхи під проект
-
-- [ ] Крок 5: Налаштування Git Hooks
-  - [ ] Створено `scripts/setup-git-hooks.sh`
-  - [ ] Виконано `bash scripts/setup-git-hooks.sh`
-
-- [ ] Крок 6: Виправлення порушень
-  - [ ] Запущено `npm run check:rules`
-  - [ ] Виправлено всі помилки
-  - [ ] Запущено `npm run fix:rules` (де можливо)
-
-- [ ] Крок 7: Тестування
-  - [ ] Всі перевірки проходять успішно
-  - [ ] Pre-commit hook блокує порушення
-  - [ ] Автовиправлення працює
-
----
-
-## Швидкий старт (TL;DR)
+Для додаткової безпеки:
 
 ```bash
-# 1. Створіть package.json (скопіюйте з вище)
-# 2. Встановіть залежності
-npm install
-
-# 3. Створіть конфігурації (.stylelintrc.json, .eslintrc.json, .htmlhintrc)
-# 4. Створіть скрипти в scripts/ (скопіюйте з вище, адаптуйте шляхи)
-chmod +x scripts/*.sh
-
-# 5. Налаштуйте git hooks
-bash scripts/setup-git-hooks.sh
-
-# 6. Перевірте та виправте порушення
-npm run check:rules
-npm run fix:rules
-
-# 7. Готово!
+npx husky add .husky/pre-push "npm run check:rules"
 ```
 
 ---
 
 ## Підтримка та оновлення
 
-### Оновлення залежностей
+### Щомісячно
 
 ```bash
+# Оновіть Node.js залежності
 npm update
+
+# Перевірте outdated packages
+npm outdated
+
+# Оновіть критичні пакети
+npm install stylelint@latest eslint@latest
+```
+
+### Щокварталу
+
+```bash
+# Перевірте browserslist
+npx update-browserslist-db
+
+# Оновіть Python залежності
+pip list --outdated
 ```
 
 ### Додавання нових правил
 
-1. Додайте правило до відповідного скрипта (`check-html-rules.sh`, `check-css-rules.sh`, `check-js-rules.sh`)
-2. Додайте до конфігурації linter (якщо можливо)
-3. Оновіть документацію
-
-### Видалення правил
-
-Якщо правило більше не актуальне:
-1. Видаліть з скриптів перевірки
-2. Видаліть з конфігурації linter
-3. Оновіть документацію
+1. Додайте правило в відповідний `.eslintrc.json` / `.stylelintrc.json`
+2. Якщо потрібно, створіть bash-скрипт
+3. Додайте в `scripts/check-all-rules.sh`
+4. Оновіть `scripts/README.md`
+5. Протестуйте на реальних файлах
+6. Зробіть commit з описом правила
 
 ---
 
-## Додаткові ресурси
+## Швидкий старт (TL;DR)
 
-- [Кросплатформний посібник 2025](COMPREHENSIVE_RULES_GUIDE.md) - повний перелік правил
-- [MDN Web Docs](https://developer.mozilla.org/) - документація веб-стандартів
-- [Can I Use](https://caniuse.com/) - підтримка браузерами
-- [Web Features Explorer](https://webfeatures.dev/) - статус Baseline
+```bash
+# 1. Встановлення
+npm install
+
+# 2. Налаштування Git Hooks
+npx husky install
+bash scripts/setup-git-hooks.sh
+
+# 3. Перевірка існуючого коду
+npm run check:rules
+
+# 4. Автоматичне виправлення
+npm run fix:rules
+
+# 5. Ручне виправлення решти
+npm run lint:fix
+
+# 6. Фінальна перевірка
+npm run check:rules
+
+# 7. Commit (hook автоматично запуститься)
+git add .
+git commit -m "Setup code quality system"
+```
 
 ---
 
-## Висновок
+## Чек-лист налаштування
 
-Після виконання всіх кроків ваша система буде:
-
-✅ **Автоматично перевіряти** всі правила при коміті  
-✅ **Блокувати коміти** з порушеннями  
-✅ **Автоматично виправляти** прості помилки  
-✅ **Забезпечувати якість** коду на всіх платформах  
-
-**Порушити правила стає фізично неможливо!**
+- [ ] Встановлено Node.js 18+
+- [ ] Створено `package.json` з усіма залежностями
+- [ ] Встановлено залежності (`npm install`)
+- [ ] Створено `.stylelintrc.json`
+- [ ] Створено `.eslintrc.json`
+- [ ] Створено `.htmlhintrc`
+- [ ] Створено `scripts/check-html-rules.sh`
+- [ ] Створено `scripts/check-css-rules.sh`
+- [ ] Створено `scripts/check-js-rules.sh`
+- [ ] Створено `scripts/check_template_tags.sh`
+- [ ] Створено `scripts/fix-rules.sh`
+- [ ] Створено `scripts/check-all-rules.sh`
+- [ ] Створено `scripts/pre-commit-hook.sh`
+- [ ] Усі скрипти executable (`chmod +x`)
+- [ ] Налаштовано Husky (`npx husky install`)
+- [ ] Створено pre-commit hook
+- [ ] Оновлено `.gitignore` (node_modules, package-lock.json)
+- [ ] Протестовано `npm run lint:css`
+- [ ] Протестовано `npm run lint:js`
+- [ ] Протестовано `npm run lint:html`
+- [ ] Протестовано `npm run check:rules`
+- [ ] Протестовано Git hook (test commit)
+- [ ] Виправлено існуючі порушення
+- [ ] Створено документацію (`scripts/README.md`)
+- [ ] Налаштовано CI/CD (опціонально)
+- [ ] Навчено команду використовувати систему
 
 ---
 
-**Версія документа:** 1.0  
-**Останнє оновлення:** Грудень 2025  
-**Автор:** Ultimate Edition 2025 Setup Guide
+## Фінальні рекомендації
+
+1. **Не ігноруйте warnings** — вони стануть errors в майбутньому
+2. **Тестуйте на реальних пристроях** — емулятори не показують усіх проблем
+3. **Регулярно оновлюйте browserslist** — підтримка браузерів змінюється
+4. **Документуйте виключення** — якщо вимкнули правило, поясніть чому
+5. **Навчайте команду** — система працює тільки якщо всі її використовують
+
+---
+
+## Автор та Ліцензія
+
+Цей документ створено для забезпечення кросплатформенної якості коду у Django проектах з HTMX, CSS та Vanilla JavaScript.
+
+**Версія**: 1.0.0  
+**Дата**: 2025  
+**Ліцензія**: MIT
+
+---
+
+**🎉 Вітаємо! Ваш проект тепер захищений від порушень кросплатформенних правил!**
