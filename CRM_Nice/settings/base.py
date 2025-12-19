@@ -63,11 +63,6 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "lstrip_blocks": True,  # Видаляє пробіли на початку блоків {% %}
-            "trim_blocks": True,  # Видаляє переноси рядків після блоків {% %}
-            "keep_lazy": True,  # Зберігає lazy об'єкти
-            "string_if_invalid": "",  # Порожній рядок для невалідних змінних
-            "autoescape": True,  # Автоматичний екранізація (безпека)
         },
     },
 ]
