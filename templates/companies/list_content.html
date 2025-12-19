@@ -136,9 +136,7 @@
                     <td class="table__td">
                         <div class="company-cell">
                             <img src="{{ company.logo }}" alt="{{ company.name }}" class="company-logo">
-                            <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/"
-                                hx-target="#main-content" hx-push-url="true" class="company-name-link">{{ company.name
-                                }}</a>
+                            <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/" hx-target="#main-content" hx-push-url="true" class="company-name-link">{{ company.name }}</a>
                         </div>
                     </td>
                     <td class="table__td">
@@ -169,8 +167,7 @@
                     </td>
                     <td class="table__td">
                         {% if company.call_date %}
-                        <span class="call-date" data-call-date="{{ company.call_date }}">{{ company.call_date_display
-                            }}</span>
+                        <span class="call-date" data-call-date="{{ company.call_date }}">{{ company.call_date_display }}</span>
                         {% else %}
                         <span class="call-date" data-call-date="">-</span>
                         {% endif %}
