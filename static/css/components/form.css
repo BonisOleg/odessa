@@ -175,11 +175,29 @@ textarea.textarea-auto-resize {
   flex-direction: column;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
 
   .form-grid,
   .form-grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  /* Запобігання zoom на iOS при фокусі - font-size має бути мінімум 16px */
+  .form-control,
+  .form-select,
+  .form-textarea {
+    font-size: 16px;
+    min-height: 44px;
+    /* iOS touch target */
+  }
+
+  /* Android Material Design 3 - мінімальні розміри 48x48dp */
+  @supports (-webkit-appearance: none) {
+
+    .form-control,
+    .form-select {
+      min-height: 48px;
+    }
   }
 }
 
@@ -200,7 +218,7 @@ textarea.textarea-auto-resize {
   border-top: 1px solid var(--color-border);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .form-actions {
     flex-direction: column;
   }

@@ -403,17 +403,32 @@
   transform: scale(1.1);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .company-content {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 
   .company-header-top {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--spacing-md);
   }
 
   .company-actions {
     width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .company-header-info h1 {
+    font-size: var(--font-size-xl);
+  }
+
+  .info-list {
+    gap: var(--spacing-sm);
+  }
+
+  .phone-item {
+    flex-wrap: wrap;
   }
 }

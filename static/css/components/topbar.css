@@ -79,7 +79,8 @@
 .topbar__right {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: max(var(--spacing-sm), 12px);
+    /* Мінімум 12px для Android Material Design */
     flex-shrink: 0;
 }
 
@@ -104,31 +105,6 @@
     width: 250px;
 }
 
-.topbar__ai {
-    display: flex;
-    align-items: center;
-}
-
-.topbar__ai-button {
-    width: 36px;
-    height: 36px;
-    border: none;
-    background: none;
-    font-size: var(--font-size-lg);
-    cursor: pointer;
-    border-radius: var(--radius-base);
-    transition: background-color var(--transition-fast);
-}
-
-.topbar__ai-button:hover:not(.topbar__ai-button--disabled) {
-    background-color: var(--color-bg-light);
-}
-
-.topbar__ai-button--disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .topbar__add {
     display: flex;
     align-items: center;
@@ -139,7 +115,7 @@
     align-items: center;
 }
 
-/* Responsive */
+/* Responsive - Планшети */
 @media (max-width: 1024px) {
     .topbar__nav {
         gap: var(--spacing-xs);
@@ -159,49 +135,67 @@
     }
 }
 
-@media (max-width: 768px) {
+/* Responsive - Мобільні (iPad portrait та менше) */
+@media (max-width: 767px) {
     .topbar {
         flex-wrap: wrap;
         height: auto;
         min-height: var(--topbar-height, 60px);
         padding: var(--spacing-sm);
+        padding-top: calc(var(--spacing-sm) + var(--safe-area-inset-top));
+        padding-left: calc(var(--spacing-sm) + var(--safe-area-inset-left));
+        padding-right: calc(var(--spacing-sm) + var(--safe-area-inset-right));
     }
 
     .topbar__left {
+        flex: 0 0 auto;
         order: 1;
-        flex: 1 1 100%;
-        justify-content: space-between;
-    }
-
-    .topbar__nav {
-        order: 2;
-        flex: 1 1 100%;
-        justify-content: flex-start;
-        padding: var(--spacing-xs) 0;
-        border-top: 1px solid var(--color-border);
-        margin-top: var(--spacing-xs);
     }
 
     .topbar__right {
-        order: 3;
+        flex: 0 0 auto;
+        order: 2;
+        margin-left: auto;
+    }
+
+    .topbar__nav {
         flex: 1 1 100%;
-        justify-content: flex-end;
-        padding-top: var(--spacing-xs);
+        order: 3;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin-top: var(--spacing-sm);
+        padding-top: var(--spacing-sm);
         border-top: 1px solid var(--color-border);
-        margin-top: var(--spacing-xs);
+    }
+
+    .topbar__nav::-webkit-scrollbar {
+        display: none;
     }
 
     .topbar__search-input {
-        flex: 1;
-        max-width: 200px;
+        width: 120px;
+        font-size: 14px;
     }
 
-    .layout {
-        margin-top: auto;
+    .topbar__search-input:focus {
+        width: 160px;
     }
 }
 
-@media (max-width: 480px) {
+/* iPhone 17 та інші великі телефони (390px+) */
+@media (min-width: 390px) and (max-width: 767px) {
+    .topbar__search-input {
+        width: 150px;
+    }
+
+    .topbar__search-input:focus {
+        width: 200px;
+    }
+}
+
+/* Малі телефони (менше 390px) */
+@media (max-width: 389px) {
     .topbar__nav-link {
         font-size: var(--font-size-xs);
         padding: var(--spacing-xs);
@@ -212,6 +206,11 @@
     }
 
     .topbar__search-input {
-        width: 120px;
+        width: 100px;
+        font-size: 13px;
+    }
+
+    .topbar__search-input:focus {
+        width: 140px;
     }
 }

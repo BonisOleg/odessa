@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <title>{% block title %}CRM Nice{% endblock %}</title>
@@ -10,7 +10,12 @@
     {% load static %}
     
     <!-- 1. Preconnect для CDN оптимізації -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
+    <!-- Preload критичних CSS -->
+    <link rel="preload" href="{% static 'css/normalize.css' %}" as="style">
+    <link rel="preload" href="{% static 'css/base.css' %}" as="style">
     
     <!-- 2. normalize.css - ЗАВЖДИ ПЕРШИЙ -->
     <link rel="stylesheet" href="{% static 'css/normalize.css' %}">

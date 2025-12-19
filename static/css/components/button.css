@@ -17,6 +17,14 @@
   line-height: var(--line-height-base);
   white-space: nowrap;
   flex-shrink: 0;
+
+  /* iOS/Android Touch Targets - мінімум 44x44px для iOS, 48x48px для Android */
+  min-width: 44px;
+  min-height: 44px;
+
+  /* Запобігання подвійному тапу на iOS */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .button:focus {
@@ -87,4 +95,42 @@
 .button--block {
   display: block;
   width: 100%;
+}
+
+/* Android Material Design 3 - мінімальні розміри 48x48dp */
+@media (max-width: 767px) {
+  .button {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* Icon buttons також мають мінімальні розміри */
+.icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+  .icon-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* Dropdown triggers */
+.dropdown__trigger {
+  min-width: 44px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+  .dropdown__trigger {
+    min-width: 48px;
+    min-height: 48px;
+  }
 }

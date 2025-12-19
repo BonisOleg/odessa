@@ -62,14 +62,15 @@
     <div class="topbar__right">
         <!-- Пошук -->
         <div class="topbar__search">
-            <input type="search" class="topbar__search-input" placeholder="🔍 Поиск..." name="q">
-        </div>
-        
-        <!-- AI-помічник (заглушка) -->
-        <div class="topbar__ai">
-            <button type="button" class="topbar__ai-button topbar__ai-button--disabled" title="AI-помощник временно недоступен">
-                🤖
-            </button>
+            <input type="search" 
+                   class="topbar__search-input" 
+                   placeholder="🔍 Поиск..." 
+                   name="search"
+                   hx-get="/companies/"
+                   hx-trigger="keyup changed delay:300ms, search"
+                   hx-target="#main-content"
+                   hx-push-url="true"
+                   hx-include="this">
         </div>
         
         <!-- Кнопка "Добавить" -->

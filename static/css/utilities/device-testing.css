@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Device Testing CSS - Тимчасовий файл для тестування брейкпоінтів
+   Видалити після завершення тестування
+   ========================================================================== */
+
+/* Показувати поточний брейкпоінт - для тестування */
+body::after {
+  content: "XS (< 375px)";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  z-index: 9999;
+  font-family: monospace;
+}
+
+@media (min-width: 375px) {
+  body::after {
+    content: "SM (375px+) - iPhone 13 mini, базові iPhone";
+  }
+}
+
+@media (min-width: 390px) {
+  body::after {
+    content: "MD (390px+) - iPhone 14/15 Pro";
+  }
+}
+
+@media (min-width: 393px) {
+  body::after {
+    content: "iPhone 17 (393px+)";
+  }
+}
+
+@media (min-width: 430px) {
+  body::after {
+    content: "XL Phone (430px+) - iPhone 14/15/17 Pro Max";
+  }
+}
+
+@media (min-width: 768px) {
+  body::after {
+    content: "Tablet (768px+) - iPad Portrait, Android tablets";
+  }
+}
+
+@media (min-width: 820px) {
+  body::after {
+    content: "Tablet Air (820px+) - iPad Air Portrait";
+  }
+}
+
+@media (min-width: 1024px) {
+  body::after {
+    content: "Desktop (1024px+) - iPad Landscape";
+  }
+}
+
+@media (min-width: 1280px) {
+  body::after {
+    content: "HD (1280px+) - Desktop HD";
+  }
+}
+
+@media (min-width: 1440px) {
+  body::after {
+    content: "Full HD (1440px+)";
+  }
+}
+
+@media (min-width: 1920px) {
+  body::after {
+    content: "2K (1920px+) - 2K monitors";
+  }
+}

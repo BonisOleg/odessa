@@ -22,172 +22,32 @@ def is_htmx_request(request: HttpRequest) -> bool:
 # Компанії
 # ============================================================================
 
-# Mock дані для компаній
-MOCK_COMPANIES = {
-    1: {
-        'id': 1,
-        'client_id': '#00123',
-        'name': 'IT Solutions Ltd',
-        'logo': 'https://via.placeholder.com/60',
-        'status': 'В работе',
-        'status_badge': 'badge--success',
-        'phones': [
-            {'number': '+380991234567', 'name': 'Иван Петров', 'favorite': True},
-            {'number': '+380501234567', 'name': 'Мария Сидорова', 'favorite': False}
-        ],
-        'telegram': '@itsolutions',
-        'website': 'https://itsolutions.com',
-        'instagram': '@itsolutions',
-        'city': 'Киев',
-        'category': 'IT-услуги',
-        'category_badge': 'badge--custom-blue',
-        'keywords': ['CRM', 'Django', 'HTMX', 'Разработка'],
-        'short_comment': 'Отправлено коммерческое предложение по разработке CRM-системы',
-        'full_description': 'Компания занимается разработкой CRM-систем и веб-приложений на Django. Основные клиенты - средний и крупный бизнес. Работают на рынке более 5 лет. В штате 15 разработчиков.',
-        'call_date': '2025-11-28',
-        'call_date_display': '28.11.2025',
-        'created_date': '15.11.2025 10:30',
-        'updated_date': '24.11.2025 10:30',
-        'photos': [
-            'https://via.placeholder.com/400x300',
-            'https://via.placeholder.com/400x300',
-            'https://via.placeholder.com/400x300'
-        ],
-        'comments': [
-            {'author': 'Иван Петров', 'date': '24.11.2025 10:30', 'text': 'Созвонились с директором, договорились о встрече на следующей неделе. Обсудим детали проекта и бюджет.'},
-            {'author': 'Мария Сидорова', 'date': '20.11.2025 14:15', 'text': 'Отправила коммерческое предложение на email. Жду обратной связи в течение 3 дней.'},
-            {'author': 'Иван Петров', 'date': '18.11.2025 09:00', 'text': 'Первый контакт. Компания заинтересована в разработке CRM. Запросили информацию о ценах и сроках.'},
-            {'author': 'Петр Иванов', 'date': '15.11.2025 16:20', 'text': 'Дополнительная информация о проекте была отправлена на почту.'},
-            {'author': 'Анна Смирнова', 'date': '12.11.2025 11:00', 'text': 'Первичный звонок. Клиент заинтересован в сотрудничестве.'}
-        ]
-    },
-    2: {
-        'id': 2,
-        'client_id': '#00124',
-        'name': 'Restaurant Pro',
-        'logo': 'https://via.placeholder.com/60',
-        'status': 'Позже',
-        'status_badge': 'badge--warning',
-        'phones': [
-            {'number': '+380501234567', 'name': 'Мария Сидорова', 'favorite': True}
-        ],
-        'telegram': '@restaurantpro',
-        'website': None,
-        'instagram': None,
-        'city': 'Львов',
-        'category': 'Ресторан',
-        'category_badge': 'badge--custom-red',
-        'keywords': ['Ресторан', 'Кейтеринг', 'Банкеты'],
-        'short_comment': 'Ждем обратной связи',
-        'full_description': 'Сеть ресторанов премиум-класса. Специализируются на европейской кухне. Имеют 5 заведений в разных городах.',
-        'call_date': '2025-11-20',
-        'call_date_display': '20.11.2025',
-        'created_date': '10.11.2025 14:00',
-        'updated_date': '23.11.2025 16:45',
-        'photos': [],
-        'comments': [
-            {'author': 'Мария Сидорова', 'date': '23.11.2025 16:45', 'text': 'Отправили предложение по кейтерингу для корпоративных мероприятий.'},
-            {'author': 'Иван Петров', 'date': '20.11.2025 11:30', 'text': 'Первичный контакт. Заинтересованы в автоматизации заказов.'}
-        ]
-    },
-    3: {
-        'id': 3,
-        'client_id': '#00125',
-        'name': 'EduTech Solutions',
-        'logo': 'https://via.placeholder.com/60',
-        'status': 'Горячий',
-        'status_badge': 'badge--info',
-        'phones': [
-            {'number': '+380671234567', 'name': 'Петр Иванов', 'favorite': True}
-        ],
-        'telegram': '@edutech',
-        'website': 'https://edutech.com',
-        'instagram': None,
-        'city': 'Харьков',
-        'category': 'Образование',
-        'category_badge': 'badge--custom-green',
-        'keywords': ['Образование', 'Онлайн-курсы', 'E-learning'],
-        'short_comment': 'Очень заинтересованы',
-        'full_description': 'Платформа для онлайн-обучения. Разрабатывают курсы по программированию и дизайну. Более 10,000 активных студентов.',
-        'call_date': '2025-11-30',
-        'call_date_display': '30.11.2025',
-        'created_date': '18.11.2025 09:15',
-        'updated_date': '25.11.2025 14:20',
-        'photos': [
-            'https://via.placeholder.com/400x300'
-        ],
-        'comments': [
-            {'author': 'Петр Иванов', 'date': '25.11.2025 14:20', 'text': 'Очень заинтересованы в CRM для управления студентами и курсами.'},
-            {'author': 'Анна Коваль', 'date': '22.11.2025 10:00', 'text': 'Отправили презентацию платформы.'}
-        ]
-    },
-    4: {
-        'id': 4,
-        'client_id': '#00126',
-        'name': 'Fitness Club Premium',
-        'logo': 'https://via.placeholder.com/60',
-        'status': 'Хороший',
-        'status_badge': 'badge--success',
-        'phones': [
-            {'number': '+380931234567', 'name': 'Ольга Шевченко', 'favorite': True},
-            {'number': '+380631234567', 'name': 'Андрей Коваль', 'favorite': False}
-        ],
-        'telegram': '@fitnesspremium',
-        'website': 'https://fitnesspremium.com',
-        'instagram': '@fitnesspremium',
-        'city': 'Одесса',
-        'category': 'Фитнес',
-        'category_badge': 'badge--custom-purple',
-        'keywords': ['Фитнес', 'Тренажерный зал', 'Йога'],
-        'short_comment': 'Планируют открыть новый филиал',
-        'full_description': 'Сеть фитнес-клубов премиум-класса. 3 зала в разных районах города. Более 5000 активных членов.',
-        'call_date': '2025-12-05',
-        'call_date_display': '05.12.2025',
-        'created_date': '20.11.2025 12:00',
-        'updated_date': '26.11.2025 15:30',
-        'photos': [],
-        'comments': [
-            {'author': 'Ольга Шевченко', 'date': '26.11.2025 15:30', 'text': 'Планируют открыть новый филиал в следующем году. Нужна CRM для управления клубами.'}
-        ]
-    },
-    5: {
-        'id': 5,
-        'client_id': '#00127',
-        'name': 'Beauty Salon Luxe',
-        'logo': 'https://via.placeholder.com/60',
-        'status': 'Теплый',
-        'status_badge': 'badge--secondary',
-        'phones': [
-            {'number': '+380971234567', 'name': 'Елена Петрова', 'favorite': True}
-        ],
-        'telegram': None,
-        'website': None,
-        'instagram': '@beautyluxe',
-        'city': 'Днепр',
-        'category': 'Красота',
-        'category_badge': 'badge--custom-pink',
-        'keywords': ['Салон красоты', 'Парикмахерская', 'Маникюр'],
-        'short_comment': 'Интересуются системой записи',
-        'full_description': 'Салон красоты премиум-класса. Предоставляют услуги парикмахера, маникюра, педикюра. Работают более 8 лет.',
-        'call_date': '2025-11-25',
-        'call_date_display': '25.11.2025',
-        'created_date': '15.11.2025 11:00',
-        'updated_date': '27.11.2025 10:15',
-        'photos': [],
-        'comments': [
-            {'author': 'Елена Петрова', 'date': '27.11.2025 10:15', 'text': 'Интересуются системой онлайн-записи для клиентов.'},
-            {'author': 'Мария Сидорова', 'date': '25.11.2025 09:00', 'text': 'Первый контакт. Нужна автоматизация записи клиентов.'}
-        ]
-    }
-}
+# Порожня структура для наповнення через адмінку
+# TODO: Підключити реальну модель Company після створення
+MOCK_COMPANIES = {}
 
 
 @login_required
 @require_http_methods(["GET"])
 def company_list(request):
     """Список компаній"""
+    # Отримуємо пошуковий запит
+    search_query = request.GET.get('search', '').strip()
+    
     # Конвертуємо MOCK_COMPANIES dict в список для шаблону
     companies_list = list(MOCK_COMPANIES.values())
+    
+    # Фільтрація по пошуковому запиту
+    if search_query:
+        search_lower = search_query.lower()
+        companies_list = [
+            c for c in companies_list 
+            if (search_lower in c.get('name', '').lower() or
+                search_lower in c.get('short_comment', '').lower() or
+                search_lower in c.get('city', '').lower() or
+                search_lower in c.get('category', '').lower() or
+                search_lower in c.get('client_id', '').lower())
+        ]
     
     # Сортуємо за датою оновлення (нові зверху)
     companies_list.sort(key=lambda x: x.get('updated_date', ''), reverse=True)
@@ -195,7 +55,8 @@ def company_list(request):
     context = {
         'companies': companies_list,
         'total_count': len(companies_list),
-        'new_count': 5  # Mock значення для "Новых за 30 дней"
+        'new_count': 0,  # Буде підраховуватись з реальної БД
+        'search_query': search_query
     }
     
     template = 'companies/list_content.html' if is_htmx_request(request) else 'companies/list.html'
@@ -214,7 +75,11 @@ def company_create(request):
 @require_http_methods(["GET"])
 def company_detail(request, pk):
     """Карточка компанії"""
-    company = MOCK_COMPANIES.get(pk, MOCK_COMPANIES[1])
+    company = MOCK_COMPANIES.get(pk)
+    if not company:
+        messages.error(request, 'Компанія не знайдена.')
+        return redirect('myapp:company_list')
+    
     context = {
         'company': company,
         'company_id': pk
