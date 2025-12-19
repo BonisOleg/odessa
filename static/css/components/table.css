@@ -315,3 +315,8 @@
     min-width: 100px;
   }
 }
+
+/* Inline form for delete modals */
+.form-inline {
+  display: inline;
+}
