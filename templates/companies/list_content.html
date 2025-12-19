@@ -1,7 +1,7 @@
 {% load static %}
 
 <div class="page-header">
-    <p>Всего: <strong>127 компаний</strong> | Новых за 30 дней: <strong>+5</strong></p>
+    <p>Всего: <strong>{{ total_count }} компаний</strong> | Новых за 30 дней: <strong>+{{ new_count }}</strong></p>
 </div>
 
 <!-- Фільтри -->
@@ -16,8 +16,8 @@
                 </button>
                 <div class="multiselect-options">
                     <div class="multiselect-option">
-                        <input type="checkbox" id="status-работаем" value="Работаем" data-filter="status">
-                        <label for="status-работаем">Работаем</label>
+                        <input type="checkbox" id="status-в-работе" value="В работе" data-filter="status">
+                        <label for="status-в-работе">В работе</label>
                     </div>
                     <div class="multiselect-option">
                         <input type="checkbox" id="status-горячий" value="Горячий" data-filter="status">
@@ -32,8 +32,8 @@
                         <label for="status-позже">Позже</label>
                     </div>
                     <div class="multiselect-option">
-                        <input type="checkbox" id="status-холодный" value="Холодный" data-filter="status">
-                        <label for="status-холодный">Холодный</label>
+                        <input type="checkbox" id="status-теплый" value="Теплый" data-filter="status">
+                        <label for="status-теплый">Теплый</label>
                     </div>
                 </div>
             </div>
@@ -126,215 +126,73 @@
                 </tr>
             </thead>
             <tbody>
-                <tr class="table__row" data-status="Работаем" data-city="Киев" data-updated="2025-11-24">
+                {% for company in companies %}
+                {% with favorite_phone=company.phones|first %}
+                <tr class="table__row" data-status="{{ company.status }}" data-city="{{ company.city }}" data-updated="{{ company.updated_date|slice:":10" }}">
                     <td class="table__td">
-                        <span class="text-muted">#00123</span>
+                        <span class="text-muted">{{ company.client_id }}</span>
                     </td>
                     <td class="table__td">
                         <div class="company-cell">
-                            <img src="https://via.placeholder.com/40" alt="IT Solutions" class="company-logo">
-                            <a href="/companies/1/" hx-get="/companies/1/" hx-target="#main-content" hx-push-url="true"
-                                class="company-name-link">IT Solutions Ltd</a>
+                            <img src="{{ company.logo }}" alt="{{ company.name }}" class="company-logo">
+                            <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/" hx-target="#main-content" hx-push-url="true"
+                                class="company-name-link">{{ company.name }}</a>
                         </div>
                     </td>
                     <td class="table__td">
                         <div class="phone-cell">
-                            <span class="phone-number">+380991234567</span>
-                            <span class="phone-star">⭐</span>
-                            <span class="contact-name">Иван Петров</span>
+                            {% if favorite_phone %}
+                            <span class="phone-number">{{ favorite_phone.number }}</span>
+                            {% if favorite_phone.favorite %}<span class="phone-star">⭐</span>{% endif %}
+                            <span class="contact-name">{{ favorite_phone.name }}</span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
                         </div>
                     </td>
-                    <td class="table__td">@itsolutions</td>
+                    <td class="table__td">{% if company.telegram %}{{ company.telegram }}{% else %}-{% endif %}</td>
                     <td class="table__td">
-                        <a href="https://itsolutions.com" target="_blank" rel="noopener" class="website-link">🌐</a>
+                        {% if company.website %}
+                        <a href="{{ company.website }}" target="_blank" rel="noopener" class="website-link">🌐</a>
+                        {% else %}
+                        -
+                        {% endif %}
                     </td>
-                    <td class="table__td"><span class="badge badge--success">Работаем</span></td>
-                    <td class="table__td">Киев</td>
-                    <td class="table__td">24.11.2025</td>
+                    <td class="table__td"><span class="badge {{ company.status_badge }}">{{ company.status }}</span></td>
+                    <td class="table__td">{{ company.city }}</td>
+                    <td class="table__td">{{ company.updated_date|slice:":10" }}</td>
                     <td class="table__td">
-                        <span class="badge badge--custom-blue">IT-услуги</span>
-                    </td>
-                    <td class="table__td">
-                        <span class="call-date" data-call-date="2025-11-28">28.11.2025</span>
-                    </td>
-                    <td class="table__td">Отправлено КП</td>
-                    <td class="table__td">
-                        <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn" data-id="1" title="В избранное">⭐</button>
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="@itsolutions" title="Telegram">💬</button>
-                            <a href="/companies/1/edit/" hx-get="/companies/1/edit/" hx-target="#main-content"
-                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
-                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
-                                hx-target="body" hx-swap="beforeend">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="table__row" data-status="Позже" data-city="Львов" data-updated="2025-11-23">
-                    <td class="table__td">
-                        <span class="text-muted">#00124</span>
+                        <span class="badge {{ company.category_badge }}">{{ company.category }}</span>
                     </td>
                     <td class="table__td">
-                        <div class="company-cell">
-                            <img src="https://via.placeholder.com/40" alt="Restaurant Pro" class="company-logo">
-                            <a href="/companies/2/" hx-get="/companies/2/" hx-target="#main-content" hx-push-url="true"
-                                class="company-name-link">Restaurant Pro</a>
-                        </div>
-                    </td>
-                    <td class="table__td">
-                        <div class="phone-cell">
-                            <span class="phone-number">+380501234567</span>
-                            <span class="phone-star">⭐</span>
-                            <span class="contact-name">Мария Сидорова</span>
-                        </div>
-                    </td>
-                    <td class="table__td">@restaurantpro</td>
-                    <td class="table__td">-</td>
-                    <td class="table__td"><span class="badge badge--warning">Позже</span></td>
-                    <td class="table__td">Львов</td>
-                    <td class="table__td">23.11.2025</td>
-                    <td class="table__td">
-                        <span class="badge badge--custom-red">Ресторан</span>
-                    </td>
-                    <td class="table__td">
-                        <span class="call-date" data-call-date="2025-11-20">20.11.2025</span>
-                    </td>
-                    <td class="table__td">Ждем обратной связи</td>
-                    <td class="table__td">
-                        <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn icon-btn--active" data-id="2" title="В избранном">⭐</button>
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="@restaurantpro" title="Telegram">💬</button>
-                            <a href="/companies/2/edit/" hx-get="/companies/2/edit/" hx-target="#main-content"
-                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
-                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
-                                hx-target="body" hx-swap="beforeend">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="table__row" data-status="Горячий" data-city="Харьков" data-updated="2025-11-25">
-                    <td class="table__td">
-                        <span class="text-muted">#00125</span>
-                    </td>
-                    <td class="table__td">
-                        <div class="company-cell">
-                            <img src="https://via.placeholder.com/40" alt="EduTech" class="company-logo">
-                            <a href="/companies/3/" hx-get="/companies/3/" hx-target="#main-content" hx-push-url="true"
-                                class="company-name-link">EduTech Solutions</a>
-                        </div>
-                    </td>
-                    <td class="table__td">
-                        <div class="phone-cell">
-                            <span class="phone-number">+380671234567</span>
-                            <span class="contact-name">Петр Иванов</span>
-                        </div>
-                    </td>
-                    <td class="table__td">@edutech</td>
-                    <td class="table__td">
-                        <a href="https://edutech.com" target="_blank" rel="noopener" class="website-link">🌐</a>
-                    </td>
-                    <td class="table__td"><span class="badge badge--info">Горячий</span></td>
-                    <td class="table__td">Харьков</td>
-                    <td class="table__td">25.11.2025</td>
-                    <td class="table__td">
-                        <span class="badge badge--custom-green">Образование</span>
-                    </td>
-                    <td class="table__td">
-                        <span class="call-date" data-call-date="2025-11-30">30.11.2025</span>
-                    </td>
-                    <td class="table__td">Очень заинтересованы</td>
-                    <td class="table__td">
-                        <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn" data-id="3" title="В избранное">⭐</button>
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="@edutech" title="Telegram">💬</button>
-                            <a href="/companies/3/edit/" hx-get="/companies/3/edit/" hx-target="#main-content"
-                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
-                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
-                                hx-target="body" hx-swap="beforeend">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="table__row" data-status="Холодный" data-city="Одесса" data-updated="2025-11-22">
-                    <td class="table__td">
-                        <span class="text-muted">#00126</span>
-                    </td>
-                    <td class="table__td">
-                        <div class="company-cell">
-                            <img src="https://via.placeholder.com/40" alt="Real Estate Plus" class="company-logo">
-                            <a href="/companies/4/" hx-get="/companies/4/" hx-target="#main-content" hx-push-url="true"
-                                class="company-name-link">Real Estate Plus</a>
-                        </div>
-                    </td>
-                    <td class="table__td">
-                        <div class="phone-cell">
-                            <span class="phone-number">+380951234567</span>
-                            <span class="contact-name">Анна Смирнова</span>
-                        </div>
-                    </td>
-                    <td class="table__td">@realestateplus</td>
-                    <td class="table__td">-</td>
-                    <td class="table__td"><span class="badge badge--secondary">Холодный</span></td>
-                    <td class="table__td">Одесса</td>
-                    <td class="table__td">22.11.2025</td>
-                    <td class="table__td">
-                        <span class="badge badge--custom-orange">Недвижимость</span>
-                    </td>
-                    <td class="table__td">
+                        {% if company.call_date %}
+                        <span class="call-date" data-call-date="{{ company.call_date }}">{{ company.call_date_display }}</span>
+                        {% else %}
                         <span class="call-date" data-call-date="">-</span>
+                        {% endif %}
                     </td>
-                    <td class="table__td">Первичный контакт</td>
+                    <td class="table__td">{{ company.short_comment|default:"-" }}</td>
                     <td class="table__td">
                         <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn" data-id="4" title="В избранное">⭐</button>
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="@realestateplus" title="Telegram">💬</button>
-                            <a href="/companies/4/edit/" hx-get="/companies/4/edit/" hx-target="#main-content"
+                            <button type="button" class="icon-btn favorite-btn" data-id="{{ company.id }}" title="В избранное">⭐</button>
+                            {% if company.telegram %}
+                            <button type="button" class="icon-btn telegram-btn" data-telegram="{{ company.telegram }}" title="Telegram">💬</button>
+                            {% endif %}
+                            <a href="/companies/{{ company.id }}/edit/" hx-get="/companies/{{ company.id }}/edit/" hx-target="#main-content"
                                 hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
-                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
+                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/{{ company.id }}/delete/"
                                 hx-target="body" hx-swap="beforeend">🗑️</button>
                         </div>
                     </td>
                 </tr>
-                <tr class="table__row" data-status="Хороший" data-city="Днепр" data-updated="2025-11-21">
-                    <td class="table__td">
-                        <span class="text-muted">#00127</span>
-                    </td>
-                    <td class="table__td">
-                        <div class="company-cell">
-                            <img src="https://via.placeholder.com/40" alt="TechStart" class="company-logo">
-                            <a href="/companies/5/" hx-get="/companies/5/" hx-target="#main-content" hx-push-url="true"
-                                class="company-name-link">TechStart Inc</a>
-                        </div>
-                    </td>
-                    <td class="table__td">
-                        <div class="phone-cell">
-                            <span class="phone-number">+380631234567</span>
-                            <span class="phone-star">⭐</span>
-                            <span class="contact-name">Денис Козлов</span>
-                        </div>
-                    </td>
-                    <td class="table__td">@techstart</td>
-                    <td class="table__td">
-                        <a href="https://techstart.com" target="_blank" rel="noopener" class="website-link">🌐</a>
-                    </td>
-                    <td class="table__td"><span class="badge badge--success">Хороший</span></td>
-                    <td class="table__td">Днепр</td>
-                    <td class="table__td">21.11.2025</td>
-                    <td class="table__td">
-                        <span class="badge badge--custom-blue">IT-услуги</span>
-                    </td>
-                    <td class="table__td">
-                        <span class="call-date" data-call-date="2025-11-27">27.11.2025</span>
-                    </td>
-                    <td class="table__td">Подписан договор</td>
-                    <td class="table__td">
-                        <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn icon-btn--active" data-id="5" title="В избранном">⭐</button>
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="@techstart" title="Telegram">💬</button>
-                            <a href="/companies/5/edit/" hx-get="/companies/5/edit/" hx-target="#main-content"
-                                hx-push-url="true" class="icon-btn" title="Редактировать">✏️</a>
-                            <button type="button" class="icon-btn" title="Удалить" hx-get="/companies/1/delete/"
-                                hx-target="body" hx-swap="beforeend">🗑️</button>
-                        </div>
+                {% endwith %}
+                {% empty %}
+                <tr>
+                    <td colspan="12" class="table__td text-center">
+                        <p class="text-muted">Компании не найдены</p>
                     </td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

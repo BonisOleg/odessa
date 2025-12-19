@@ -186,8 +186,20 @@ MOCK_COMPANIES = {
 @require_http_methods(["GET"])
 def company_list(request):
     """Список компаній"""
+    # Конвертуємо MOCK_COMPANIES dict в список для шаблону
+    companies_list = list(MOCK_COMPANIES.values())
+    
+    # Сортуємо за датою оновлення (нові зверху)
+    companies_list.sort(key=lambda x: x.get('updated_date', ''), reverse=True)
+    
+    context = {
+        'companies': companies_list,
+        'total_count': len(companies_list),
+        'new_count': 5  # Mock значення для "Новых за 30 дней"
+    }
+    
     template = 'companies/list_content.html' if is_htmx_request(request) else 'companies/list.html'
-    return render(request, template)
+    return render(request, template, context)
 
 
 @login_required
