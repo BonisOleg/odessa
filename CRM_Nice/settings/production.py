@@ -3,7 +3,10 @@ from __future__ import annotations
 from .base import *  # noqa: F401,F403
 
 import dj_database_url
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 DEBUG = False
 
@@ -23,8 +26,15 @@ if database_url:
             ssl_require=True
         ),
     }
+    logger.info("Using PostgreSQL database from DATABASE_URL")
 else:
     # Fallback до SQLite (не рекомендується для production, але працює)
+    # WARNING: На Render з ephemeral file system дані будуть видалятися при кожному deploy!
+    logger.warning(
+        "WARNING: DATABASE_URL not set! Using SQLite. "
+        "On Render with ephemeral file system, data will be LOST after each deploy. "
+        "Please set DATABASE_URL environment variable to use PostgreSQL."
+    )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
