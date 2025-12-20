@@ -381,9 +381,9 @@
         if (modal) {
             modal.classList.remove('is-open');
             document.body.style.overflow = '';
-            
+
             // Видаляємо модальне з DOM після анімації закриття
-            setTimeout(function() {
+            setTimeout(function () {
                 if (modal.parentNode) {
                     modal.parentNode.removeChild(modal);
                 }
@@ -441,12 +441,12 @@
                 if (node.nodeType === 1 && node.classList && node.classList.contains('modal')) {
                     // СПОЧАТКУ видаляємо ВСІ старі модальні з DOM
                     const oldModals = document.querySelectorAll('.modal');
-                    oldModals.forEach(function(oldModal) {
+                    oldModals.forEach(function (oldModal) {
                         if (oldModal !== node && oldModal.parentNode) {
                             oldModal.parentNode.removeChild(oldModal);
                         }
                     });
-                    
+
                     // ПОТІМ відкриваємо нове модальне
                     openModal(node);
                 }
