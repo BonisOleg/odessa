@@ -72,6 +72,7 @@ html {
   /* Запобігання масштабуванню на iOS при фокусі */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -87,6 +88,8 @@ body {
   color: var(--color-text);
   background-color: var(--color-bg-light);
   overscroll-behavior: none;
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 /* ==========================================================================
@@ -208,5 +211,34 @@ a[href^="tel"],
     hyphens: auto;
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
+  }
+
+  /* Додати padding-top до main content для topbar */
+  html,
+  body {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+
+  body {
+    padding-top: 0;
+  }
+
+  .main-content,
+  #main-content {
+    padding-top: calc(var(--topbar-height-mobile, 120px) + var(--spacing-md));
+  }
+
+  /* Контроль для всіх flex та grid контейнерів */
+  [class*="flex"],
+  [class*="grid"],
+  .filters,
+  .form-grid,
+  .form-grid-2,
+  .card,
+  .modal__content {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }

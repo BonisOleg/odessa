@@ -18,9 +18,15 @@
     z-index: 1000;
 }
 
-.topbar__left {
+.topbar__left,
+.topbar__nav,
+.topbar__right {
     display: flex;
     align-items: center;
+    min-height: calc(var(--topbar-height) - 2 * var(--spacing-md));
+}
+
+.topbar__left {
     gap: var(--spacing-md);
     flex-shrink: 0;
 }
@@ -45,6 +51,7 @@
     justify-content: flex-start;
     flex-wrap: wrap;
     min-width: 0;
+    min-height: calc(var(--topbar-height) - 2 * var(--spacing-md));
 }
 
 .topbar__nav::-webkit-scrollbar {
@@ -77,8 +84,6 @@
 
 /* Права частина */
 .topbar__right {
-    display: flex;
-    align-items: center;
     gap: max(var(--spacing-sm), 12px);
     /* Мінімум 12px для Android Material Design */
     flex-shrink: 0;
@@ -145,6 +150,7 @@
         padding-top: calc(var(--spacing-sm) + var(--safe-area-inset-top));
         padding-left: calc(var(--spacing-sm) + var(--safe-area-inset-left));
         padding-right: calc(var(--spacing-sm) + var(--safe-area-inset-right));
+        padding-bottom: var(--spacing-sm);
     }
 
     .topbar__left {
@@ -166,6 +172,7 @@
         scrollbar-width: none;
         margin-top: var(--spacing-sm);
         padding-top: var(--spacing-sm);
+        padding-bottom: var(--spacing-xs);
         border-top: 1px solid var(--color-border);
     }
 

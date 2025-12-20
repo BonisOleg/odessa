@@ -162,12 +162,14 @@ textarea.textarea-auto-resize {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-xl);
+  align-items: start;
 }
 
 .form-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-xl);
+  align-items: start;
 }
 
 .form-column {
@@ -183,12 +185,22 @@ textarea.textarea-auto-resize {
     gap: var(--spacing-lg);
   }
 
+  /* Додати overflow control для form-group */
+  .form-group {
+    margin-bottom: var(--spacing-md);
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   /* Запобігання zoom на iOS при фокусі - font-size має бути мінімум 16px */
   .form-control,
   .form-select,
   .form-textarea {
     font-size: 16px;
     min-height: 44px;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
     /* iOS touch target */
   }
 
@@ -201,15 +213,23 @@ textarea.textarea-auto-resize {
     }
   }
 
+  /* Phone inputs на мобільних */
+  .phone-inputs {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
   /* Phone input group на мобільних */
   .phone-input-group {
     flex-wrap: wrap;
     gap: var(--spacing-xs);
+    max-width: 100%;
   }
 
   .phone-input-group .form-control {
     flex: 1 1 100%;
     min-width: 0;
+    max-width: 100%;
   }
 
   .phone-favorite {
@@ -223,10 +243,6 @@ textarea.textarea-auto-resize {
     min-height: 44px;
   }
 
-  /* Form group spacing на мобільних */
-  .form-group {
-    margin-bottom: var(--spacing-md);
-  }
 
   /* Form hint на мобільних */
   .form-hint {

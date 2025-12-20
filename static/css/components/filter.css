@@ -5,11 +5,14 @@
   gap: var(--spacing-md);
   flex-wrap: wrap;
   padding: var(--spacing-md);
+  align-items: stretch;
 }
 
 .filter-group {
-  flex: 1 0 0;
+  flex: 1 1 auto;
   min-width: 150px;
+  display: flex;
+  flex-direction: column;
 }
 
 .filter-label {
@@ -29,6 +32,7 @@
   background-color: var(--color-bg);
   cursor: pointer;
   transition: border-color var(--transition-fast);
+  flex: 1;
 }
 
 .filter-select:hover {
@@ -119,11 +123,21 @@
     flex-direction: column;
     gap: var(--spacing-sm);
     padding: var(--spacing-sm);
+    padding-left: calc(var(--spacing-sm) + var(--safe-area-inset-left));
+    padding-right: calc(var(--spacing-sm) + var(--safe-area-inset-right));
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .filter-group {
     width: 100%;
     min-width: 100%;
+    max-width: 100%;
+  }
+
+  .filter-select {
+    max-width: 100%;
+    width: 100%;
   }
 
   .dropdown__menu {

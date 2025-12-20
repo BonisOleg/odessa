@@ -41,6 +41,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 44px;
+  gap: var(--spacing-md);
 }
 
 /* Color preview box */
@@ -120,5 +122,14 @@
 
   .card {
     padding: var(--spacing-md);
+    max-width: 100%;
+    overflow-x: hidden;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .card__header-flex {
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
   }
 }
