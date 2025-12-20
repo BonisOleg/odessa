@@ -29,6 +29,7 @@ class CompanyForm(forms.ModelForm):
             "full_description",
             "call_date",
             "keywords",
+            "logo",
         )
 
         widgets = {

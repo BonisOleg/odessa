@@ -137,6 +137,19 @@ class Company(models.Model):
         help_text="Запланована дата дзвінка",
     )
 
+    logo = models.ImageField(
+        upload_to='companies/logos/',
+        blank=True,
+        null=True,
+        help_text="Логотип компанії"
+    )
+
+    photos = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Список URL фотографій компанії (JSON array)"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

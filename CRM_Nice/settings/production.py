@@ -48,6 +48,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Media files для production
+# На Render використовуємо WhiteNoise для media (тимчасово)
+# Для production краще використовувати S3 або Cloudinary
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # CSRF trusted origins
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",

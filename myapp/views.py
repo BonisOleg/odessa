@@ -55,6 +55,38 @@ def _process_company_phones(company: Company, phones_data: list, contact_names: 
             first_phone.save()
 
 
+def _process_company_photos(company: Company, photos_files) -> None:
+    """Обробка фотографій компанії при створенні/оновленні."""
+    if not photos_files:
+        return
+    
+    from django.core.files.storage import default_storage
+    from django.core.files.base import ContentFile
+    import os
+    from django.utils import timezone
+    
+    photos_list = company.photos if company.photos else []
+    
+    for photo_file in photos_files:
+        # Генеруємо унікальне ім'я файлу
+        timestamp = int(timezone.now().timestamp())
+        file_ext = os.path.splitext(photo_file.name)[1]
+        file_name = f"companies/photos/{company.id}_{timestamp}_{len(photos_list)}{file_ext}"
+        
+        # Читаємо вміст файлу
+        photo_file.seek(0)  # Повертаємося на початок файлу
+        file_content = photo_file.read()
+        
+        # Зберігаємо файл
+        saved_path = default_storage.save(file_name, ContentFile(file_content))
+        
+        # Додаємо URL до списку
+        photos_list.append(default_storage.url(saved_path))
+    
+    company.photos = photos_list
+    company.save()
+
+
 @login_required
 @require_http_methods(["GET"])
 def company_list(request):
@@ -159,6 +191,9 @@ def company_create(request):
         if form.is_valid():
             company = form.save()
             _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+            # Обробка photos
+            if 'photos' in request.FILES:
+                _process_company_photos(company, request.FILES.getlist('photos'))
             messages.success(request, f'Компанія "{company.name}" успішно створена.')
             if is_htmx_request(request):
                 return redirect('myapp:company_detail', pk=company.pk)
@@ -223,6 +258,9 @@ def company_edit(request, pk):
         if form.is_valid():
             company = form.save()
             _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+            # Обробка photos
+            if 'photos' in request.FILES:
+                _process_company_photos(company, request.FILES.getlist('photos'))
             messages.success(request, f'Компанія "{company.name}" успішно оновлена.')
             if is_htmx_request(request):
                 return redirect('myapp:company_detail', pk=company.pk)

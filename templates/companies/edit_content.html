@@ -206,7 +206,11 @@
             <label class="form-group__label">Логотип</label>
             <input type="file" class="form-control" name="logo" accept="image/*">
             <div class="image-preview">
-                <img src="https://via.placeholder.com/80" alt="Current logo" class="logo-preview">
+                {% if company.logo %}
+                <img src="{{ company.logo.url }}" alt="Current logo" class="logo-preview">
+                {% else %}
+                <div class="logo-placeholder">Нет логотипа</div>
+                {% endif %}
             </div>
         </div>
         
