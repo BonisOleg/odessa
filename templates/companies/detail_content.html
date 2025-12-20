@@ -5,10 +5,14 @@
 <div class="card company-header">
     <div class="company-header-top">
         <div class="company-header-info">
-            <img src="{{ company.logo }}" alt="{{ company.name }}" class="company-logo-detail">
+            {% if company.logo %}
+            <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="company-logo-detail">
+            {% else %}
+            <div class="company-logo-detail company-logo-placeholder">🏢</div>
+            {% endif %}
             <div>
                 <h1>{{ company.name }}</h1>
-                <span class="badge {{ company.status_badge }}">{{ company.status }}</span>
+                <span class="badge {{ company.status.badge_class }}">{{ company.status.name }}</span>
             </div>
         </div>
         <div class="company-actions">
@@ -31,12 +35,14 @@
                 <div class="info-item">
                     <span class="info-label">📞 Телефоны:</span>
                     <div class="phone-list">
-                        {% for phone in company.phones %}
+                        {% for phone in company.phones.all %}
                         <div class="phone-item">
                             <span>{{ phone.number }}</span>
-                            {% if phone.favorite %}<span class="phone-star">⭐</span>{% endif %}
-                            <span class="phone-name">{{ phone.name }}</span>
+                            {% if phone.is_favorite %}<span class="phone-star">⭐</span>{% endif %}
+                            <span class="phone-name">{{ phone.contact_name }}</span>
                         </div>
+                        {% empty %}
+                        <span>Нет телефонов</span>
                         {% endfor %}
                     </div>
                 </div>
@@ -64,16 +70,12 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">🏷️ Раздел:</span>
-                    <span class="badge {{ company.category_badge }}">{{ company.category }}</span>
+                    <span class="badge" style="background-color: {{ company.category.badge_color_bg }}; color: {{ company.category.badge_color_fg }};">{{ company.category.name }}</span>
                 </div>
                 {% if company.keywords %}
                 <div class="info-item">
                     <span class="info-label">🔑 Ключевые слова:</span>
-                    <div class="tags-list">
-                        {% for keyword in company.keywords %}
-                        <span class="tag">{{ keyword }}</span>
-                        {% endfor %}
-                    </div>
+                    <span>{{ company.keywords }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -146,21 +148,23 @@
     <h3>История комментариев</h3>
 
     <div class="comments-timeline" id="comments-list">
-        {% for comment in company.comments %}
+        {% for comment in company.comments.all %}
         <div class="comment{% if forloop.counter > 3 %} comment--hidden{% endif %}">
             <div class="comment-header">
-                <span class="comment-author">👤 {{ comment.author }}</span>
-                <span class="comment-date">{{ comment.date }}</span>
+                <span class="comment-author">👤 {{ comment.created_by.username|default:"Аноним" }}</span>
+                <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
                 <button class="btn-delete-comment" title="Удалить">🗑️</button>
             </div>
             <div class="comment-text">
-                {{ comment.text }}
+                {{ comment.comment_text }}
             </div>
         </div>
+        {% empty %}
+        <p>Комментариев пока нет</p>
         {% endfor %}
     </div>
 
-    {% if company.comments|length > 3 %}
+    {% if company.comments.count > 3 %}
     <button class="btn-expand-comments">Показать все комментарии</button>
     {% endif %}
 
