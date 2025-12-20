@@ -381,6 +381,13 @@
         if (modal) {
             modal.classList.remove('is-open');
             document.body.style.overflow = '';
+            
+            // Видаляємо модальне з DOM після анімації закриття
+            setTimeout(function() {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            }, 300); // 300ms - час анімації fadeOut
         }
     }
 
@@ -418,11 +425,11 @@
         if (modal) {
             openModal(modal);
         }
-        // Якщо оновлено #main-content (успішний submit), закриваємо всі модальні вікна
+        // Якщо оновлено #main-content (успішний submit), закриваємо та ВИДАЛЯЄМО всі модальні вікна
         if (event.detail.target.id === 'main-content') {
-            const openModals = document.querySelectorAll('.modal.is-open');
+            const openModals = document.querySelectorAll('.modal');
             openModals.forEach(function (modal) {
-                closeModal(modal);
+                closeModal(modal); // closeModal тепер видаляє з DOM
             });
         }
     });
@@ -432,6 +439,15 @@
         mutations.forEach(function (mutation) {
             mutation.addedNodes.forEach(function (node) {
                 if (node.nodeType === 1 && node.classList && node.classList.contains('modal')) {
+                    // СПОЧАТКУ видаляємо ВСІ старі модальні з DOM
+                    const oldModals = document.querySelectorAll('.modal');
+                    oldModals.forEach(function(oldModal) {
+                        if (oldModal !== node && oldModal.parentNode) {
+                            oldModal.parentNode.removeChild(oldModal);
+                        }
+                    });
+                    
+                    // ПОТІМ відкриваємо нове модальне
                     openModal(node);
                 }
             });
