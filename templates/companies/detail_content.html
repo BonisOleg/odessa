@@ -16,10 +16,10 @@
             </div>
         </div>
         <div class="company-actions">
-            <a href="/companies/{{ company.id }}/edit/" hx-get="/companies/{{ company.id }}/edit/" hx-target="#main-content" hx-push-url="true"
+            <a href="{% url 'myapp:company_edit' company.id %}" hx-get="{% url 'myapp:company_edit' company.id %}" hx-target="#main-content" hx-push-url="true"
                 class="button button--sm button--primary">✏️ Редактировать</a>
-            <button type="button" class="button button--sm button--danger">🗑️ Удалить</button>
-            <button type="button" class="button button--sm button--secondary">📊 Экспорт</button>
+            <button type="button" class="button button--sm button--danger" hx-get="{% url 'myapp:company_delete' company.id %}" hx-target="body" hx-swap="beforeend">🗑️ Удалить</button>
+            <a href="{% url 'myapp:company_export' company.id %}" class="button button--sm button--secondary" download>📊 Экспорт</a>
         </div>
     </div>
     <div class="company-id">ID: {{ company.client_id }}</div>
@@ -42,7 +42,7 @@
                             <span class="phone-name">{{ phone.contact_name }}</span>
                         </div>
                         {% empty %}
-                        <span>Нет телефонов</span>
+                        <span class="text-muted" style="font-style: italic;">Нет телефонов</span>
                         {% endfor %}
                     </div>
                 </div>
@@ -70,7 +70,13 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">🏷️ Раздел:</span>
-                    <span class="badge" style="background-color: {{ company.category.badge_color_bg }}; color: {{ company.category.badge_color_fg }};">{{ company.category.name }}</span>
+                    {% if company.category %}
+                    <span class="badge badge-category" 
+                          data-bg-color="{{ company.category.badge_color_bg }}"
+                          data-fg-color="{{ company.category.badge_color_fg }}">{{ company.category.name }}</span>
+                    {% else %}
+                    <span class="badge badge--secondary">-</span>
+                    {% endif %}
                 </div>
                 {% if company.keywords %}
                 <div class="info-item">
@@ -85,7 +91,10 @@
         <div class="card">
             <div class="short-comment-block">
                 <h4>Короткий комментарий</h4>
-                <p class="short-comment-text" contenteditable="true">{{ company.short_comment }}</p>
+                <p class="short-comment-text" 
+                   contenteditable="true" 
+                   data-company-id="{{ company.id }}"
+                   data-save-url="{% url 'myapp:company_update_short_comment' company.id %}">{{ company.short_comment }}</p>
                 <small class="text-muted">Кликните для редактирования</small>
             </div>
         </div>
@@ -106,7 +115,11 @@
                 <span class="call-date-value" contenteditable="false">{{ company.call_date_display }}</span>
                 <button class="btn-edit-date" title="Редактировать">✏️</button>
             </div>
-            <input type="date" class="call-date-input" value="{{ company.call_date }}">
+            <input type="date" 
+                   class="call-date-input" 
+                   value="{{ company.call_date|date:'Y-m-d'|default:'' }}"
+                   data-company-id="{{ company.id }}"
+                   data-save-url="{% url 'myapp:company_update_call_date' company.id %}">
         </div>
 
         <!-- Даты -->
@@ -136,7 +149,17 @@
     <div class="photo-slider">
         <button type="button" class="slider-btn slider-btn--prev">←</button>
         {% for photo in company.photos %}
-        <img src="{{ photo }}" alt="Фото {{ forloop.counter }}">
+        <div class="photo-item">
+            <img src="{{ photo }}" alt="Фото {{ forloop.counter }}">
+            <button type="button" 
+                    class="button button--sm button--danger photo-delete-btn"
+                    hx-post="{% url 'myapp:company_delete_photo' company.id %}"
+                    hx-vals='{"photo_url": "{{ photo }}"}'
+                    hx-target="#main-content"
+                    hx-push-url="true"
+                    onclick="return confirm('Видалити це фото?')"
+                    title="Видалити фото">🗑️</button>
+        </div>
         {% endfor %}
         <button type="button" class="slider-btn slider-btn--next">→</button>
     </div>
@@ -149,18 +172,27 @@
 
     <div class="comments-timeline" id="comments-list">
         {% for comment in company.comments.all %}
-        <div class="comment{% if forloop.counter > 3 %} comment--hidden{% endif %}">
+        <div class="comment{% if forloop.counter > 3 %} comment--hidden{% endif %}" data-comment-id="{{ comment.id }}">
             <div class="comment-header">
-                <span class="comment-author">👤 {{ comment.created_by.username|default:"Аноним" }}</span>
+                <span class="comment-author">👤 {{ comment.author_name|default:"Аноним" }}</span>
                 <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-                <button class="btn-delete-comment" title="Удалить">🗑️</button>
+                <button class="btn-delete-comment" 
+                        data-comment-id="{{ comment.id }}"
+                        hx-post="{% url 'myapp:company_comment_delete' company.id comment.id %}"
+                        hx-target="#main-content"
+                        hx-push-url="true"
+                        title="Удалить">🗑️</button>
             </div>
             <div class="comment-text">
-                {{ comment.comment_text }}
+                {{ comment.text }}
             </div>
         </div>
         {% empty %}
-        <p>Комментариев пока нет</p>
+        <div style="text-align: center; padding: var(--spacing-xl); color: var(--color-text-light);">
+            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">💬</div>
+            <p style="margin: 0; font-style: italic;">Комментариев пока нет</p>
+            <p style="margin: var(--spacing-xs) 0 0 0; font-size: var(--font-size-sm);">Добавьте первый комментарий ниже</p>
+        </div>
         {% endfor %}
     </div>
 
@@ -169,7 +201,12 @@
     {% endif %}
 
     <!-- Форма додавання коментаря -->
-    <form class="add-comment-form">
+    <form class="add-comment-form" 
+          method="post" 
+          action="{% url 'myapp:company_comment_add' company.id %}"
+          hx-post="{% url 'myapp:company_comment_add' company.id %}"
+          hx-target="#main-content"
+          hx-push-url="true">
         {% csrf_token %}
         <textarea class="form-control" name="comment" rows="2" placeholder="Добавить комментарий..."
             required></textarea>

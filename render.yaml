@@ -20,3 +20,4 @@ services:
         sync: false
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
+

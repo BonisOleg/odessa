@@ -15,26 +15,12 @@
                     <span class="dropdown__arrow">▾</span>
                 </button>
                 <div class="multiselect-options">
+                    {% for status in all_statuses %}
                     <div class="multiselect-option">
-                        <input type="checkbox" id="status-в-работе" value="В работе" data-filter="status">
-                        <label for="status-в-работе">В работе</label>
+                        <input type="checkbox" id="status-{{ status.id }}" value="{{ status.name }}" data-filter="status" name="status" {% if status.name in selected_statuses %}checked{% endif %}>
+                        <label for="status-{{ status.id }}">{{ status.name }}</label>
                     </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="status-горячий" value="Горячий" data-filter="status">
-                        <label for="status-горячий">Горячий</label>
-                    </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="status-хороший" value="Хороший" data-filter="status">
-                        <label for="status-хороший">Хороший</label>
-                    </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="status-позже" value="Позже" data-filter="status">
-                        <label for="status-позже">Позже</label>
-                    </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="status-теплый" value="Теплый" data-filter="status">
-                        <label for="status-теплый">Теплый</label>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -47,59 +33,44 @@
                     <span class="dropdown__arrow">▾</span>
                 </button>
                 <div class="multiselect-options">
+                    {% for city in all_cities %}
                     <div class="multiselect-option">
-                        <input type="checkbox" id="city-киев" value="Киев" data-filter="city">
-                        <label for="city-киев">Киев</label>
+                        <input type="checkbox" id="city-{{ city.id }}" value="{{ city.name }}" data-filter="city" name="city" {% if city.name in selected_cities %}checked{% endif %}>
+                        <label for="city-{{ city.id }}">{{ city.name }}</label>
                     </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="city-харьков" value="Харьков" data-filter="city">
-                        <label for="city-харьков">Харьков</label>
-                    </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="city-львов" value="Львов" data-filter="city">
-                        <label for="city-львов">Львов</label>
-                    </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="city-одесса" value="Одесса" data-filter="city">
-                        <label for="city-одесса">Одесса</label>
-                    </div>
-                    <div class="multiselect-option">
-                        <input type="checkbox" id="city-днепр" value="Днепр" data-filter="city">
-                        <label for="city-днепр">Днепр</label>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
 
         <div class="filter-group">
             <label class="filter-label">Дата обновления</label>
-            <select class="form-select filter-select">
+            <select class="form-select filter-select" name="date_updated" data-filter="date_updated">
                 <option value="">Все даты</option>
-                <option>Сегодня</option>
-                <option>Вчера</option>
-                <option>На этой неделе</option>
-                <option>В этом месяце</option>
+                <option value="today" {% if selected_date_updated == 'today' %}selected{% endif %}>Сегодня</option>
+                <option value="yesterday" {% if selected_date_updated == 'yesterday' %}selected{% endif %}>Вчера</option>
+                <option value="this_week" {% if selected_date_updated == 'this_week' %}selected{% endif %}>На этой неделе</option>
+                <option value="this_month" {% if selected_date_updated == 'this_month' %}selected{% endif %}>В этом месяце</option>
             </select>
         </div>
 
         <div class="filter-group">
             <label class="filter-label">Раздел</label>
-            <select class="form-select filter-select">
+            <select class="form-select filter-select" name="category" data-filter="category">
                 <option value="">Все разделы</option>
-                <option>IT-услуги</option>
-                <option>Ресторан</option>
-                <option>Образование</option>
-                <option>Недвижимость</option>
+                {% for category in all_categories %}
+                <option value="{{ category.name }}" {% if selected_category == category.name %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
             </select>
         </div>
 
         <div class="filter-group">
             <label class="filter-label">Дата звонка</label>
-            <select class="form-select filter-select">
+            <select class="form-select filter-select" name="call_date" data-filter="call_date">
                 <option value="">Все даты</option>
-                <option>Просрочено</option>
-                <option>Сегодня</option>
-                <option>На этой неделе</option>
+                <option value="overdue" {% if selected_call_date == 'overdue' %}selected{% endif %}>Просрочено</option>
+                <option value="today" {% if selected_call_date == 'today' %}selected{% endif %}>Сегодня</option>
+                <option value="this_week" {% if selected_call_date == 'this_week' %}selected{% endif %}>На этой неделе</option>
             </select>
         </div>
     </div>
@@ -136,7 +107,7 @@
                     <td class="table__td">
                         <div class="company-cell">
                             <div class="company-logo company-logo--placeholder" title="{{ company.name }}"></div>
-                            <a href="/companies/{{ company.id }}/" hx-get="/companies/{{ company.id }}/"
+                            <a href="{% url 'myapp:company_detail' company.id %}" hx-get="{% url 'myapp:company_detail' company.id %}"
                                 hx-target="#main-content" hx-push-url="true" class="company-name-link">{{ company.name }}</a>
                         </div>
                     </td>
@@ -183,11 +154,11 @@
                             <button type="button" class="icon-btn telegram-btn" data-telegram="{{ company.telegram }}"
                                 title="Telegram">💬</button>
                             {% endif %}
-                            <a href="/companies/{{ company.id }}/edit/" hx-get="/companies/{{ company.id }}/edit/"
+                            <a href="{% url 'myapp:company_edit' company.id %}" hx-get="{% url 'myapp:company_edit' company.id %}"
                                 hx-target="#main-content" hx-push-url="true" class="icon-btn"
                                 title="Редактировать">✏️</a>
                             <button type="button" class="icon-btn" title="Удалить"
-                                hx-get="/companies/{{ company.id }}/delete/" hx-target="body"
+                                hx-get="{% url 'myapp:company_delete' company.id %}" hx-target="body"
                                 hx-swap="beforeend">🗑️</button>
                         </div>
                     </td>
@@ -195,8 +166,17 @@
                 {% endwith %}
                 {% empty %}
                 <tr>
-                    <td colspan="12" class="table__td text-center">
-                        <p class="text-muted">Компании не найдены</p>
+                    <td colspan="12" class="table__td text-center" style="padding: var(--spacing-2xl);">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: var(--spacing-md);">
+                            <div style="font-size: 3rem;">📭</div>
+                            <p class="text-muted" style="font-size: var(--font-size-lg); margin: 0;">Компании не найдены</p>
+                            {% if search_query or selected_statuses or selected_cities or selected_category %}
+                            <p class="text-muted" style="font-size: var(--font-size-sm); margin: 0;">Спробуйте змінити фільтри або пошуковий запит</p>
+                            <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true" class="button button--primary button--sm">Очистити фільтри</a>
+                            {% else %}
+                            <a href="{% url 'myapp:company_create' %}" hx-get="{% url 'myapp:company_create' %}" hx-target="#main-content" hx-push-url="true" class="button button--primary button--sm">+ Додати компанію</a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -278,38 +258,76 @@
     }
 
     // ==========================================================================
-    // Фільтрація таблиці
+    // Фільтрація через backend (HTMX)
     // ==========================================================================
-    function filterTable() {
-        const statusChecks = document.querySelectorAll('input[data-filter="status"]:checked');
-        const cityChecks = document.querySelectorAll('input[data-filter="city"]:checked');
-        const selectedStatuses = Array.from(statusChecks).map(cb => cb.value);
-        const selectedCities = Array.from(cityChecks).map(cb => cb.value);
-
-        const rows = document.querySelectorAll('tbody tr');
-        rows.forEach(function (row) {
-            let show = true;
-
-            if (selectedStatuses.length > 0) {
-                const rowStatus = row.getAttribute('data-status');
-                if (!selectedStatuses.includes(rowStatus)) show = false;
-            }
-
-            if (selectedCities.length > 0) {
-                const rowCity = row.getAttribute('data-city');
-                if (!selectedCities.includes(rowCity)) show = false;
-            }
-
-            row.style.display = show ? '' : 'none';
+    function buildFilterUrl() {
+        const params = new URLSearchParams();
+        
+        // Пошук
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        // Статуси
+        const statusChecks = document.querySelectorAll('input[name="status"]:checked');
+        statusChecks.forEach(function (cb) {
+            params.append('status', cb.value);
         });
+        
+        // Міста
+        const cityChecks = document.querySelectorAll('input[name="city"]:checked');
+        cityChecks.forEach(function (cb) {
+            params.append('city', cb.value);
+        });
+        
+        // Категорія
+        const categorySelect = document.querySelector('select[name="category"]');
+        if (categorySelect && categorySelect.value) {
+            params.append('category', categorySelect.value);
+        }
+        
+        // Дата оновлення
+        const dateUpdatedSelect = document.querySelector('select[name="date_updated"]');
+        if (dateUpdatedSelect && dateUpdatedSelect.value) {
+            params.append('date_updated', dateUpdatedSelect.value);
+        }
+        
+        // Дата дзвінка
+        const callDateSelect = document.querySelector('select[name="call_date"]');
+        if (callDateSelect && callDateSelect.value) {
+            params.append('call_date', callDateSelect.value);
+        }
+        
+        return '{% url "myapp:company_list" %}?' + params.toString();
     }
 
-    // Обробка змін checkbox
+    function applyFilters() {
+        const url = buildFilterUrl();
+        // Використовуємо HTMX для завантаження
+        if (typeof htmx !== 'undefined') {
+            htmx.ajax('GET', url, {
+                target: '#main-content',
+                swap: 'innerHTML',
+                pushUrl: true
+            });
+        } else {
+            // Fallback - звичайна навігація
+            window.location.href = url;
+        }
+    }
+
+    // Обробка змін checkbox та select
     document.addEventListener('change', function (e) {
-        if (e.target.matches('input[data-filter]')) {
-            const dropdown = e.target.closest('.multiselect-dropdown');
-            updateMultiselectText(dropdown);
-            filterTable();
+        if (e.target.matches('input[data-filter], select[data-filter]')) {
+            if (e.target.matches('input[data-filter]')) {
+                const dropdown = e.target.closest('.multiselect-dropdown');
+                if (dropdown) {
+                    updateMultiselectText(dropdown);
+                }
+            }
+            // Застосовуємо фільтри через backend
+            applyFilters();
         }
     });
 

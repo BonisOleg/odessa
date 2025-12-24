@@ -182,7 +182,6 @@
   line-height: var(--line-height-base);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  word-break: break-word;
   min-width: 0;
 }
 
@@ -277,6 +276,7 @@
   margin-bottom: var(--spacing-lg);
   max-height: 400px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .comment {
@@ -338,7 +338,6 @@
   line-height: var(--line-height-base);
   word-wrap: break-word;
   overflow-wrap: break-word;
-  word-break: break-word;
   min-width: 0;
 }
 
@@ -387,12 +386,25 @@
   scroll-behavior: smooth;
 }
 
+.photo-slider .photo-item {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 .photo-slider img {
   width: 300px;
   height: 200px;
   object-fit: cover;
   border-radius: var(--radius-base);
   flex-shrink: 0;
+}
+
+.photo-delete-btn {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  z-index: 10;
 }
 
 .slider-btn {

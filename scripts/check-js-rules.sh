@@ -63,3 +63,4 @@ else
     echo -e "${RED}❌ Знайдено $ERRORS помилок JS${NC}"
     exit 1
 fi
+

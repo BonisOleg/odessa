@@ -23,3 +23,4 @@ if not User.objects.filter(username=username).exists():
 else:
     print(f"Demo user already exists: {username}")
 EOF
+

@@ -21,38 +21,38 @@
     
     <!-- Меню навігації -->
     <nav class="topbar__nav">
-        <a href="/clients/" 
-           hx-get="/clients/" 
+        <a href="{% url 'myapp:clients' %}" 
+           hx-get="{% url 'myapp:clients' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">Клиенты</a>
-        <a href="/tasks/" 
-           hx-get="/tasks/" 
+        <a href="{% url 'myapp:tasks' %}" 
+           hx-get="{% url 'myapp:tasks' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">Задачи</a>
-        <a href="/companies/" 
-           hx-get="/companies/" 
+        <a href="{% url 'myapp:company_list' %}" 
+           hx-get="{% url 'myapp:company_list' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">Компании</a>
-        <a href="/sales/" 
-           hx-get="/sales/" 
+        <a href="{% url 'myapp:sales' %}" 
+           hx-get="{% url 'myapp:sales' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">Продажи</a>
-        <a href="/seo/" 
-           hx-get="/seo/" 
+        <a href="{% url 'myapp:seo' %}" 
+           hx-get="{% url 'myapp:seo' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">SEO</a>
-        <a href="/franchises/" 
-           hx-get="/franchises/" 
+        <a href="{% url 'myapp:franchises' %}" 
+           hx-get="{% url 'myapp:franchises' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">Франшизы</a>
-        <a href="/finances/" 
-           hx-get="/finances/" 
+        <a href="{% url 'myapp:finances' %}" 
+           hx-get="{% url 'myapp:finances' %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="topbar__nav-link">Финансы</a>
@@ -66,7 +66,7 @@
                    class="topbar__search-input" 
                    placeholder="🔍 Поиск..." 
                    name="search"
-                   hx-get="/companies/"
+                   hx-get="{% url 'myapp:company_list' %}"
                    hx-trigger="keyup changed delay:300ms, search"
                    hx-target="#main-content"
                    hx-push-url="true"
@@ -81,8 +81,8 @@
             <div class="dropdown__menu dropdown__menu--right">
                 <a href="#" class="dropdown__item dropdown__item--disabled">Клиента</a>
                 <a href="#" class="dropdown__item dropdown__item--disabled">Задачу</a>
-                <a href="/companies/add/" 
-                   hx-get="/companies/add/" 
+                <a href="{% url 'myapp:company_create' %}" 
+                   hx-get="{% url 'myapp:company_create' %}" 
                    hx-target="#main-content" 
                    hx-push-url="true"
                    class="dropdown__item">Компанию</a>
@@ -99,15 +99,15 @@
                     Последний вход: 10.12.2025 14:30
                 </div>
                 <hr class="dropdown__divider">
-                <a href="/settings/" 
-                   hx-get="/settings/" 
+                <a href="{% url 'myapp:settings_dashboard' %}" 
+                   hx-get="{% url 'myapp:settings_dashboard' %}" 
                    hx-target="#main-content" 
                    hx-push-url="true"
                    class="dropdown__item">Настройки</a>
                 <a href="#" class="dropdown__item">Избранное</a>
                 <a href="#" class="dropdown__item">Отчёты</a>
                 <hr class="dropdown__divider">
-                <a href="/accounts/logout/" class="dropdown__item">Выход</a>
+                <a href="{% url 'myapp:logout' %}" class="dropdown__item">Выход</a>
             </div>
         </div>
     </div>

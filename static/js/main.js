@@ -39,6 +39,37 @@
     });
 
     // ==========================================================================
+    // HTMX Loading States
+    // ==========================================================================
+
+    document.body.addEventListener('htmx:beforeRequest', function (event) {
+        const target = event.detail.target;
+        if (target) {
+            target.classList.add('is-loading');
+            target.style.opacity = '0.6';
+            target.style.pointerEvents = 'none';
+        }
+    });
+
+    document.body.addEventListener('htmx:afterRequest', function (event) {
+        const target = event.detail.target;
+        if (target) {
+            target.classList.remove('is-loading');
+            target.style.opacity = '';
+            target.style.pointerEvents = '';
+        }
+    });
+
+    document.body.addEventListener('htmx:responseError', function (event) {
+        const target = event.detail.target;
+        if (target) {
+            target.classList.remove('is-loading');
+            target.style.opacity = '';
+            target.style.pointerEvents = '';
+        }
+    });
+
+    // ==========================================================================
     // HTMX Error Handling
     // ==========================================================================
 
@@ -466,9 +497,24 @@
     document.addEventListener('click', function (e) {
         if (e.target.closest('.btn-delete-comment')) {
             e.preventDefault();
-            const comment = e.target.closest('.comment');
+            const btn = e.target.closest('.btn-delete-comment');
             if (confirm('Видалити коментарій?')) {
-                comment.remove();
+                // HTMX обробить запит автоматично через hx-post атрибут
+                // Якщо HTMX не доступний, виконаємо через fetch
+                const hxPost = btn.getAttribute('hx-post');
+                if (hxPost && typeof htmx === 'undefined') {
+                    const formData = new FormData();
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+                    fetch(hxPost, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                        }
+                    }).then(function () {
+                        window.location.reload();
+                    });
+                }
             }
         }
     });
@@ -491,15 +537,37 @@
                 input.focus();
 
                 function saveDate() {
-                    const date = new Date(input.value);
-                    const formatted = ('0' + date.getDate()).slice(-2) + '.' +
-                        ('0' + (date.getMonth() + 1)).slice(-2) + '.' +
-                        date.getFullYear();
+                    const saveUrl = input.getAttribute('data-save-url');
+                    if (!saveUrl) return;
 
-                    const valueSpan = display.querySelector('.call-date-value');
-                    valueSpan.textContent = formatted;
-                    display.style.display = 'flex';
-                    input.classList.remove('is-visible');
+                    const formData = new FormData();
+                    formData.append('call_date', input.value);
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+
+                    fetch(saveUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                        }
+                    }).then(function (response) {
+                        if (response.ok) {
+                            const date = new Date(input.value);
+                            const formatted = ('0' + date.getDate()).slice(-2) + '.' +
+                                ('0' + (date.getMonth() + 1)).slice(-2) + '.' +
+                                date.getFullYear();
+
+                            const valueSpan = display.querySelector('.call-date-value');
+                            valueSpan.textContent = formatted;
+                            display.style.display = 'flex';
+                            input.classList.remove('is-visible');
+                        } else {
+                            alert('Помилка збереження дати');
+                        }
+                    }).catch(function (error) {
+                        console.error('Error saving call date:', error);
+                        alert('Помилка збереження дати');
+                    });
                 }
 
                 input.addEventListener('change', saveDate);
@@ -510,6 +578,66 @@
 
     initCallDateEditor();
     document.body.addEventListener('htmx:afterSwap', initCallDateEditor);
+
+    // ==========================================================================
+    // Short Comment Auto-Save
+    // ==========================================================================
+
+    function initShortCommentEditor() {
+        const shortCommentFields = document.querySelectorAll('.short-comment-text[contenteditable="true"]');
+        shortCommentFields.forEach(function (field) {
+            let saveTimeout;
+            const saveUrl = field.getAttribute('data-save-url');
+            if (!saveUrl) return;
+
+            field.addEventListener('input', function () {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(function () {
+                    const formData = new FormData();
+                    formData.append('short_comment', field.textContent.trim());
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+
+                    fetch(saveUrl, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                        }
+                    }).then(function (response) {
+                        if (!response.ok) {
+                            console.error('Error saving short comment');
+                        }
+                    }).catch(function (error) {
+                        console.error('Error saving short comment:', error);
+                    });
+                }, 1000); // Зберігаємо через 1 секунду після останнього вводу
+            });
+        });
+    }
+
+    initShortCommentEditor();
+    document.body.addEventListener('htmx:afterSwap', initShortCommentEditor);
+
+    // ==========================================================================
+    // Category Badge Colors (через CSS custom properties)
+    // ==========================================================================
+
+    function initCategoryBadges() {
+        const categoryBadges = document.querySelectorAll('.badge-category[data-bg-color]');
+        categoryBadges.forEach(function (badge) {
+            const bgColor = badge.getAttribute('data-bg-color');
+            const fgColor = badge.getAttribute('data-fg-color');
+            if (bgColor) {
+                badge.style.setProperty('--category-bg-color', bgColor);
+            }
+            if (fgColor) {
+                badge.style.setProperty('--category-fg-color', fgColor);
+            }
+        });
+    }
+
+    initCategoryBadges();
+    document.body.addEventListener('htmx:afterSwap', initCategoryBadges);
 
     // ==========================================================================
     // Company Detail Page - Expand Comments

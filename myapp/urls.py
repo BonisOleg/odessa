@@ -14,6 +14,14 @@ urlpatterns = [
     path('companies/<int:pk>/', views.company_detail, name='company_detail'),
     path('companies/<int:pk>/edit/', views.company_edit, name='company_edit'),
     path('companies/<int:pk>/delete/', views.company_delete, name='company_delete'),
+    path('companies/<int:pk>/update-short-comment/', views.company_update_short_comment, name='company_update_short_comment'),
+    path('companies/<int:pk>/update-call-date/', views.company_update_call_date, name='company_update_call_date'),
+    path('companies/<int:pk>/comments/add/', views.company_comment_add, name='company_comment_add'),
+    path('companies/<int:pk>/comments/<int:comment_id>/delete/', views.company_comment_delete, name='company_comment_delete'),
+    path('companies/<int:pk>/delete-logo/', views.company_delete_logo, name='company_delete_logo'),
+    path('companies/<int:pk>/delete-photo/', views.company_delete_photo, name='company_delete_photo'),
+    path('companies/<int:pk>/export/', views.company_export, name='company_export'),
+    path('companies/check-duplicates/', views.company_check_duplicates, name='company_check_duplicates'),
     
     # Налаштування
     path('settings/', views.settings_dashboard, name='settings_dashboard'),

@@ -29,26 +29,32 @@ def is_htmx_request(request: HttpRequest) -> bool:
 
 def _process_company_phones(company: Company, phones_data: list, contact_names: list, favorite_phone_index: str | None) -> None:
     """Обробка телефонів компанії при створенні/оновленні."""
+    # Фільтруємо порожні телефони
+    valid_phones = [phone.strip() for phone in phones_data if phone.strip()]
+    
+    # Валідація: має бути хоча б один телефон
+    if not valid_phones:
+        raise ValueError("Компанія повинна мати хоча б один телефон")
+    
     # Видаляємо старі телефони
     CompanyPhone.objects.filter(company=company).delete()
     
     # Створюємо нові телефони
     favorite_index = int(favorite_phone_index) if favorite_phone_index and favorite_phone_index.isdigit() else None
     
-    for index, phone in enumerate(phones_data):
-        if phone.strip():  # Пропускаємо порожні телефони
-            contact_name = contact_names[index] if index < len(contact_names) else ''
-            is_favorite = (favorite_index is not None and index == favorite_index)
-            
-            CompanyPhone.objects.create(
-                company=company,
-                number=phone.strip(),
-                contact_name=contact_name.strip(),
-                is_favorite=is_favorite
-            )
+    for index, phone in enumerate(valid_phones):
+        contact_name = contact_names[index] if index < len(contact_names) else ''
+        is_favorite = (favorite_index is not None and index == favorite_index)
+        
+        CompanyPhone.objects.create(
+            company=company,
+            number=phone.strip(),
+            contact_name=contact_name.strip(),
+            is_favorite=is_favorite
+        )
     
     # Якщо вказано favorite_phone, але він не встановлений, встановлюємо перший телефон як favorite
-    if favorite_index is None and phones_data:
+    if favorite_index is None and valid_phones:
         first_phone = CompanyPhone.objects.filter(company=company).first()
         if first_phone:
             first_phone.is_favorite = True
@@ -65,12 +71,24 @@ def _process_company_photos(company: Company, photos_files) -> None:
     import os
     from django.utils import timezone
     
+    # Валідація типів файлів
+    ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+    
     photos_list = company.photos if company.photos else []
     
     for photo_file in photos_files:
+        # Валідація розміру файлу
+        if photo_file.size > MAX_FILE_SIZE:
+            raise ValueError(f'Файл "{photo_file.name}" занадто великий. Максимальний розмір: 10 MB')
+        
+        # Валідація розширення
+        file_ext = os.path.splitext(photo_file.name)[1].lower()
+        if file_ext not in ALLOWED_EXTENSIONS:
+            raise ValueError(f'Файл "{photo_file.name}" має недозволений формат. Дозволені: {", ".join(ALLOWED_EXTENSIONS)}')
+        
         # Генеруємо унікальне ім'я файлу
         timestamp = int(timezone.now().timestamp())
-        file_ext = os.path.splitext(photo_file.name)[1]
         file_name = f"companies/photos/{company.id}_{timestamp}_{len(photos_list)}{file_ext}"
         
         # Читаємо вміст файлу
@@ -166,12 +184,25 @@ def company_list(request):
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
+    # Отримуємо унікальні значення для фільтрів
+    all_statuses = Status.objects.all().order_by('name')
+    all_cities = City.objects.all().order_by('name')
+    all_categories = Category.objects.all().order_by('name')
+    
     context = {
         'companies': page_obj,
         'page_obj': page_obj,
         'total_count': paginator.count,
         'new_count': new_count,
-        'search_query': search_query
+        'search_query': search_query,
+        'all_statuses': all_statuses,
+        'all_cities': all_cities,
+        'all_categories': all_categories,
+        'selected_statuses': status_filter,
+        'selected_cities': city_filter,
+        'selected_category': category_filter,
+        'selected_date_updated': date_updated_filter,
+        'selected_call_date': call_date_filter,
     }
     
     template = 'companies/list_content.html' if is_htmx_request(request) else 'companies/list.html'
@@ -189,15 +220,30 @@ def company_create(request):
         favorite_phone_index = request.POST.get('favorite_phone')
         
         if form.is_valid():
-            company = form.save()
-            _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
-            # Обробка photos
-            if 'photos' in request.FILES:
-                _process_company_photos(company, request.FILES.getlist('photos'))
-            messages.success(request, f'Компанія "{company.name}" успішно створена.')
-            if is_htmx_request(request):
+            try:
+                company = form.save()
+                _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+                # Обробка photos
+                if 'photos' in request.FILES:
+                    _process_company_photos(company, request.FILES.getlist('photos'))
+                messages.success(request, f'Компанія "{company.name}" успішно створена.')
+                if is_htmx_request(request):
+                    return redirect('myapp:company_detail', pk=company.pk)
                 return redirect('myapp:company_detail', pk=company.pk)
-            return redirect('myapp:company_detail', pk=company.pk)
+            except ValueError as e:
+                messages.error(request, str(e))
+                # Повертаємо форму з помилкою
+                template = 'companies/create_content.html' if is_htmx_request(request) else 'companies/create.html'
+                context = {
+                    'form': form,
+                    'cities': City.objects.all().order_by('name'),
+                    'categories': Category.objects.all().order_by('name'),
+                    'statuses': Status.objects.all().order_by('name'),
+                }
+                return render(request, template, context, status=400)
+        else:
+            # Форма невалідна - показуємо помилки
+            messages.error(request, 'Будь ласка, виправте помилки в формі.')
     else:
         form = CompanyForm()
     
@@ -230,12 +276,23 @@ def company_detail(request, pk):
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def company_delete(request, pk):
-    """Модальне вікно підтвердження видалення компанії"""
+    """Модальне вікно підтвердження видалення компанії та видалення компанії"""
+    company = get_object_or_404(Company, pk=pk)
+    
+    if request.method == "POST":
+        company_name = company.name
+        company.delete()
+        messages.success(request, f'Компанія "{company_name}" успішно видалена.')
+        if is_htmx_request(request):
+            return redirect('myapp:company_list')
+        return redirect('myapp:company_list')
+    
     context = {
         'company_id': pk,
-        'company_name': 'IT Solutions Ltd'
+        'company': company,
+        'company_name': company.name
     }
     return render(request, 'companies/delete_modal.html', context)
 
@@ -256,15 +313,32 @@ def company_edit(request, pk):
         favorite_phone_index = request.POST.get('favorite_phone')
         
         if form.is_valid():
-            company = form.save()
-            _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
-            # Обробка photos
-            if 'photos' in request.FILES:
-                _process_company_photos(company, request.FILES.getlist('photos'))
-            messages.success(request, f'Компанія "{company.name}" успішно оновлена.')
-            if is_htmx_request(request):
+            try:
+                company = form.save()
+                _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+                # Обробка photos
+                if 'photos' in request.FILES:
+                    _process_company_photos(company, request.FILES.getlist('photos'))
+                messages.success(request, f'Компанія "{company.name}" успішно оновлена.')
+                if is_htmx_request(request):
+                    return redirect('myapp:company_detail', pk=company.pk)
                 return redirect('myapp:company_detail', pk=company.pk)
-            return redirect('myapp:company_detail', pk=company.pk)
+            except ValueError as e:
+                messages.error(request, str(e))
+                # Повертаємо форму з помилкою
+                template = 'companies/edit_content.html' if is_htmx_request(request) else 'companies/edit.html'
+                context = {
+                    'form': form,
+                    'company': company,
+                    'company_id': pk,
+                    'cities': City.objects.all().order_by('name'),
+                    'categories': Category.objects.all().order_by('name'),
+                    'statuses': Status.objects.all().order_by('name'),
+                }
+                return render(request, template, context, status=400)
+        else:
+            # Форма невалідна - показуємо помилки
+            messages.error(request, 'Будь ласка, виправте помилки в формі.')
     else:
         form = CompanyForm(instance=company)
     
@@ -278,6 +352,250 @@ def company_edit(request, pk):
         'statuses': Status.objects.all().order_by('name'),
     }
     return render(request, template, context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def company_update_short_comment(request, pk):
+    """AJAX endpoint для збереження короткого коментаря"""
+    company = get_object_or_404(Company, pk=pk)
+    short_comment = request.POST.get('short_comment', '').strip()
+    
+    if len(short_comment) > 500:
+        return HttpResponse('Короткий коментар не може перевищувати 500 символів', status=400)
+    
+    company.short_comment = short_comment
+    company.save()
+    
+    return HttpResponse('OK', status=200)
+
+
+@login_required
+@require_http_methods(["POST"])
+def company_update_call_date(request, pk):
+    """AJAX endpoint для збереження дати дзвінка"""
+    company = get_object_or_404(Company, pk=pk)
+    call_date_str = request.POST.get('call_date', '').strip()
+    
+    if call_date_str:
+        try:
+            from datetime import datetime
+            call_date = datetime.strptime(call_date_str, '%Y-%m-%d').date()
+            company.call_date = call_date
+        except ValueError:
+            return HttpResponse('Невірний формат дати', status=400)
+    else:
+        company.call_date = None
+    
+    company.save()
+    
+    return HttpResponse('OK', status=200)
+
+
+@login_required
+@require_http_methods(["POST"])
+def company_comment_add(request, pk):
+    """AJAX endpoint для додавання коментаря"""
+    company = get_object_or_404(Company, pk=pk)
+    comment_text = request.POST.get('comment', '').strip()
+    
+    if not comment_text:
+        return HttpResponse('Коментар не може бути порожнім', status=400)
+    
+    author_name = request.user.get_full_name() or request.user.username
+    
+    CompanyComment.objects.create(
+        company=company,
+        author_name=author_name,
+        text=comment_text
+    )
+    
+    if is_htmx_request(request):
+        return redirect('myapp:company_detail', pk=company.pk)
+    return redirect('myapp:company_detail', pk=company.pk)
+
+
+@login_required
+@require_http_methods(["POST"])
+def company_comment_delete(request, pk, comment_id):
+    """AJAX endpoint для видалення коментаря"""
+    company = get_object_or_404(Company, pk=pk)
+    comment = get_object_or_404(CompanyComment, pk=comment_id, company=company)
+    
+    comment.delete()
+    
+    if is_htmx_request(request):
+        return redirect('myapp:company_detail', pk=company.pk)
+    return redirect('myapp:company_detail', pk=company.pk)
+
+
+@login_required
+@require_http_methods(["POST"])
+def company_delete_logo(request, pk):
+    """AJAX endpoint для видалення логотипу"""
+    company = get_object_or_404(Company, pk=pk)
+    
+    if company.logo:
+        company.logo.delete()
+        company.logo = None
+        company.save()
+    
+    if is_htmx_request(request):
+        return redirect('myapp:company_detail', pk=company.pk)
+    return redirect('myapp:company_detail', pk=company.pk)
+
+
+@login_required
+@require_http_methods(["POST"])
+def company_delete_photo(request, pk):
+    """AJAX endpoint для видалення фото"""
+    company = get_object_or_404(Company, pk=pk)
+    photo_url = request.POST.get('photo_url', '').strip()
+    
+    if photo_url and company.photos:
+        photos_list = list(company.photos)
+        if photo_url in photos_list:
+            photos_list.remove(photo_url)
+            company.photos = photos_list
+            company.save()
+            
+            # Видалити файл з файлової системи
+            try:
+                from django.core.files.storage import default_storage
+                from django.conf import settings
+                import os
+                # Отримуємо шлях файлу з URL
+                if photo_url.startswith(settings.MEDIA_URL):
+                    file_path = photo_url.replace(settings.MEDIA_URL, '')
+                    if default_storage.exists(file_path):
+                        default_storage.delete(file_path)
+            except Exception:
+                pass  # Ігноруємо помилки видалення файлу
+    
+    if is_htmx_request(request):
+        return redirect('myapp:company_detail', pk=company.pk)
+    return redirect('myapp:company_detail', pk=company.pk)
+
+
+@login_required
+@require_http_methods(["GET"])
+def company_export(request, pk):
+    """Експорт компанії в CSV формат"""
+    import csv
+    from django.http import HttpResponse
+    
+    company = get_object_or_404(
+        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'comments'),
+        pk=pk
+    )
+    
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="company_{company.client_id}_{company.name}.csv"'
+    
+    writer = csv.writer(response)
+    
+    # Заголовки
+    writer.writerow(['Поле', 'Значення'])
+    
+    # Основна інформація
+    writer.writerow(['ID', company.client_id])
+    writer.writerow(['Назва', company.name])
+    writer.writerow(['Місто', company.city.name if company.city else ''])
+    writer.writerow(['Розділ', company.category.name if company.category else ''])
+    writer.writerow(['Статус', company.status.name if company.status else ''])
+    writer.writerow(['Telegram', company.telegram])
+    writer.writerow(['Сайт', company.website])
+    writer.writerow(['Instagram', company.instagram])
+    writer.writerow(['Короткий коментар', company.short_comment])
+    writer.writerow(['Повний опис', company.full_description])
+    writer.writerow(['Ключові слова', company.keywords])
+    writer.writerow(['Дата дзвінка', company.call_date.strftime('%d.%m.%Y') if company.call_date else ''])
+    writer.writerow(['Дата створення', company.created_at.strftime('%d.%m.%Y %H:%M')])
+    writer.writerow(['Дата оновлення', company.updated_at.strftime('%d.%m.%Y %H:%M')])
+    
+    # Телефони
+    writer.writerow([])
+    writer.writerow(['Телефони'])
+    for phone in company.phones.all():
+        favorite = '⭐' if phone.is_favorite else ''
+        writer.writerow([f'{favorite} {phone.number}', phone.contact_name])
+    
+    # Коментарі
+    writer.writerow([])
+    writer.writerow(['Коментарі'])
+    for comment in company.comments.all():
+        writer.writerow([f'{comment.created_at.strftime("%d.%m.%Y %H:%M")} - {comment.author_name}', comment.text])
+    
+    return response
+
+
+@login_required
+@require_http_methods(["GET"])
+def company_check_duplicates(request):
+    """AJAX endpoint для перевірки дублікатів"""
+    from django.http import JsonResponse
+    
+    phone = request.GET.get('phone', '').strip()
+    website = request.GET.get('website', '').strip()
+    instagram = request.GET.get('instagram', '').strip()
+    telegram = request.GET.get('telegram', '').strip()
+    exclude_id = request.GET.get('exclude_id', '')
+    
+    duplicates = {}
+    
+    # Перевірка телефону
+    if phone:
+        query = CompanyPhone.objects.filter(number=phone)
+        if exclude_id:
+            query = query.exclude(company_id=exclude_id)
+        if query.exists():
+            duplicates['phone'] = {
+                'exists': True,
+                'company': query.first().company.name
+            }
+        else:
+            duplicates['phone'] = {'exists': False}
+    
+    # Перевірка website
+    if website:
+        query = Company.objects.filter(website=website)
+        if exclude_id:
+            query = query.exclude(pk=exclude_id)
+        if query.exists():
+            duplicates['website'] = {
+                'exists': True,
+                'company': query.first().name
+            }
+        else:
+            duplicates['website'] = {'exists': False}
+    
+    # Перевірка instagram
+    if instagram:
+        query = Company.objects.filter(instagram=instagram)
+        if exclude_id:
+            query = query.exclude(pk=exclude_id)
+        if query.exists():
+            duplicates['instagram'] = {
+                'exists': True,
+                'company': query.first().name
+            }
+        else:
+            duplicates['instagram'] = {'exists': False}
+    
+    # Перевірка telegram
+    if telegram:
+        query = Company.objects.filter(telegram=telegram)
+        if exclude_id:
+            query = query.exclude(pk=exclude_id)
+        if query.exists():
+            duplicates['telegram'] = {
+                'exists': True,
+                'company': query.first().name
+            }
+        else:
+            duplicates['telegram'] = {'exists': False}
+    
+    return JsonResponse(duplicates)
 
 
 # ============================================================================
@@ -716,7 +1034,7 @@ def settings_user_delete(request, pk):
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def profile_edit(request):
     """Модальне вікно редагування профілю + обробка POST."""
     if request.method == "POST":
@@ -724,6 +1042,8 @@ def profile_edit(request):
         if form.is_valid():
             form.save()
             messages.success(request, "Профіль оновлено.")
+            if is_htmx_request(request):
+                return redirect("myapp:profile")
             return redirect("myapp:profile")
     else:
         form = UserProfileForm(instance=request.user)

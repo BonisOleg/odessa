@@ -138,3 +138,4 @@ python manage.py migrate
 
 **Репозиторій:** `git@github.com:BonisOleg/odessa.git`
 **Гілка:** `main`
+

@@ -52,7 +52,7 @@
                 <div class="phone-inputs" id="phone-list">
                     {% for phone in company.phones.all %}
                     <div class="phone-input-group">
-                        <input type="tel" class="form-control" name="phones[]" value="{{ phone.number }}" inputmode="tel" required>
+                        <input type="tel" class="form-control" name="phones[]" value="{{ phone.number }}" inputmode="tel" autocomplete="tel" required>
                         <input type="text" class="form-control" name="contact_names[]" value="{{ phone.contact_name }}" placeholder="Имя контакта">
                         <label class="phone-favorite">
                             <input type="radio" name="favorite_phone" value="{{ forloop.counter0 }}" {% if phone.is_favorite %}checked{% endif %}>
@@ -62,7 +62,7 @@
                     </div>
                     {% empty %}
                     <div class="phone-input-group">
-                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" required>
+                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" autocomplete="tel" required>
                         <input type="text" class="form-control" name="contact_names[]" placeholder="Имя контакта">
                         <label class="phone-favorite">
                             <input type="radio" name="favorite_phone" value="0">
@@ -207,7 +207,15 @@
             <input type="file" class="form-control" name="logo" accept="image/*">
             <div class="image-preview">
                 {% if company.logo %}
-                <img src="{{ company.logo.url }}" alt="Current logo" class="logo-preview">
+                <div class="logo-preview-wrapper">
+                    <img src="{{ company.logo.url }}" alt="Current logo" class="logo-preview">
+                    <button type="button" 
+                            class="button button--sm button--danger logo-delete-btn"
+                            hx-post="{% url 'myapp:company_delete_logo' company.id %}"
+                            hx-target="#main-content"
+                            hx-push-url="true"
+                            onclick="return confirm('Видалити логотип?')">🗑️ Видалити</button>
+                </div>
                 {% else %}
                 <div class="logo-placeholder">Нет логотипа</div>
                 {% endif %}
@@ -224,8 +232,8 @@
     <!-- Кнопки дій -->
     <div class="form-actions">
         <button type="submit" class="button button--primary">Сохранить</button>
-        <a href="/companies/{{ company.id }}/" 
-           hx-get="/companies/{{ company.id }}/" 
+        <a href="{% url 'myapp:company_detail' company.id %}" 
+           hx-get="{% url 'myapp:company_detail' company.id %}" 
            hx-target="#main-content" 
            hx-push-url="true"
            class="button button--secondary">Отмена</a>
@@ -241,7 +249,7 @@
             const index = phoneList.children.length;
             const html = `
                 <div class="phone-input-group">
-                    <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel">
+                    <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" autocomplete="tel">
                     <input type="text" class="form-control" name="contact_names[]" placeholder="Имя контакта">
                     <label class="phone-favorite">
                         <input type="radio" name="favorite_phone" value="${index}">
@@ -260,5 +268,80 @@
             e.target.closest('.phone-input-group').remove();
         }
     });
+
+    // ==========================================================================
+    // Перевірка дублікатів через сервер (з виключенням поточної компанії)
+    // ==========================================================================
+    function checkDuplicates(fieldName, fieldValue) {
+        if (!fieldValue || !fieldValue.trim()) return;
+        
+        const params = new URLSearchParams();
+        params.append(fieldName, fieldValue.trim());
+        params.append('exclude_id', '{{ company.id }}');
+        
+        fetch('{% url "myapp:company_check_duplicates" %}?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                const field = document.querySelector(`input[name="${fieldName}"], input[name="${fieldName}[]"]`);
+                if (!field) return;
+                
+                // Видаляємо старі помилки
+                const existingError = field.parentElement.querySelector('.form-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                field.classList.remove('input-error');
+                
+                // Перевіряємо результат
+                if (data[fieldName] && data[fieldName].exists) {
+                    field.classList.add('input-error');
+                    const hint = document.createElement('span');
+                    hint.className = 'form-error';
+                    hint.textContent = `⚠️ ${fieldName === 'phone' ? 'Телефон' : fieldName === 'website' ? 'Сайт' : fieldName === 'instagram' ? 'Instagram' : 'Telegram'} вже існує в компанії "${data[fieldName].company}"`;
+                    field.parentElement.appendChild(hint);
+                }
+            })
+            .catch(error => {
+                console.error('Error checking duplicates:', error);
+            });
+    }
+
+    // Перевірка телефонів (для динамічно доданих полів)
+    document.addEventListener('blur', function (e) {
+        if (e.target.matches('input[name="phones[]"]')) {
+            checkDuplicates('phone', e.target.value);
+        }
+    }, true);
+    
+    // Перевірка для існуючих полів
+    document.querySelectorAll('input[name="phones[]"]').forEach(function (input) {
+        input.addEventListener('blur', function () {
+            checkDuplicates('phone', this.value);
+        });
+    });
+
+    // Перевірка website
+    const websiteInput = document.querySelector('input[name="website"]');
+    if (websiteInput) {
+        websiteInput.addEventListener('blur', function () {
+            checkDuplicates('website', this.value);
+        });
+    }
+
+    // Перевірка instagram
+    const instagramInput = document.querySelector('input[name="instagram"]');
+    if (instagramInput) {
+        instagramInput.addEventListener('blur', function () {
+            checkDuplicates('instagram', this.value);
+        });
+    }
+
+    // Перевірка telegram
+    const telegramInput = document.querySelector('input[name="telegram"]');
+    if (telegramInput) {
+        telegramInput.addEventListener('blur', function () {
+            checkDuplicates('telegram', this.value);
+        });
+    }
 </script>
 

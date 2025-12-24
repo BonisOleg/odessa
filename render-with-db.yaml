@@ -31,3 +31,4 @@ databases:
     plan: free
     databaseName: crm_nice
     user: crm_nice
+

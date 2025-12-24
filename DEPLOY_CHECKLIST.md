@@ -78,3 +78,4 @@
 Перейдіть на [Render Dashboard](https://dashboard.render.com/) та підключіть репозиторій `BonisOleg/odessa` через Blueprint.
 
 Детальна інструкція: `RENDER_DEPLOY.md`
+

@@ -21,3 +21,4 @@ class Migration(migrations.Migration):
             field=models.JSONField(blank=True, default=list, help_text='Список URL фотографій компанії (JSON array)'),
         ),
     ]
+

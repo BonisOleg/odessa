@@ -187,6 +187,32 @@ class Company(models.Model):
             return self.category.badge_class
         return "badge--secondary"
 
+    @property
+    def call_date_display(self) -> str:
+        """Форматована дата дзвінка для відображення."""
+        if self.call_date:
+            return self.call_date.strftime("%d.%m.%Y")
+        return "Не встановлено"
+
+    @property
+    def created_date(self) -> str:
+        """Форматована дата створення для відображення."""
+        if self.created_at:
+            return self.created_at.strftime("%d.%m.%Y")
+        return ""
+
+    @property
+    def updated_date(self) -> str:
+        """Форматована дата оновлення для відображення."""
+        if self.updated_at:
+            return self.updated_at.strftime("%d.%m.%Y")
+        return ""
+
+    @property
+    def status_badge(self) -> str:
+        """CSS-клас бейджа статусу (alias для status_badge_class)."""
+        return self.status_badge_class
+
 
 class CompanyPhone(models.Model):
     """Телефон компанії з іменем контакту та ознакою обраного."""

@@ -66,3 +66,4 @@ python manage.py createsuperuser
 ---
 
 ## 📚 Детальна інструкція: `RENDER_FIX.md`
+

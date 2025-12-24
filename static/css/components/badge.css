@@ -68,3 +68,9 @@
   background-color: #8B5CF6;
   color: var(--color-bg);
 }
+
+/* Badge з динамічними кольорами через CSS custom properties */
+.badge-category {
+  background-color: var(--category-bg-color, var(--color-secondary));
+  color: var(--category-fg-color, var(--color-bg));
+}

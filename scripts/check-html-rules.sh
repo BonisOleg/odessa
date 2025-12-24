@@ -126,3 +126,4 @@ else
     echo -e "${RED}❌ Знайдено $ERRORS помилок HTML${NC}"
     exit 1
 fi
+

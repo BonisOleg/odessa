@@ -285,10 +285,20 @@ textarea.textarea-auto-resize {
 }
 
 /* Logo preview */
+.logo-preview-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
 .logo-preview {
   max-width: 80px;
-  margin-top: var(--spacing-sm);
   border-radius: var(--radius-base);
+}
+
+.logo-delete-btn {
+  flex-shrink: 0;
 }
 
 .phone-inputs .button {

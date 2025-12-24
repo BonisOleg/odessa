@@ -12,8 +12,8 @@
     <div class="stub-icon">🚧</div>
     <h1>Раздел в разработке</h1>
     <p>Этот раздел будет доступен на следующих этапах разработки. Сейчас реализован только модуль "Компании".</p>
-    <a href="/companies/" 
-       hx-get="/companies/" 
+    <a href="{% url 'myapp:company_list' %}" 
+       hx-get="{% url 'myapp:company_list' %}" 
        hx-target="#main-content" 
        hx-push-url="true"
        class="button button--primary">← Перейти к компаниям</a>

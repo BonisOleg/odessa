@@ -8,12 +8,15 @@
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
         <div class="modal__body">
-            <p>Вы уверены, что хотите удалить компанию <strong>IT Solutions Ltd</strong>?</p>
+            <p>Вы уверены, что хотите удалить компанию <strong>{{ company_name }}</strong>?</p>
             <p class="text-muted">Это действие нельзя отменить.</p>
         </div>
         <div class="modal__footer">
             <button type="button" class="button button--secondary" data-action="close-modal">Отмена</button>
-            <button type="button" class="button button--danger">Удалить</button>
+            <form method="post" action="{% url 'myapp:company_delete' company_id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="button button--danger" hx-post="{% url 'myapp:company_delete' company_id %}" hx-target="#main-content" hx-push-url="true">Удалить</button>
+            </form>
         </div>
     </div>
 </div>

@@ -47,7 +47,7 @@
                 <label class="form-group__label form-group__label--required">Телефоны + Имена контактов</label>
                 <div class="phone-inputs" id="phone-list">
                     <div class="phone-input-group">
-                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" required>
+                        <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" autocomplete="tel" required>
                         <input type="text" class="form-control" name="contact_names[]" placeholder="Иван Петров">
                         <label class="phone-favorite">
                             <input type="radio" name="favorite_phone" value="0">
@@ -205,7 +205,7 @@
     <!-- Кнопки дій -->
     <div class="form-actions">
         <button type="submit" class="button button--primary">Сохранить</button>
-        <a href="/companies/" hx-get="/companies/" hx-target="#main-content" hx-push-url="true"
+        <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true"
             class="button button--secondary">Отмена</a>
     </div>
 </form>
@@ -217,7 +217,7 @@
         const index = phoneList.children.length;
         const html = `
             <div class="phone-input-group">
-                <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel">
+                <input type="tel" class="form-control" name="phones[]" placeholder="+380991234567" inputmode="tel" autocomplete="tel">
                 <input type="text" class="form-control" name="contact_names[]" placeholder="Ім'я контакту">
                 <label class="phone-favorite">
                     <input type="radio" name="favorite_phone" value="${index}">
@@ -236,53 +236,77 @@
         }
     });
 
-    // Перевірка дублів (MOCK)
-    const mockDuplicates = {
-        phones: ['+380991111111', '+380992222222'],
-        websites: ['https://existing.com'],
-        instagrams: ['@existing'],
-        telegrams: ['@existing_tg']
-    };
+    // ==========================================================================
+    // Перевірка дублікатів через сервер
+    // ==========================================================================
+    function checkDuplicates(fieldName, fieldValue) {
+        if (!fieldValue || !fieldValue.trim()) return;
+        
+        const params = new URLSearchParams();
+        params.append(fieldName, fieldValue.trim());
+        
+        fetch('{% url "myapp:company_check_duplicates" %}?' + params.toString())
+            .then(response => response.json())
+            .then(data => {
+                const field = document.querySelector(`input[name="${fieldName}"], input[name="${fieldName}[]"]`);
+                if (!field) return;
+                
+                // Видаляємо старі помилки
+                const existingError = field.parentElement.querySelector('.form-error');
+                if (existingError) {
+                    existingError.remove();
+                }
+                field.classList.remove('input-error');
+                
+                // Перевіряємо результат
+                if (data[fieldName] && data[fieldName].exists) {
+                    field.classList.add('input-error');
+                    const hint = document.createElement('span');
+                    hint.className = 'form-error';
+                    hint.textContent = `⚠️ ${fieldName === 'phone' ? 'Телефон' : fieldName === 'website' ? 'Сайт' : fieldName === 'instagram' ? 'Instagram' : 'Telegram'} вже існує в компанії "${data[fieldName].company}"`;
+                    field.parentElement.appendChild(hint);
+                }
+            })
+            .catch(error => {
+                console.error('Error checking duplicates:', error);
+            });
+    }
 
-    document.querySelectorAll('input[name="phones[]"]').forEach(input => {
+    // Перевірка телефонів (для динамічно доданих полів)
+    document.addEventListener('blur', function (e) {
+        if (e.target.matches('input[name="phones[]"]')) {
+            checkDuplicates('phone', e.target.value);
+        }
+    }, true);
+    
+    // Перевірка для існуючих полів
+    document.querySelectorAll('input[name="phones[]"]').forEach(function (input) {
         input.addEventListener('blur', function () {
-            if (mockDuplicates.phones.includes(this.value)) {
-                this.classList.add('input-error');
-                const hint = document.createElement('span');
-                hint.className = 'form-error';
-                hint.textContent = '⚠️ Такой телефон уже существует';
-                this.parentElement.appendChild(hint);
-            }
+            checkDuplicates('phone', this.value);
         });
     });
 
-    document.querySelector('input[name="website"]').addEventListener('blur', function () {
-        if (this.value && mockDuplicates.websites.includes(this.value)) {
-            this.classList.add('input-error');
-            const hint = document.createElement('span');
-            hint.className = 'form-error';
-            hint.textContent = '⚠️ Такой сайт уже существует';
-            this.parentElement.appendChild(hint);
-        }
-    });
+    // Перевірка website
+    const websiteInput = document.querySelector('input[name="website"]');
+    if (websiteInput) {
+        websiteInput.addEventListener('blur', function () {
+            checkDuplicates('website', this.value);
+        });
+    }
 
-    document.querySelector('input[name="instagram"]').addEventListener('blur', function () {
-        if (this.value && mockDuplicates.instagrams.includes(this.value)) {
-            this.classList.add('input-error');
-            const hint = document.createElement('span');
-            hint.className = 'form-error';
-            hint.textContent = '⚠️ Такой Instagram уже существует';
-            this.parentElement.appendChild(hint);
-        }
-    });
+    // Перевірка instagram
+    const instagramInput = document.querySelector('input[name="instagram"]');
+    if (instagramInput) {
+        instagramInput.addEventListener('blur', function () {
+            checkDuplicates('instagram', this.value);
+        });
+    }
 
-    document.querySelector('input[name="telegram"]').addEventListener('blur', function () {
-        if (this.value && mockDuplicates.telegrams.includes(this.value)) {
-            this.classList.add('input-error');
-            const hint = document.createElement('span');
-            hint.className = 'form-error';
-            hint.textContent = '⚠️ Такой Telegram уже существует';
-            this.parentElement.appendChild(hint);
-        }
-    });
+    // Перевірка telegram
+    const telegramInput = document.querySelector('input[name="telegram"]');
+    if (telegramInput) {
+        telegramInput.addEventListener('blur', function () {
+            checkDuplicates('telegram', this.value);
+        });
+    }
 </script>

@@ -168,3 +168,4 @@ LOGIN_REDIRECT_URL = "myapp:company_list"
 LOGOUT_REDIRECT_URL = "myapp:login"
 
 
+

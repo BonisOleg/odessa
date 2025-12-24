@@ -56,3 +56,4 @@ TypeError: Engine.__init__() got an unexpected keyword argument 'lstrip_blocks'
 ---
 
 **Коміт:** `6307b1e` - Fix Django 5.2.9 template configuration error
+

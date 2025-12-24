@@ -70,3 +70,4 @@ CSRF_TRUSTED_ORIGINS = env.list(
     default=["https://*.onrender.com"],
 )
 
+
