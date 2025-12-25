@@ -1,4 +1,5 @@
 {% load static %}
+{% load myapp_filters %}
 
 <!-- Тільки контент для HTMX (без layout) -->
 <!-- Короткий коментар вгорі -->
@@ -68,7 +69,7 @@
                 {% if company.telegram %}
                 <div class="info-item">
                     <span class="info-label">💬 Telegram:</span>
-                    <a href="https://t.me/{{ company.telegram|slice:"1:" }}" target="_blank" rel="noopener" class="telegram-link">{{ company.telegram }}</a>
+                    <a href="https://t.me/{{ company.telegram|remove:'@' }}" target="_blank" rel="noopener" class="telegram-link">{{ company.telegram }}</a>
                 </div>
                 {% endif %}
                 {% if company.website %}
