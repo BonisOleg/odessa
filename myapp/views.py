@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
@@ -155,9 +156,14 @@ def company_list(request):
     companies_queryset = Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'addresses').all()
     
     # Фільтрація по країні користувача (якщо призначена)
-    if hasattr(request.user, 'userprofile') and request.user.userprofile.country:
-        user_country = request.user.userprofile.country
-        companies_queryset = companies_queryset.filter(city__country=user_country)
+    if request.user.is_authenticated:
+        try:
+            user_profile = request.user.userprofile
+            if user_profile and user_profile.country:
+                user_country = user_profile.country
+                companies_queryset = companies_queryset.filter(city__country=user_country)
+        except (AttributeError, ObjectDoesNotExist):
+            pass  # Користувач не має профілю або країни
     
     # Фільтрація по пошуковому запиту
     if search_query:
@@ -331,8 +337,23 @@ def company_create(request):
     
     # Фільтрація міст по країні користувача
     cities_queryset = City.objects.all()
-    if hasattr(request.user, 'userprofile') and request.user.userprofile.country:
-        cities_queryset = cities_queryset.filter(country=request.user.userprofile.country)
+    if request.user.is_authenticated:
+        try:
+            user_profile = request.user.userprofile
+            if user_profile and user_profile.country:
+                cities_queryset = cities_queryset.filter(country=user_profile.country)
+        except (AttributeError, ObjectDoesNotExist):
+            pass  # Користувач не має профілю або країни
+    
+    # Отримуємо країну користувача для контексту
+    user_country = None
+    if request.user.is_authenticated:
+        try:
+            user_profile = getattr(request.user, 'userprofile', None)
+            if user_profile and user_profile.country:
+                user_country = user_profile.country
+        except (AttributeError, ObjectDoesNotExist):
+            pass
     
     template = 'companies/create_content.html' if is_htmx_request(request) else 'companies/create.html'
     context = {
@@ -341,7 +362,7 @@ def company_create(request):
         'categories': Category.objects.all().order_by('name'),
         'statuses': Status.objects.all().order_by('name'),
         'countries': Country.objects.all().order_by('name'),
-        'user_country': request.user.userprofile.country if hasattr(request.user, 'userprofile') else None,
+        'user_country': user_country,
     }
     return render(request, template, context)
 
@@ -437,8 +458,23 @@ def company_edit(request, pk):
     
     # Фільтрація міст по країні користувача
     cities_queryset = City.objects.all()
-    if hasattr(request.user, 'userprofile') and request.user.userprofile.country:
-        cities_queryset = cities_queryset.filter(country=request.user.userprofile.country)
+    if request.user.is_authenticated:
+        try:
+            user_profile = request.user.userprofile
+            if user_profile and user_profile.country:
+                cities_queryset = cities_queryset.filter(country=user_profile.country)
+        except (AttributeError, ObjectDoesNotExist):
+            pass  # Користувач не має профілю або країни
+    
+    # Отримуємо країну користувача для контексту
+    user_country = None
+    if request.user.is_authenticated:
+        try:
+            user_profile = getattr(request.user, 'userprofile', None)
+            if user_profile and user_profile.country:
+                user_country = user_profile.country
+        except (AttributeError, ObjectDoesNotExist):
+            pass
     
     template = 'companies/edit_content.html' if is_htmx_request(request) else 'companies/edit.html'
     context = {
@@ -449,7 +485,7 @@ def company_edit(request, pk):
         'categories': Category.objects.all().order_by('name'),
         'statuses': Status.objects.all().order_by('name'),
         'countries': Country.objects.all().order_by('name'),
-        'user_country': request.user.userprofile.country if hasattr(request.user, 'userprofile') else None,
+        'user_country': user_country,
     }
     return render(request, template, context)
 

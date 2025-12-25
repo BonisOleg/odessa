@@ -56,7 +56,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Static files (WhiteNoise)
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Використовуємо CompressedStaticFilesStorage замість Manifest для уникнення помилок
+# Manifest вимагає наявності всіх файлів під час збірки
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Media files для production
 # На Render використовуємо WhiteNoise для media (тимчасово)
@@ -69,5 +71,6 @@ CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
     default=["https://*.onrender.com"],
 )
+
 
 

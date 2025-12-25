@@ -2,6 +2,11 @@
 # exit on error
 set -o errexit
 
+echo "⚠️  WARNING: Render uses ephemeral filesystem!"
+echo "Media files (logos, photos) will be LOST after each deploy."
+echo "For production, configure S3/Cloudinary for persistent storage."
+echo ""
+
 pip install --upgrade pip
 pip install -r requirements.txt
 
@@ -23,4 +28,5 @@ if not User.objects.filter(username=username).exists():
 else:
     print(f"Demo user already exists: {username}")
 EOF
+
 

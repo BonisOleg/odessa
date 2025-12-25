@@ -15,9 +15,10 @@ services:
       - key: DEBUG
         value: False
       - key: ALLOWED_HOSTS
-        sync: false
+        value: crm-nice.onrender.com,.onrender.com
       - key: DATABASE_URL
         sync: false
       - key: CSRF_TRUSTED_ORIGINS
-        sync: false
+        value: https://crm-nice.onrender.com,https://*.onrender.com
+
 
