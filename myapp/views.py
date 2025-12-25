@@ -192,30 +192,37 @@ def company_list(request):
         except ValueError:
             companies_queryset = companies_queryset.filter(category__name=category_filter)
     
-    # Фільтрація по даті оновлення
-    if date_updated_filter:
-        today = timezone.now().date()
-        if date_updated_filter == 'today':
-            companies_queryset = companies_queryset.filter(updated_at__date=today)
-        elif date_updated_filter == 'yesterday':
-            yesterday = today - timedelta(days=1)
-            companies_queryset = companies_queryset.filter(updated_at__date=yesterday)
-        elif date_updated_filter == 'this_week':
-            week_start = today - timedelta(days=today.weekday())
-            companies_queryset = companies_queryset.filter(updated_at__date__gte=week_start)
-        elif date_updated_filter == 'this_month':
-            companies_queryset = companies_queryset.filter(updated_at__year=today.year, updated_at__month=today.month)
+    # Фільтрація по даті оновлення (from-to)
+    if date_updated_from:
+        try:
+            from datetime import datetime
+            date_from = datetime.strptime(date_updated_from, '%Y-%m-%d').date()
+            companies_queryset = companies_queryset.filter(updated_at__date__gte=date_from)
+        except ValueError:
+            pass  # Ігноруємо невалідні дати
+    if date_updated_to:
+        try:
+            from datetime import datetime
+            date_to = datetime.strptime(date_updated_to, '%Y-%m-%d').date()
+            companies_queryset = companies_queryset.filter(updated_at__date__lte=date_to)
+        except ValueError:
+            pass  # Ігноруємо невалідні дати
     
-    # Фільтрація по даті дзвінка
-    if call_date_filter:
-        today = timezone.now().date()
-        if call_date_filter == 'overdue':
-            companies_queryset = companies_queryset.filter(call_date__lt=today)
-        elif call_date_filter == 'today':
-            companies_queryset = companies_queryset.filter(call_date=today)
-        elif call_date_filter == 'this_week':
-            week_end = today + timedelta(days=6 - today.weekday())
-            companies_queryset = companies_queryset.filter(call_date__gte=today, call_date__lte=week_end)
+    # Фільтрація по даті дзвінка (from-to)
+    if call_date_from:
+        try:
+            from datetime import datetime
+            date_from = datetime.strptime(call_date_from, '%Y-%m-%d').date()
+            companies_queryset = companies_queryset.filter(call_date__gte=date_from)
+        except ValueError:
+            pass  # Ігноруємо невалідні дати
+    if call_date_to:
+        try:
+            from datetime import datetime
+            date_to = datetime.strptime(call_date_to, '%Y-%m-%d').date()
+            companies_queryset = companies_queryset.filter(call_date__lte=date_to)
+        except ValueError:
+            pass  # Ігноруємо невалідні дати
     
     # Сортування: спочатку обрані (favorite) для поточного користувача, потім за датою оновлення
     favorite_company_ids = []
@@ -269,8 +276,10 @@ def company_list(request):
         'selected_statuses': status_filter,
         'selected_cities': city_filter,
         'selected_category': category_filter,
-        'selected_date_updated': date_updated_filter,
-        'selected_call_date': call_date_filter,
+        'date_updated_from': date_updated_from,
+        'date_updated_to': date_updated_to,
+        'call_date_from': call_date_from,
+        'call_date_to': call_date_to,
         'favorite_company_ids': favorite_company_ids,
     }
     
@@ -287,6 +296,8 @@ def company_create(request):
         phones_data = request.POST.getlist('phones[]')
         contact_names = request.POST.getlist('contact_names[]')
         favorite_phone_index = request.POST.get('favorite_phone')
+        addresses_data = request.POST.getlist('addresses[]')
+        favorite_address_index = request.POST.get('favorite_address')
         
         if form.is_valid():
             try:
