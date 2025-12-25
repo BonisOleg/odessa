@@ -18,7 +18,7 @@ from datetime import timedelta
 
 from .decorators import super_admin_required, manager_or_super_admin_required
 from .forms import CategoryForm, CityForm, CompanyForm, CountryForm, LoginForm, StatusForm, UserProfileForm
-from .models import Category, City, Company, CompanyAddress, CompanyPhone, Country, Status, UserProfile, UserFavoriteCompany
+from .models import Category, City, Company, CompanyAddress, CompanyComment, CompanyPhone, Country, Status, UserProfile, UserFavoriteCompany
 
 
 def is_htmx_request(request: HttpRequest) -> bool:

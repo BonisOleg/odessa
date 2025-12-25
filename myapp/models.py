@@ -216,6 +216,14 @@ class Company(models.Model):
         """CSS-клас бейджа статусу (alias для status_badge_class)."""
         return self.status_badge_class
 
+    @property
+    def favorite_phone(self):
+        """Повертає улюблений телефон або перший телефон, якщо улюбленого немає."""
+        favorite = self.phones.filter(is_favorite=True).first()
+        if favorite:
+            return favorite
+        return self.phones.first()
+
 
 class CompanyPhone(models.Model):
     """Телефон компанії з іменем контакту та ознакою обраного."""

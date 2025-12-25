@@ -95,7 +95,6 @@
             </thead>
             <tbody>
                 {% for company in page_obj %}
-                {% with favorite_phone=company.phones.all.0 %}
                 <tr class="table__row" data-status="{{ company.status.name|default:'' }}" data-city="{{ company.city.name|default:'' }}"
                     data-updated="{{ company.updated_at|date:'Y-m-d' }}">
                     <td class="table__td">
@@ -114,9 +113,9 @@
                     </td>
                     <td class="table__td">
                         <div class="phone-cell">
-                            {% if favorite_phone %}
-                            <span class="phone-number">{{ favorite_phone.number }}</span>
-                            <span class="contact-name">{{ favorite_phone.contact_name|default:'' }}</span>
+                            {% if company.favorite_phone %}
+                            <span class="phone-number">{{ company.favorite_phone.number }}</span>
+                            <span class="contact-name">{{ company.favorite_phone.contact_name|default:'' }}</span>
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
