@@ -1,0 +1,12 @@
+{% if company.call_date %}
+{% now "Y-m-d" as today_str %}
+{% if company.call_date|date:"Y-m-d" < today_str %}
+<span class="call-date-value call-date--overdue" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date_display }}</span>
+{% else %}
+<span class="call-date-value call-date--upcoming" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date_display }}</span>
+{% endif %}
+{% else %}
+<span class="call-date-value" data-call-date="">Не встановлено</span>
+{% endif %}
+<button class="btn-edit-date" title="Редактировать">✏️</button>
+

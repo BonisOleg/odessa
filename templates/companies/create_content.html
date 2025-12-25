@@ -44,6 +44,21 @@
             </div>
 
             <div class="form-group">
+                <label class="form-group__label">Адреса</label>
+                <div class="address-inputs" id="address-list">
+                    <div class="address-input-group">
+                        <input type="text" class="form-control" name="addresses[]" placeholder="Введите адрес">
+                        <label class="address-favorite">
+                            <input type="radio" name="favorite_address" value="0">
+                            <span class="favorite-star">⭐</span>
+                        </label>
+                    </div>
+                </div>
+                <button type="button" class="button button--sm button--secondary" data-action="add-address" style="margin-top: var(--spacing-xs);">+ Добавить адрес</button>
+                <span class="form-hint">Можно добавить несколько адресов, только один со звездой</span>
+            </div>
+            
+            <div class="form-group">
                 <label class="form-group__label form-group__label--required">Телефоны + Имена контактов</label>
                 <div class="phone-inputs" id="phone-list">
                     <div class="phone-input-group">
@@ -108,12 +123,26 @@
 
         <!-- Права колонка -->
         <div class="form-column">
+            {% if user_country %}
+            <input type="hidden" name="country" id="country-select" value="{{ user_country.id }}">
+            {% else %}
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Страна</label>
+                <select class="form-select" name="country" id="country-select" required>
+                    <option value="">Выберите страну</option>
+                    {% for country in countries %}
+                    <option value="{{ country.id }}">{{ country.name }} {{ country.flag_emoji }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Город</label>
-                <select class="form-select {% if form.city.errors %}form-control--error{% endif %}" name="city" required>
+                <select class="form-select {% if form.city.errors %}form-control--error{% endif %}" name="city" id="city-select" required>
                     <option value="">Выберите город</option>
                     {% for city in cities %}
-                    <option value="{{ city.id }}" {% if form.city.value|stringformat:"s" == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
+                    <option value="{{ city.id }}" data-country="{{ city.country.id }}" {% if form.city.value|stringformat:"s" == city.id|stringformat:"s" %}selected{% endif %}>{{ city.name }}</option>
                     {% endfor %}
                 </select>
                 {% if form.city.errors %}
@@ -177,7 +206,17 @@
 
             <div class="form-group">
                 <label class="form-group__label">Полное описание</label>
-                <textarea class="form-control textarea-auto-resize {% if form.full_description.errors %}form-control--error{% endif %}" name="full_description" rows="3" placeholder="Описание компании, ссылки, иконки...">{{ form.full_description.value|default:'' }}</textarea>
+                <div class="rich-text-editor">
+                    <div class="rich-text-toolbar">
+                        <button type="button" class="toolbar-btn" data-command="bold" title="Жирный">B</button>
+                        <button type="button" class="toolbar-btn" data-command="italic" title="Курсив">I</button>
+                        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Список">•</button>
+                        <button type="button" class="toolbar-btn" data-command="createLink" title="Ссылка">🔗</button>
+                        <button type="button" class="toolbar-btn" data-command="insertEmoji" title="Эмодзи">😀</button>
+                    </div>
+                    <div class="rich-text-content" contenteditable="true" data-name="full_description" role="textbox" aria-multiline="true" placeholder="Описание компании, ссылки, иконки...">{{ form.full_description.value|default:'' }}</div>
+                    <textarea class="form-control {% if form.full_description.errors %}form-control--error{% endif %}" name="full_description" style="display: none;">{{ form.full_description.value|default:'' }}</textarea>
+                </div>
                 {% if form.full_description.errors %}
                 {% for error in form.full_description.errors %}
                 <span class="form-error">{{ error }}</span>
@@ -229,11 +268,31 @@
         phoneList.insertAdjacentHTML('beforeend', html);
     });
 
-    // Видалення телефону
+    // Видалення телефону та адреси
     document.addEventListener('click', function (e) {
         if (e.target.closest('.remove-phone')) {
             e.target.closest('.phone-input-group').remove();
         }
+        if (e.target.closest('.remove-address')) {
+            e.target.closest('.address-input-group').remove();
+        }
+    });
+    
+    // Додавання адреси
+    document.querySelector('[data-action="add-address"]')?.addEventListener('click', function() {
+        const addressList = document.getElementById('address-list');
+        const index = addressList.children.length;
+        const html = `
+            <div class="address-input-group" style="display: flex; gap: var(--spacing-xs); align-items: center; margin-bottom: var(--spacing-xs);">
+                <input type="text" class="form-control" name="addresses[]" placeholder="Введите адрес">
+                <label class="address-favorite" style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="radio" name="favorite_address" value="${index}">
+                    <span class="favorite-star">⭐</span>
+                </label>
+                <button type="button" class="button button--sm button--danger remove-address">−</button>
+            </div>
+        `;
+        addressList.insertAdjacentHTML('beforeend', html);
     });
 
     // ==========================================================================
@@ -285,6 +344,73 @@
             checkDuplicates('phone', this.value);
         });
     });
+
+    // ==========================================================================
+    // Фільтрація міст по країні
+    // ==========================================================================
+    const countrySelect = document.getElementById('country-select');
+    const citySelect = document.getElementById('city-select');
+    
+    if (countrySelect && citySelect) {
+        // Зберігаємо всі міста для фільтрації
+        const allCities = Array.from(citySelect.options).slice(1); // Без першого option "Выберите город"
+        
+        function filterCitiesByCountry(countryId) {
+            // Очищаємо список міст
+            citySelect.innerHTML = '<option value="">Выберите город</option>';
+            
+            if (!countryId) {
+                // Якщо країна не вибрана, показуємо всі міста
+                allCities.forEach(function(option) {
+                    citySelect.appendChild(option.cloneNode(true));
+                });
+                return;
+            }
+            
+            // Фільтруємо міста по країні
+            allCities.forEach(function(option) {
+                if (option.getAttribute('data-country') === countryId.toString()) {
+                    citySelect.appendChild(option.cloneNode(true));
+                }
+            });
+        }
+        
+        // Обробка зміни країни
+        countrySelect.addEventListener('change', function() {
+            filterCitiesByCountry(this.value);
+            citySelect.value = ''; // Скидаємо вибір міста
+        });
+        
+        // Якщо країна вже вибрана (hidden input), фільтруємо одразу
+        if (countrySelect.type === 'hidden') {
+            filterCitiesByCountry(countrySelect.value);
+        }
+    }
+
+    // ==========================================================================
+    // Пошук міст по букві
+    // ==========================================================================
+    const citySearchInput = document.getElementById('city-search');
+    if (citySearchInput && citySelect) {
+        citySearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const options = citySelect.querySelectorAll('option');
+            
+            options.forEach(function(option) {
+                if (option.value === '') {
+                    // Залишаємо перший option "Выберите город"
+                    return;
+                }
+                
+                const cityName = option.getAttribute('data-city-name') || option.textContent.toLowerCase();
+                if (cityName.includes(searchTerm)) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        });
+    }
 
     // Перевірка website
     const websiteInput = document.querySelector('input[name="website"]');

@@ -1,6 +1,13 @@
 {% load static %}
 
 <!-- Тільки контент для HTMX (без layout) -->
+<!-- Короткий коментар вгорі -->
+{% if company.short_comment %}
+<div class="card short-comment-top" style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); background-color: var(--color-bg-light); border-left: 3px solid var(--color-primary);">
+    <p style="margin: 0; font-size: var(--font-size-sm); color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ company.short_comment }}</p>
+</div>
+{% endif %}
+
 <!-- Header + Actions -->
 <div class="card company-header">
     <div class="company-header-top">
@@ -38,7 +45,6 @@
                         {% for phone in company.phones.all %}
                         <div class="phone-item">
                             <span>{{ phone.number }}</span>
-                            {% if phone.is_favorite %}<span class="phone-star">⭐</span>{% endif %}
                             <span class="phone-name">{{ phone.contact_name }}</span>
                         </div>
                         {% empty %}
@@ -46,6 +52,19 @@
                         {% endfor %}
                     </div>
                 </div>
+                {% if company.addresses.all %}
+                <div class="info-item">
+                    <span class="info-label">📍 Адреса:</span>
+                    <div class="address-list">
+                        {% for address in company.addresses.all %}
+                        <div class="address-item">
+                            <span>{{ address.address }}</span>
+                            {% if address.is_favorite %}<span style="color: var(--color-warning);">⭐</span>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
                 {% if company.telegram %}
                 <div class="info-item">
                     <span class="info-label">💬 Telegram:</span>
@@ -61,7 +80,7 @@
                 {% if company.instagram %}
                 <div class="info-item">
                     <span class="info-label">📷 Instagram:</span>
-                    <a href="https://instagram.com/{{ company.instagram|slice:"1:" }}" target="_blank" rel="noopener">{{ company.instagram }}</a>
+                    <a href="https://instagram.com/{{ company.instagram|remove:'@' }}" target="_blank" rel="noopener">{{ company.instagram }}</a>
                 </div>
                 {% endif %}
                 <div class="info-item">
@@ -87,7 +106,8 @@
             </div>
         </div>
 
-        <!-- Короткий комментарий -->
+        <!-- Короткий комментарий (редагування) -->
+        {% if company.short_comment %}
         <div class="card">
             <div class="short-comment-block">
                 <h4>Короткий комментарий</h4>
@@ -98,28 +118,53 @@
                 <small class="text-muted">Кликните для редактирования</small>
             </div>
         </div>
+        {% endif %}
 
         <!-- Полное описание -->
         <div class="card">
             <h4>Полное описание</h4>
-            <p>{{ company.full_description }}</p>
+            <div class="full-description-content" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6;">{{ company.full_description|linebreaks }}</div>
         </div>
     </div>
 
     <!-- Права колонка (30%) -->
     <div class="company-sidebar">
+        <!-- На сайт (якщо є website) -->
+        {% if company.website %}
+        <div class="card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 2px solid #3b82f6; margin-bottom: var(--spacing-md);">
+            <a href="{{ company.website }}" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm); padding: var(--spacing-md); text-decoration: none; color: #1e40af; font-weight: var(--font-weight-semibold);" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">
+                <span style="font-size: 1.5rem;">🌐</span>
+                <span>На сайт</span>
+            </a>
+        </div>
+        {% endif %}
+        
         <!-- Дата звонка -->
         <div class="card call-date-card">
             <h4>📞 Позвонить</h4>
-            <div class="call-date-display">
-                <span class="call-date-value" contenteditable="false">{{ company.call_date_display }}</span>
+            <div class="call-date-display" id="call-date-display-{{ company.id }}">
+                {% if company.call_date %}
+                {% now "Y-m-d" as today_str %}
+                {% if company.call_date|date:"Y-m-d" < today_str %}
+                <span class="call-date-value call-date--overdue" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date_display }}</span>
+                {% else %}
+                <span class="call-date-value call-date--upcoming" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date_display }}</span>
+                {% endif %}
+                {% else %}
+                <span class="call-date-value" data-call-date="">Не встановлено</span>
+                {% endif %}
                 <button class="btn-edit-date" title="Редактировать">✏️</button>
             </div>
             <input type="date" 
                    class="call-date-input" 
-                   value="{{ company.call_date|date:'Y-m-d'|default:'' }}"
+                   value="{% if company.call_date %}{{ company.call_date|date:'Y-m-d' }}{% endif %}"
                    data-company-id="{{ company.id }}"
-                   data-save-url="{% url 'myapp:company_update_call_date' company.id %}">
+                   hx-post="{% url 'myapp:company_update_call_date' company.id %}"
+                   hx-trigger="change"
+                   hx-vals='{"call_date": this.value}'
+                   hx-target="#call-date-display-{{ company.id }}"
+                   hx-swap="innerHTML"
+                   style="display: none;">
         </div>
 
         <!-- Даты -->
@@ -147,22 +192,33 @@
         <h3 class="card__title">Фотографии</h3>
     </div>
     <div class="photo-slider">
-        <button type="button" class="slider-btn slider-btn--prev">←</button>
-        {% for photo in company.photos %}
-        <div class="photo-item">
-            <img src="{{ photo }}" alt="Фото {{ forloop.counter }}">
-            <button type="button" 
-                    class="button button--sm button--danger photo-delete-btn"
-                    hx-post="{% url 'myapp:company_delete_photo' company.id %}"
-                    hx-vals='{"photo_url": "{{ photo }}"}'
-                    hx-target="#main-content"
-                    hx-push-url="true"
-                    onclick="return confirm('Видалити це фото?')"
-                    title="Видалити фото">🗑️</button>
+        <button type="button" class="slider-btn slider-btn--prev" onclick="scrollPhotos(-200)">←</button>
+        <div class="photo-slider-wrapper" id="photo-slider-wrapper">
+            {% for photo in company.photos %}
+            <div class="photo-item">
+                <img src="{{ photo }}" alt="Фото {{ forloop.counter }}">
+                <button type="button" 
+                        class="button button--sm button--danger photo-delete-btn"
+                        style="position: absolute; top: 5px; right: 5px; padding: 2px 6px; font-size: 0.75rem;"
+                        hx-post="{% url 'myapp:company_delete_photo' company.id %}"
+                        hx-vals='{"photo_url": "{{ photo }}"}'
+                        hx-target="#main-content"
+                        hx-push-url="true"
+                        onclick="return confirm('Видалити це фото?')"
+                        title="Видалити фото">🗑️</button>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-        <button type="button" class="slider-btn slider-btn--next">→</button>
+        <button type="button" class="slider-btn slider-btn--next" onclick="scrollPhotos(200)">→</button>
     </div>
+    <script>
+        function scrollPhotos(direction) {
+            const wrapper = document.getElementById('photo-slider-wrapper');
+            if (wrapper) {
+                wrapper.scrollBy({ left: direction, behavior: 'smooth' });
+            }
+        }
+    </script>
 </div>
 {% endif %}
 
@@ -171,29 +227,7 @@
     <h3>История комментариев</h3>
 
     <div class="comments-timeline" id="comments-list">
-        {% for comment in company.comments.all %}
-        <div class="comment{% if forloop.counter > 3 %} comment--hidden{% endif %}" data-comment-id="{{ comment.id }}">
-            <div class="comment-header">
-                <span class="comment-author">👤 {{ comment.author_name|default:"Аноним" }}</span>
-                <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-                <button class="btn-delete-comment" 
-                        data-comment-id="{{ comment.id }}"
-                        hx-post="{% url 'myapp:company_comment_delete' company.id comment.id %}"
-                        hx-target="#main-content"
-                        hx-push-url="true"
-                        title="Удалить">🗑️</button>
-            </div>
-            <div class="comment-text">
-                {{ comment.text }}
-            </div>
-        </div>
-        {% empty %}
-        <div style="text-align: center; padding: var(--spacing-xl); color: var(--color-text-light);">
-            <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">💬</div>
-            <p style="margin: 0; font-style: italic;">Комментариев пока нет</p>
-            <p style="margin: var(--spacing-xs) 0 0 0; font-size: var(--font-size-sm);">Добавьте первый комментарий ниже</p>
-        </div>
-        {% endfor %}
+        {% include 'components/comments_list.html' with comments=company.comments.all company_id=company.id %}
     </div>
 
     {% if company.comments.count > 3 %}
@@ -205,11 +239,10 @@
           method="post" 
           action="{% url 'myapp:company_comment_add' company.id %}"
           hx-post="{% url 'myapp:company_comment_add' company.id %}"
-          hx-target="#main-content"
-          hx-push-url="true">
+          hx-target="#comments-list"
+          hx-swap="innerHTML">
         {% csrf_token %}
-        <textarea class="form-control" name="comment" rows="2" placeholder="Добавить комментарий..."
-            required></textarea>
-        <button type="submit" class="button button--primary button--sm">Отправить</button>
+        <textarea class="form-control" name="comment_text" rows="1" placeholder="Добавить комментарий..." style="font-size: 0.875rem; padding: var(--spacing-xs) var(--spacing-sm);" required></textarea>
+        <button type="submit" class="button button--primary button--sm" style="font-size: 0.75rem; padding: var(--spacing-xs) var(--spacing-sm);">Отправить</button>
     </form>
 </div>

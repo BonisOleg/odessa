@@ -1,4 +1,7 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Country(models.Model):
@@ -253,4 +256,130 @@ class CompanyComment(models.Model):
 
     def __str__(self) -> str:  # pragma: no cover
         return f"{self.author_name}: {self.text[:50]}"
+
+
+class CompanyAddress(models.Model):
+    """Адреса компанії з іменем та ознакою обраного."""
+    
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="addresses"
+    )
+    address = models.CharField(max_length=500)
+    is_favorite = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name = "Company address"
+        verbose_name_plural = "Company addresses"
+    
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.address} ({self.company.name})"
+
+
+class UserProfile(models.Model):
+    """Профіль користувача з роллю, країною та аватаром."""
+    
+    ROLE_SUPER_ADMIN = 'SUPER_ADMIN'
+    ROLE_OBSERVER = 'OBSERVER'
+    ROLE_MANAGER = 'MANAGER'
+    
+    ROLE_CHOICES = [
+        (ROLE_SUPER_ADMIN, 'Супер адмін'),
+        (ROLE_OBSERVER, 'Спостерігач'),
+        (ROLE_MANAGER, 'Менеджер'),
+    ]
+    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='userprofile'
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_MANAGER,
+        help_text="Роль користувача в системі"
+    )
+    country = models.ForeignKey(
+        Country,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        help_text="Призначена країна для користувача"
+    )
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        blank=True,
+        null=True,
+        help_text="Аватар користувача"
+    )
+    registration_date = models.DateTimeField(auto_now_add=True)
+    language = models.CharField(
+        max_length=10,
+        default='ru',
+        help_text="Мова інтерфейсу (ru, en, uk)"
+    )
+    
+    class Meta:
+        verbose_name = "User Profile"
+        verbose_name_plural = "User Profiles"
+        ordering = ("user__username",)
+    
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.user.username} ({self.get_role_display()})"
+    
+    @property
+    def is_super_admin(self) -> bool:
+        """Перевірка чи користувач є супер адміном."""
+        return self.role == self.ROLE_SUPER_ADMIN
+    
+    @property
+    def is_observer(self) -> bool:
+        """Перевірка чи користувач є спостерігачем."""
+        return self.role == self.ROLE_OBSERVER
+    
+    @property
+    def is_manager(self) -> bool:
+        """Перевірка чи користувач є менеджером."""
+        return self.role == self.ROLE_MANAGER
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Автоматичне створення профілю при створенні користувача."""
+    if created:
+        UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Автоматичне збереження профілю при збереженні користувача."""
+    if hasattr(instance, 'userprofile'):
+        instance.userprofile.save()
+
+
+class UserFavoriteCompany(models.Model):
+    """Обрана компанія користувача (для ранжування)."""
+    
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorite_companies'
+    )
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='favorited_by'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "User Favorite Company"
+        verbose_name_plural = "User Favorite Companies"
+        unique_together = ('user', 'company')
+        ordering = ('-created_at',)
+    
+    def __str__(self) -> str:  # pragma: no cover
+        return f"{self.user.username} → {self.company.name}"
 

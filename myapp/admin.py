@@ -4,10 +4,13 @@ from .models import (
     Category,
     City,
     Company,
+    CompanyAddress,
     CompanyComment,
     CompanyPhone,
     Country,
     Status,
+    UserProfile,
+    UserFavoriteCompany,
 )
 
 
@@ -73,5 +76,36 @@ class CompanyPhoneAdmin(admin.ModelAdmin):
 class CompanyCommentAdmin(admin.ModelAdmin):
     list_display = ("company", "author_name", "created_at")
     search_fields = ("company__name", "author_name", "text")
+    readonly_fields = ("created_at",)
+
+
+@admin.register(CompanyAddress)
+class CompanyAddressAdmin(admin.ModelAdmin):
+    list_display = ("address", "company", "is_favorite")
+    list_filter = ("is_favorite",)
+    search_fields = ("address", "company__name")
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "role", "country", "registration_date")
+    list_filter = ("role", "country")
+    search_fields = ("user__username", "user__email", "user__first_name", "user__last_name")
+    readonly_fields = ("registration_date",)
+    fieldsets = (
+        ("Основна інформація", {
+            "fields": ("user", "role", "country", "language")
+        }),
+        ("Додатково", {
+            "fields": ("avatar", "registration_date")
+        }),
+    )
+
+
+@admin.register(UserFavoriteCompany)
+class UserFavoriteCompanyAdmin(admin.ModelAdmin):
+    list_display = ("user", "company", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("user__username", "company__name")
     readonly_fields = ("created_at",)
 

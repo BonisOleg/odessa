@@ -21,7 +21,9 @@ urlpatterns = [
     path('companies/<int:pk>/delete-logo/', views.company_delete_logo, name='company_delete_logo'),
     path('companies/<int:pk>/delete-photo/', views.company_delete_photo, name='company_delete_photo'),
     path('companies/<int:pk>/export/', views.company_export, name='company_export'),
+    path('companies/<int:pk>/toggle-favorite/', views.company_toggle_favorite, name='company_toggle_favorite'),
     path('companies/check-duplicates/', views.company_check_duplicates, name='company_check_duplicates'),
+    path('api/cities-by-country/', views.get_cities_by_country, name='get_cities_by_country'),
     
     # Налаштування
     path('settings/', views.settings_dashboard, name='settings_dashboard'),
@@ -55,6 +57,7 @@ urlpatterns = [
     path('settings/statuses/<int:pk>/delete/confirm/', views.status_delete, name='status_delete'),
     path('settings/users/', views.settings_users, name='settings_users'),
     path('settings/users/add/', views.settings_user_add, name='settings_user_add'),
+    path('settings/users/create/', views.user_create, name='user_create'),
     path('settings/users/<int:pk>/edit/', views.settings_user_edit, name='settings_user_edit'),
     path('settings/users/<int:pk>/delete/', views.settings_user_delete, name='settings_user_delete'),
     

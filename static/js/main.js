@@ -544,30 +544,36 @@
                     formData.append('call_date', input.value);
                     formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
 
-                    fetch(saveUrl, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
-                        }
-                    }).then(function (response) {
-                        if (response.ok) {
-                            const date = new Date(input.value);
-                            const formatted = ('0' + date.getDate()).slice(-2) + '.' +
-                                ('0' + (date.getMonth() + 1)).slice(-2) + '.' +
-                                date.getFullYear();
-
-                            const valueSpan = display.querySelector('.call-date-value');
-                            valueSpan.textContent = formatted;
+                    // Використовуємо HTMX якщо доступний
+                    if (input.hasAttribute('hx-post')) {
+                        // HTMX обробить запит автоматично
+                        input.dispatchEvent(new Event('change'));
+                        display.style.display = 'flex';
+                        input.style.display = 'none';
+                    } else {
+                        // Fallback на fetch
+                        fetch(saveUrl, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                            }
+                        }).then(function (response) {
+                            if (response.ok) {
+                                return response.text();
+                            } else {
+                                throw new Error('Помилка збереження');
+                            }
+                        }).then(function (html) {
+                            display.innerHTML = html;
                             display.style.display = 'flex';
-                            input.classList.remove('is-visible');
-                        } else {
+                            input.style.display = 'none';
+                            initCallDateEditor(); // Реініціалізуємо обробники
+                        }).catch(function (error) {
+                            console.error('Error saving call date:', error);
                             alert('Помилка збереження дати');
-                        }
-                    }).catch(function (error) {
-                        console.error('Error saving call date:', error);
-                        alert('Помилка збереження дати');
-                    });
+                        });
+                    }
                 }
 
                 input.addEventListener('change', saveDate);
@@ -662,5 +668,165 @@
 
     initExpandComments();
     document.body.addEventListener('htmx:afterSwap', initExpandComments);
+
+    // ==========================================================================
+    // Rich Text Editor
+    // ==========================================================================
+
+    function initRichTextEditor() {
+        const editors = document.querySelectorAll('.rich-text-editor');
+        editors.forEach(function (editor) {
+            const contentDiv = editor.querySelector('.rich-text-content');
+            const textarea = editor.querySelector('textarea[name="full_description"]');
+            const toolbar = editor.querySelector('.rich-text-toolbar');
+
+            if (!contentDiv || !textarea) return;
+
+            // Синхронізація з textarea при завантаженні
+            if (textarea.value) {
+                contentDiv.innerHTML = textarea.value;
+            }
+
+            // Placeholder
+            function updatePlaceholder() {
+                if (contentDiv.textContent.trim() === '') {
+                    contentDiv.classList.add('is-empty');
+                } else {
+                    contentDiv.classList.remove('is-empty');
+                }
+            }
+            updatePlaceholder();
+
+            // Синхронізація з textarea перед відправкою форми
+            const form = editor.closest('form');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    textarea.value = contentDiv.innerHTML;
+                });
+            }
+
+            // Оновлення placeholder
+            contentDiv.addEventListener('input', function () {
+                updatePlaceholder();
+                textarea.value = this.innerHTML;
+                // Auto-resize
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 500) + 'px';
+            });
+
+            // Toolbar buttons
+            toolbar.addEventListener('click', function (e) {
+                const btn = e.target.closest('.toolbar-btn');
+                if (!btn) return;
+
+                e.preventDefault();
+                const command = btn.getAttribute('data-command');
+                contentDiv.focus();
+
+                if (command === 'createLink') {
+                    const url = prompt('Введите URL:', 'https://');
+                    if (url) {
+                        document.execCommand('createLink', false, url);
+                    }
+                } else if (command === 'insertEmoji') {
+                    const emoji = prompt('Введите эмодзи или текст:', '😀');
+                    if (emoji) {
+                        document.execCommand('insertText', false, emoji);
+                    }
+                } else {
+                    document.execCommand(command, false, null);
+                }
+
+                // Оновлюємо textarea після команди
+                textarea.value = contentDiv.innerHTML;
+            });
+
+            // Initial resize
+            contentDiv.style.height = 'auto';
+            contentDiv.style.height = Math.min(contentDiv.scrollHeight, 500) + 'px';
+        });
+    }
+
+    initRichTextEditor();
+    document.body.addEventListener('htmx:afterSwap', initRichTextEditor);
+
+    // ==========================================================================
+    // Mobile Menu & Filter
+    // ==========================================================================
+
+    function initMobileMenu() {
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const menuOverlay = document.getElementById('mobile-menu-overlay');
+        const menuClose = menuOverlay?.querySelector('.mobile-menu-close');
+
+        if (menuBtn && menuOverlay) {
+            menuBtn.addEventListener('click', function () {
+                menuOverlay.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            });
+
+            if (menuClose) {
+                menuClose.addEventListener('click', function () {
+                    menuOverlay.classList.remove('is-open');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            menuOverlay.addEventListener('click', function (e) {
+                if (e.target === menuOverlay) {
+                    menuOverlay.classList.remove('is-open');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+    }
+
+    function initMobileFilter() {
+        const filterBtn = document.getElementById('mobile-filter-btn');
+        const filterOverlay = document.getElementById('mobile-filter-overlay');
+        const filterBody = document.getElementById('mobile-filter-body');
+        const filterClose = filterOverlay?.querySelector('.mobile-filter-close');
+        const filtersCard = document.querySelector('.filters-card');
+
+        if (filterBtn && filterOverlay && filterBody) {
+            // Move filters to mobile overlay on load
+            if (filtersCard && !filterBody.querySelector('.filters-card')) {
+                const filtersClone = filtersCard.cloneNode(true);
+                filterBody.appendChild(filtersClone);
+            }
+
+            filterBtn.addEventListener('click', function () {
+                // Re-clone filters in case they were updated
+                if (filtersCard) {
+                    filterBody.innerHTML = '';
+                    const filtersClone = filtersCard.cloneNode(true);
+                    filterBody.appendChild(filtersClone);
+                }
+                filterOverlay.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            });
+
+            if (filterClose) {
+                filterClose.addEventListener('click', function () {
+                    filterOverlay.classList.remove('is-open');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            filterOverlay.addEventListener('click', function (e) {
+                if (e.target === filterOverlay) {
+                    filterOverlay.classList.remove('is-open');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+    }
+
+    initMobileMenu();
+    initMobileFilter();
+    document.body.addEventListener('htmx:afterSwap', function () {
+        initMobileMenu();
+        initMobileFilter();
+    });
 
 })();

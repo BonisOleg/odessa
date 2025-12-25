@@ -6,6 +6,7 @@ Views для CRM Nice.
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import HttpRequest, HttpResponse
@@ -14,8 +15,9 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 
+from .decorators import super_admin_required, manager_or_super_admin_required
 from .forms import CategoryForm, CityForm, CompanyForm, CountryForm, LoginForm, StatusForm, UserProfileForm
-from .models import Category, City, Company, CompanyPhone, Country, Status
+from .models import Category, City, Company, CompanyAddress, CompanyPhone, Country, Status, UserProfile, UserFavoriteCompany
 
 
 def is_htmx_request(request: HttpRequest) -> bool:
@@ -59,6 +61,34 @@ def _process_company_phones(company: Company, phones_data: list, contact_names: 
         if first_phone:
             first_phone.is_favorite = True
             first_phone.save()
+
+
+def _process_company_addresses(company: Company, addresses_data: list, favorite_address_index: str | None) -> None:
+    """Обробка адрес компанії при створенні/оновленні."""
+    # Фільтруємо порожні адреси
+    valid_addresses = [addr.strip() for addr in addresses_data if addr.strip()]
+    
+    # Видаляємо старі адреси
+    CompanyAddress.objects.filter(company=company).delete()
+    
+    # Створюємо нові адреси
+    favorite_index = int(favorite_address_index) if favorite_address_index and favorite_address_index.isdigit() else None
+    
+    for index, address in enumerate(valid_addresses):
+        is_favorite = (favorite_index is not None and index == favorite_index)
+        
+        CompanyAddress.objects.create(
+            company=company,
+            address=address.strip(),
+            is_favorite=is_favorite
+        )
+    
+    # Якщо вказано favorite_address, але він не встановлений, встановлюємо першу адресу як favorite
+    if favorite_index is None and valid_addresses:
+        first_address = CompanyAddress.objects.filter(company=company).first()
+        if first_address:
+            first_address.is_favorite = True
+            first_address.save()
 
 
 def _process_company_photos(company: Company, photos_files) -> None:
@@ -116,11 +146,18 @@ def company_list(request):
     status_filter = request.GET.getlist('status')
     city_filter = request.GET.getlist('city')
     category_filter = request.GET.get('category', '')
-    date_updated_filter = request.GET.get('date_updated', '')
-    call_date_filter = request.GET.get('call_date', '')
+    date_updated_from = request.GET.get('date_updated_from', '')
+    date_updated_to = request.GET.get('date_updated_to', '')
+    call_date_from = request.GET.get('call_date_from', '')
+    call_date_to = request.GET.get('call_date_to', '')
     
     # Отримуємо всі компанії з БД
-    companies_queryset = Company.objects.select_related('city', 'category', 'status').prefetch_related('phones').all()
+    companies_queryset = Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'addresses').all()
+    
+    # Фільтрація по країні користувача (якщо призначена)
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.country:
+        user_country = request.user.userprofile.country
+        companies_queryset = companies_queryset.filter(city__country=user_country)
     
     # Фільтрація по пошуковому запиту
     if search_query:
@@ -132,7 +169,11 @@ def company_list(request):
             Q(category__name__icontains=search_query) |
             Q(keywords__icontains=search_query) |
             Q(phones__number__icontains=search_query) |
-            Q(phones__contact_name__icontains=search_query)
+            Q(phones__contact_name__icontains=search_query) |
+            Q(instagram__icontains=search_query) |
+            Q(website__icontains=search_query) |
+            Q(telegram__icontains=search_query) |
+            Q(addresses__address__icontains=search_query)
         ).distinct()
     
     # Фільтрація по статусу
@@ -145,7 +186,11 @@ def company_list(request):
     
     # Фільтрація по розділу
     if category_filter:
-        companies_queryset = companies_queryset.filter(category__name=category_filter)
+        try:
+            category_id = int(category_filter)
+            companies_queryset = companies_queryset.filter(category_id=category_id)
+        except ValueError:
+            companies_queryset = companies_queryset.filter(category__name=category_filter)
     
     # Фільтрація по даті оновлення
     if date_updated_filter:
@@ -172,15 +217,30 @@ def company_list(request):
             week_end = today + timedelta(days=6 - today.weekday())
             companies_queryset = companies_queryset.filter(call_date__gte=today, call_date__lte=week_end)
     
-    # Сортуємо за датою оновлення (нові зверху)
-    companies_queryset = companies_queryset.order_by('-updated_at')
+    # Сортування: спочатку обрані (favorite) для поточного користувача, потім за датою оновлення
+    favorite_company_ids = []
+    if request.user.is_authenticated:
+        favorite_company_ids = list(
+            UserFavoriteCompany.objects.filter(user=request.user)
+            .values_list('company_id', flat=True)
+        )
+    
+    # Сортуємо: спочатку обрані, потім за датою оновлення
+    from django.db.models import Case, When, IntegerField
+    companies_queryset = companies_queryset.annotate(
+        is_favorite=Case(
+            When(id__in=favorite_company_ids, then=1),
+            default=0,
+            output_field=IntegerField()
+        )
+    ).order_by('-is_favorite', '-updated_at')
     
     # Підрахунок нових компаній за останні 30 днів
     thirty_days_ago = timezone.now() - timedelta(days=30)
     new_count = Company.objects.filter(created_at__gte=thirty_days_ago).count()
     
     # Пагінація
-    paginator = Paginator(companies_queryset, 20)  # 20 компаній на сторінку
+    paginator = Paginator(companies_queryset, 100)  # 100 компаній на сторінку
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
     
@@ -188,6 +248,14 @@ def company_list(request):
     all_statuses = Status.objects.all().order_by('name')
     all_cities = City.objects.all().order_by('name')
     all_categories = Category.objects.all().order_by('name')
+    
+    # Отримуємо список обраних компаній для поточного користувача
+    favorite_company_ids = set()
+    if request.user.is_authenticated:
+        favorite_company_ids = set(
+            UserFavoriteCompany.objects.filter(user=request.user)
+            .values_list('company_id', flat=True)
+        )
     
     context = {
         'companies': page_obj,
@@ -203,6 +271,7 @@ def company_list(request):
         'selected_category': category_filter,
         'selected_date_updated': date_updated_filter,
         'selected_call_date': call_date_filter,
+        'favorite_company_ids': favorite_company_ids,
     }
     
     template = 'companies/list_content.html' if is_htmx_request(request) else 'companies/list.html'
@@ -223,13 +292,15 @@ def company_create(request):
             try:
                 company = form.save()
                 _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+                if addresses_data:
+                    _process_company_addresses(company, addresses_data, favorite_address_index)
                 # Обробка photos
                 if 'photos' in request.FILES:
                     _process_company_photos(company, request.FILES.getlist('photos'))
                 messages.success(request, f'Компанія "{company.name}" успішно створена.')
                 if is_htmx_request(request):
-                    return redirect('myapp:company_detail', pk=company.pk)
-                return redirect('myapp:company_detail', pk=company.pk)
+                    return redirect('myapp:company_list')
+                return redirect('myapp:company_list')
             except ValueError as e:
                 messages.error(request, str(e))
                 # Повертаємо форму з помилкою
@@ -247,12 +318,19 @@ def company_create(request):
     else:
         form = CompanyForm()
     
+    # Фільтрація міст по країні користувача
+    cities_queryset = City.objects.all()
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.country:
+        cities_queryset = cities_queryset.filter(country=request.user.userprofile.country)
+    
     template = 'companies/create_content.html' if is_htmx_request(request) else 'companies/create.html'
     context = {
         'form': form,
-        'cities': City.objects.all().order_by('name'),
+        'cities': cities_queryset.order_by('name'),
         'categories': Category.objects.all().order_by('name'),
         'statuses': Status.objects.all().order_by('name'),
+        'countries': Country.objects.all().order_by('name'),
+        'user_country': request.user.userprofile.country if hasattr(request.user, 'userprofile') else None,
     }
     return render(request, template, context)
 
@@ -262,7 +340,7 @@ def company_create(request):
 def company_detail(request, pk):
     """Карточка компанії"""
     company = get_object_or_404(
-        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'comments'),
+        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'comments', 'addresses'),
         pk=pk
     )
     
@@ -302,7 +380,7 @@ def company_delete(request, pk):
 def company_edit(request, pk):
     """Форма редагування компанії"""
     company = get_object_or_404(
-        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones'),
+        Company.objects.select_related('city', 'category', 'status').prefetch_related('phones', 'addresses'),
         pk=pk
     )
     
@@ -311,18 +389,22 @@ def company_edit(request, pk):
         phones_data = request.POST.getlist('phones[]')
         contact_names = request.POST.getlist('contact_names[]')
         favorite_phone_index = request.POST.get('favorite_phone')
+        addresses_data = request.POST.getlist('addresses[]')
+        favorite_address_index = request.POST.get('favorite_address')
         
         if form.is_valid():
             try:
                 company = form.save()
                 _process_company_phones(company, phones_data, contact_names, favorite_phone_index)
+                if addresses_data:
+                    _process_company_addresses(company, addresses_data, favorite_address_index)
                 # Обробка photos
                 if 'photos' in request.FILES:
                     _process_company_photos(company, request.FILES.getlist('photos'))
                 messages.success(request, f'Компанія "{company.name}" успішно оновлена.')
                 if is_htmx_request(request):
-                    return redirect('myapp:company_detail', pk=company.pk)
-                return redirect('myapp:company_detail', pk=company.pk)
+                    return redirect('myapp:company_list')
+                return redirect('myapp:company_list')
             except ValueError as e:
                 messages.error(request, str(e))
                 # Повертаємо форму з помилкою
@@ -342,14 +424,21 @@ def company_edit(request, pk):
     else:
         form = CompanyForm(instance=company)
     
+    # Фільтрація міст по країні користувача
+    cities_queryset = City.objects.all()
+    if hasattr(request.user, 'userprofile') and request.user.userprofile.country:
+        cities_queryset = cities_queryset.filter(country=request.user.userprofile.country)
+    
     template = 'companies/edit_content.html' if is_htmx_request(request) else 'companies/edit.html'
     context = {
         'form': form,
         'company': company,
         'company_id': pk,
-        'cities': City.objects.all().order_by('name'),
+        'cities': cities_queryset.order_by('name'),
         'categories': Category.objects.all().order_by('name'),
         'statuses': Status.objects.all().order_by('name'),
+        'countries': Country.objects.all().order_by('name'),
+        'user_country': request.user.userprofile.country if hasattr(request.user, 'userprofile') else None,
     }
     return render(request, template, context)
 
@@ -389,7 +478,12 @@ def company_update_call_date(request, pk):
     
     company.save()
     
-    return HttpResponse('OK', status=200)
+    # Повертаємо оновлену дату для відображення
+    from django.template.loader import render_to_string
+    html = render_to_string('components/call_date_display.html', {
+        'company': company
+    })
+    return HttpResponse(html, status=200)
 
 
 @login_required
@@ -397,7 +491,7 @@ def company_update_call_date(request, pk):
 def company_comment_add(request, pk):
     """AJAX endpoint для додавання коментаря"""
     company = get_object_or_404(Company, pk=pk)
-    comment_text = request.POST.get('comment', '').strip()
+    comment_text = request.POST.get('comment_text', '').strip()
     
     if not comment_text:
         return HttpResponse('Коментар не може бути порожнім', status=400)
@@ -410,9 +504,14 @@ def company_comment_add(request, pk):
         text=comment_text
     )
     
-    if is_htmx_request(request):
-        return redirect('myapp:company_detail', pk=company.pk)
-    return redirect('myapp:company_detail', pk=company.pk)
+    # Повертаємо оновлений список коментарів
+    comments = company.comments.all().order_by('-created_at')
+    from django.template.loader import render_to_string
+    html = render_to_string('components/comments_list.html', {
+        'comments': comments,
+        'company_id': pk
+    })
+    return HttpResponse(html, status=200)
 
 
 @login_required
@@ -424,9 +523,8 @@ def company_comment_delete(request, pk, comment_id):
     
     comment.delete()
     
-    if is_htmx_request(request):
-        return redirect('myapp:company_detail', pk=company.pk)
-    return redirect('myapp:company_detail', pk=company.pk)
+    # Повертаємо порожній рядок для видалення елемента
+    return HttpResponse('', status=200)
 
 
 @login_required
@@ -530,6 +628,44 @@ def company_export(request, pk):
 
 
 @login_required
+@require_http_methods(["POST"])
+def company_toggle_favorite(request, pk):
+    """AJAX endpoint для додавання/видалення компанії з обраного"""
+    company = get_object_or_404(Company, pk=pk)
+    
+    favorite, created = UserFavoriteCompany.objects.get_or_create(
+        user=request.user,
+        company=company
+    )
+    
+    if not created:
+        # Якщо вже є в обраному - видаляємо
+        favorite.delete()
+        return HttpResponse('removed', status=200)
+    
+    return HttpResponse('added', status=200)
+
+
+@login_required
+@require_http_methods(["GET"])
+def get_cities_by_country(request):
+    """AJAX endpoint для отримання міст по країні"""
+    from django.http import JsonResponse
+    
+    country_id = request.GET.get('country_id', '').strip()
+    
+    if not country_id:
+        return JsonResponse({'cities': []})
+    
+    try:
+        cities = City.objects.filter(country_id=country_id).order_by('name')
+        cities_data = [{'id': city.id, 'name': city.name} for city in cities]
+        return JsonResponse({'cities': cities_data})
+    except Exception:
+        return JsonResponse({'cities': []})
+
+
+@login_required
 @require_http_methods(["GET"])
 def company_check_duplicates(request):
     """AJAX endpoint для перевірки дублікатів"""
@@ -610,10 +746,10 @@ def settings_dashboard(request):
     return render(request, template)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_countries(request):
-    """Управління країнами"""
+    """Управління країнами (тільки для супер адміна)"""
     countries = Country.objects.annotate(
         cities_count=Count('cities', distinct=True)
     ).order_by('name')
@@ -623,10 +759,10 @@ def settings_countries(request):
     return render(request, template, context)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_cities(request):
-    """Управління містами"""
+    """Управління містами (тільки для супер адміна)"""
     country_filter = request.GET.get('country', '')
     cities_queryset = City.objects.select_related('country').annotate(
         companies_count=Count('companies', distinct=True)
@@ -646,10 +782,10 @@ def settings_cities(request):
     return render(request, template, context)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_categories(request):
-    """Управління розділами"""
+    """Управління розділами (тільки для супер адміна)"""
     categories = Category.objects.annotate(
         companies_count=Count('companies', distinct=True)
     ).order_by('name')
@@ -1011,10 +1147,81 @@ def status_delete(request, pk):
 
 
 @login_required
+@super_admin_required
 @require_http_methods(["GET"])
 def settings_user_add(request):
     """Модальне вікно додавання користувача"""
-    return render(request, 'settings/modals/user_add.html')
+    countries = Country.objects.all().order_by('name')
+    return render(request, 'settings/modals/user_add.html', {'countries': countries})
+
+
+@login_required
+@super_admin_required
+@require_http_methods(["POST"])
+def user_create(request):
+    """Створення користувача через HTMX"""
+    name = request.POST.get('name', '').strip()
+    username = request.POST.get('username', '').strip()
+    email = request.POST.get('email', '').strip()
+    password = request.POST.get('password', '').strip()
+    role = request.POST.get('role', '').strip()
+    country_id = request.POST.get('country', '').strip()
+    
+    # Валідація
+    errors = []
+    if not name:
+        errors.append('Ім\'я обов\'язкове')
+    if not username:
+        errors.append('Логін обов\'язковий')
+    elif User.objects.filter(username=username).exists():
+        errors.append('Користувач з таким логіном вже існує')
+    if not email:
+        errors.append('Email обов\'язковий')
+    elif User.objects.filter(email=email).exists():
+        errors.append('Користувач з таким email вже існує')
+    if not password:
+        errors.append('Пароль обов\'язковий')
+    elif len(password) < 6:
+        errors.append('Пароль повинен містити мінімум 6 символів')
+    if not role:
+        errors.append('Роль обов\'язкова')
+    elif role not in ['SUPER_ADMIN', 'MANAGER', 'OBSERVER']:
+        errors.append('Невірна роль')
+    
+    if errors:
+        messages.error(request, 'Помилки валідації: ' + '; '.join(errors))
+        countries = Country.objects.all().order_by('name')
+        return render(request, 'settings/modals/user_add.html', {'countries': countries, 'errors': errors}, status=400)
+    
+    try:
+        # Створюємо користувача
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=name.split()[0] if name.split() else '',
+            last_name=' '.join(name.split()[1:]) if len(name.split()) > 1 else ''
+        )
+        
+        # Оновлюємо профіль (створюється автоматично через сигнал)
+        user_profile = user.userprofile
+        user_profile.role = role
+        if country_id:
+            try:
+                country = Country.objects.get(pk=country_id)
+                user_profile.country = country
+            except Country.DoesNotExist:
+                pass
+        user_profile.save()
+        
+        messages.success(request, f'Користувач "{username}" успішно створений.')
+        if is_htmx_request(request):
+            return redirect('myapp:settings_users')
+        return redirect('myapp:settings_users')
+    except Exception as e:
+        messages.error(request, f'Помилка при створенні користувача: {str(e)}')
+        countries = Country.objects.all().order_by('name')
+        return render(request, 'settings/modals/user_add.html', {'countries': countries}, status=400)
 
 
 @login_required

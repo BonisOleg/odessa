@@ -35,4 +35,83 @@
         {% block page_content %}{% endblock %}
     </main>
 </div>
+
+<!-- Mobile Bottom Search Bar -->
+<div class="mobile-bottom-search" id="mobile-bottom-search">
+    <input type="search" 
+           class="mobile-search-input" 
+           placeholder="🔍 Поиск..." 
+           name="search"
+           hx-get="{% url 'myapp:company_list' %}"
+           hx-trigger="keyup changed delay:300ms, search"
+           hx-target="#main-content"
+           hx-push-url="true"
+           hx-include="this">
+</div>
+
+<!-- Mobile Menu & Filter Buttons -->
+<div class="mobile-actions">
+    <button class="mobile-action-btn" id="mobile-menu-btn" type="button" title="Меню">☰</button>
+    <button class="mobile-action-btn" id="mobile-filter-btn" type="button" title="Фильтры">🔍</button>
+</div>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu-overlay" id="mobile-menu-overlay">
+    <div class="mobile-menu-content">
+        <div class="mobile-menu-header">
+            <h3>Меню</h3>
+            <button class="mobile-menu-close" type="button">×</button>
+        </div>
+        <nav class="mobile-menu-nav">
+            <a href="{% url 'myapp:clients' %}" 
+               hx-get="{% url 'myapp:clients' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">Клиенты</a>
+            <a href="{% url 'myapp:tasks' %}" 
+               hx-get="{% url 'myapp:tasks' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">Задачи</a>
+            <a href="{% url 'myapp:company_list' %}" 
+               hx-get="{% url 'myapp:company_list' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">Компании</a>
+            <a href="{% url 'myapp:sales' %}" 
+               hx-get="{% url 'myapp:sales' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">Продажи</a>
+            <a href="{% url 'myapp:seo' %}" 
+               hx-get="{% url 'myapp:seo' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">SEO</a>
+            <a href="{% url 'myapp:franchises' %}" 
+               hx-get="{% url 'myapp:franchises' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">Франшизы</a>
+            <a href="{% url 'myapp:finances' %}" 
+               hx-get="{% url 'myapp:finances' %}" 
+               hx-target="#main-content" 
+               hx-push-url="true"
+               class="mobile-menu-link">Финансы</a>
+        </nav>
+    </div>
+</div>
+
+<!-- Mobile Filter Overlay -->
+<div class="mobile-filter-overlay" id="mobile-filter-overlay">
+    <div class="mobile-filter-content">
+        <div class="mobile-filter-header">
+            <h3>Фильтры</h3>
+            <button class="mobile-filter-close" type="button">×</button>
+        </div>
+        <div class="mobile-filter-body" id="mobile-filter-body">
+            <!-- Filters will be moved here on mobile -->
+        </div>
+    </div>
+</div>
 {% endblock %}

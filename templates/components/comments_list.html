@@ -1,0 +1,25 @@
+{% for comment in comments %}
+<div class="comment{% if forloop.counter > 3 %} comment--hidden{% endif %}" data-comment-id="{{ comment.id }}">
+    <div class="comment-header">
+        <span class="comment-author">👤 {{ comment.author_name|default:"Аноним" }}</span>
+        <span class="comment-date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
+        <button class="btn-delete-comment" 
+                data-comment-id="{{ comment.id }}"
+                hx-post="{% url 'myapp:company_comment_delete' company_id comment.id %}"
+                hx-target="closest .comment"
+                hx-swap="outerHTML"
+                hx-confirm="Вы уверены, что хотите удалить этот комментарий?"
+                title="Удалить">🗑️</button>
+    </div>
+    <div class="comment-text">
+        {{ comment.text }}
+    </div>
+</div>
+{% empty %}
+<div style="text-align: center; padding: var(--spacing-xl); color: var(--color-text-light);">
+    <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">💬</div>
+    <p style="margin: 0; font-style: italic;">Комментариев пока нет</p>
+    <p style="margin: var(--spacing-xs) 0 0 0; font-size: var(--font-size-sm);">Добавьте первый комментарий ниже</p>
+</div>
+{% endfor %}
+

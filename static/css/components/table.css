@@ -18,7 +18,7 @@
 }
 
 .table__th {
-  padding: var(--spacing-md) var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-xs);
   text-align: left;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
@@ -27,6 +27,7 @@
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
+  font-size: var(--font-size-xs);
 }
 
 .table__th:hover {
@@ -43,10 +44,11 @@
 }
 
 .table__td {
-  padding: var(--spacing-md) var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-xs);
   color: var(--color-text);
   vertical-align: middle;
   min-width: 0;
+  font-size: var(--font-size-xs);
 }
 
 /* Company table specific */
@@ -66,6 +68,13 @@
   border-radius: var(--radius-base);
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.company-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-base);
 }
 
 .company-logo--placeholder {
@@ -149,6 +158,16 @@
   opacity: 1;
 }
 
+.favorite-btn--active {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.favorite-btn:not(.favorite-btn--active) {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
 /* Filters card - тільки margin, стилі filters в filter.css */
 .filters-card {
   margin-bottom: var(--spacing-lg);
@@ -198,6 +217,16 @@
 .page-header p {
   color: var(--color-text-light);
   margin: 0;
+}
+
+.call-date--overdue {
+  color: var(--color-error) !important;
+  font-weight: var(--font-weight-bold);
+}
+
+.call-date--upcoming {
+  color: var(--color-success) !important;
+  font-weight: var(--font-weight-medium);
 }
 
 @media (max-width: 767px) {

@@ -7,9 +7,20 @@
             <h2 class="modal__title">Добавить пользователя</h2>
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
-        <form method="post">
+        <form method="post" action="{% url 'myapp:user_create' %}" hx-post="{% url 'myapp:user_create' %}" hx-target="#main-content" hx-swap="innerHTML">
             {% csrf_token %}
             <div class="modal__body">
+                {% if errors %}
+                <div class="message message--error" role="alert">
+                    <div class="message__text">
+                        <ul>
+                            {% for error in errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="form-group">
                     <label class="form-group__label form-group__label--required">Имя</label>
                     <input type="text" class="form-control" name="name" placeholder="Иван Петров" required>
@@ -30,19 +41,18 @@
                     <label class="form-group__label form-group__label--required">Роль</label>
                     <select class="form-select" name="role" required>
                         <option value="">Выберите роль</option>
-                        <option>Суперадмин</option>
-                        <option>Менеджер</option>
-                        <option>Наблюдатель</option>
+                        <option value="SUPER_ADMIN">Супер адмін</option>
+                        <option value="MANAGER">Менеджер</option>
+                        <option value="OBSERVER">Спостерігач</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-group__label form-group__label--required">Страна</label>
                     <select class="form-select" name="country" required>
                         <option value="">Выберите страну</option>
-                        <option selected>🇺🇦 Украина</option>
-                        <option>🇵🇱 Польша</option>
-                        <option>🇩🇪 Германия</option>
-                        <option>🇨🇿 Чехия</option>
+                        {% for country in countries %}
+                        <option value="{{ country.id }}">{{ country.name }} {{ country.flag_emoji }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

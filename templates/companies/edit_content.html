@@ -1,9 +1,11 @@
 {% load static %}
 
 <!-- Тільки контент для HTMX (без layout) -->
-<div class="page-header">
-    <h1>Редактировать компанию</h1>
-    <p>Измените информацию о компании</p>
+<div class="page-header" style="margin-bottom: var(--spacing-sm); padding-bottom: var(--spacing-xs);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-size: var(--font-size-lg); margin: 0; font-weight: var(--font-weight-medium);">Редактировать компанию</h1>
+        <button type="submit" form="company-edit-form" class="button button--sm button--primary" style="font-size: var(--font-size-xs); padding: var(--spacing-xs) var(--spacing-sm);">💾 Сохранить</button>
+    </div>
 </div>
 
 {% if messages %}
@@ -31,7 +33,7 @@
 </div>
 {% endif %}
 
-<form class="card" method="post" enctype="multipart/form-data">
+<form id="company-edit-form" class="card" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     
     <div class="form-grid">
@@ -45,6 +47,32 @@
                 <span class="form-error">{{ error }}</span>
                 {% endfor %}
                 {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label class="form-group__label">Адреса</label>
+                <div class="address-inputs" id="address-list">
+                    {% for address in company.addresses.all %}
+                    <div class="address-input-group" style="display: flex; gap: var(--spacing-xs); align-items: center; margin-bottom: var(--spacing-xs);">
+                        <input type="text" class="form-control" name="addresses[]" value="{{ address.address }}">
+                        <label class="address-favorite" style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="favorite_address" value="{{ forloop.counter0 }}" {% if address.is_favorite %}checked{% endif %}>
+                            <span class="favorite-star">⭐</span>
+                        </label>
+                        <button type="button" class="button button--sm button--danger remove-address">−</button>
+                    </div>
+                    {% empty %}
+                    <div class="address-input-group" style="display: flex; gap: var(--spacing-xs); align-items: center; margin-bottom: var(--spacing-xs);">
+                        <input type="text" class="form-control" name="addresses[]" placeholder="Введите адрес">
+                        <label class="address-favorite" style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="favorite_address" value="0">
+                            <span class="favorite-star">⭐</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="button button--sm button--secondary" data-action="add-address" style="margin-top: var(--spacing-xs);">+ Добавить адрес</button>
+                <span class="form-hint">Можно добавить несколько адресов, только один со звездой</span>
             </div>
             
             <div class="form-group">
@@ -121,12 +149,27 @@
         
         <!-- Права колонка -->
         <div class="form-column">
+            {% if user_country %}
+            <input type="hidden" name="country" id="country-select" value="{{ user_country.id }}">
+            {% else %}
+            <div class="form-group">
+                <label class="form-group__label form-group__label--required">Страна</label>
+                <select class="form-select" name="country" id="country-select" required>
+                    <option value="">Выберите страну</option>
+                    {% for country in countries %}
+                    <option value="{{ country.id }}" {% if company.city and company.city.country.id == country.id %}selected{% endif %}>{{ country.name }} {{ country.flag_emoji }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Город</label>
-                <select class="form-select {% if form.city.errors %}form-control--error{% endif %}" name="city" required>
+                <input type="text" class="form-control city-search-input" id="city-search" placeholder="Начните вводить название города..." autocomplete="off" style="margin-bottom: var(--spacing-xs);">
+                <select class="form-select {% if form.city.errors %}form-control--error{% endif %}" name="city" id="city-select" required>
                     <option value="">Выберите город</option>
                     {% for city in cities %}
-                    <option value="{{ city.id }}" {% if form.city.value|stringformat:"s" == city.id|stringformat:"s" or company.city.id == city.id %}selected{% endif %}>{{ city.name }}</option>
+                    <option value="{{ city.id }}" data-country="{{ city.country.id }}" data-city-name="{{ city.name|lower }}" {% if form.city.value|stringformat:"s" == city.id|stringformat:"s" or company.city.id == city.id %}selected{% endif %}>{{ city.name }}</option>
                     {% endfor %}
                 </select>
                 {% if form.city.errors %}
@@ -190,7 +233,17 @@
             
             <div class="form-group">
                 <label class="form-group__label">Полное описание</label>
-                <textarea class="form-control textarea-auto-resize {% if form.full_description.errors %}form-control--error{% endif %}" name="full_description" rows="5" placeholder="Описание компании, ссылки, иконки...">{{ form.full_description.value|default:company.full_description|default:'' }}</textarea>
+                <div class="rich-text-editor">
+                    <div class="rich-text-toolbar">
+                        <button type="button" class="toolbar-btn" data-command="bold" title="Жирный">B</button>
+                        <button type="button" class="toolbar-btn" data-command="italic" title="Курсив">I</button>
+                        <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="Список">•</button>
+                        <button type="button" class="toolbar-btn" data-command="createLink" title="Ссылка">🔗</button>
+                        <button type="button" class="toolbar-btn" data-command="insertEmoji" title="Эмодзи">😀</button>
+                    </div>
+                    <div class="rich-text-content" contenteditable="true" data-name="full_description" role="textbox" aria-multiline="true" placeholder="Описание компании, ссылки, иконки...">{{ form.full_description.value|default:company.full_description|default:'' }}</div>
+                    <textarea class="form-control {% if form.full_description.errors %}form-control--error{% endif %}" name="full_description" style="display: none;">{{ form.full_description.value|default:company.full_description|default:'' }}</textarea>
+                </div>
                 {% if form.full_description.errors %}
                 {% for error in form.full_description.errors %}
                 <span class="form-error">{{ error }}</span>
@@ -225,7 +278,26 @@
         <div class="form-group">
             <label class="form-group__label">Фотографии</label>
             <input type="file" class="form-control" name="photos" accept="image/*" multiple>
-            <div class="images-preview"></div>
+            <div class="images-preview">
+                {% if company.photos %}
+                <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-sm);">
+                    {% for photo in company.photos %}
+                    <div style="position: relative; display: inline-block;">
+                        <img src="{{ photo }}" alt="Фото {{ forloop.counter }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: var(--radius-base); border: 1px solid var(--color-border);">
+                        <button type="button" 
+                                class="button button--sm button--danger"
+                                style="position: absolute; top: 5px; right: 5px; padding: 2px 6px; font-size: 0.75rem;"
+                                hx-post="{% url 'myapp:company_delete_photo' company.id %}"
+                                hx-vals='{"photo_url": "{{ photo }}"}'
+                                hx-target="#main-content"
+                                hx-push-url="true"
+                                onclick="return confirm('Видалити це фото?')"
+                                title="Видалити фото">🗑️</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
     
@@ -319,6 +391,88 @@
             checkDuplicates('phone', this.value);
         });
     });
+
+    // ==========================================================================
+    // Фільтрація міст по країні
+    // ==========================================================================
+    const countrySelect = document.getElementById('country-select');
+    const citySelect = document.getElementById('city-select');
+    
+    if (countrySelect && citySelect) {
+        // Зберігаємо всі міста для фільтрації
+        const allCities = Array.from(citySelect.options).slice(1); // Без першого option "Выберите город"
+        const currentCityId = '{{ company.city.id|default:"" }}';
+        
+        function filterCitiesByCountry(countryId) {
+            // Очищаємо список міст
+            const currentValue = citySelect.value;
+            citySelect.innerHTML = '<option value="">Выберите город</option>';
+            
+            if (!countryId) {
+                // Якщо країна не вибрана, показуємо всі міста
+                allCities.forEach(function(option) {
+                    citySelect.appendChild(option.cloneNode(true));
+                });
+                return;
+            }
+            
+            // Фільтруємо міста по країні
+            allCities.forEach(function(option) {
+                if (option.getAttribute('data-country') === countryId.toString()) {
+                    citySelect.appendChild(option.cloneNode(true));
+                }
+            });
+            
+            // Відновлюємо вибір міста якщо воно належить вибраній країні
+            if (currentValue) {
+                citySelect.value = currentValue;
+            }
+        }
+        
+        // Обробка зміни країни
+        if (countrySelect.type !== 'hidden') {
+            countrySelect.addEventListener('change', function() {
+                filterCitiesByCountry(this.value);
+                // Якщо вибране місто не належить новій країні, скидаємо вибір
+                const selectedCity = citySelect.options[citySelect.selectedIndex];
+                if (selectedCity && selectedCity.getAttribute('data-country') !== this.value) {
+                    citySelect.value = '';
+                }
+            });
+        }
+        
+        // Якщо країна вже вибрана (hidden input або при редагуванні), фільтруємо одразу
+        if (countrySelect.type === 'hidden') {
+            filterCitiesByCountry(countrySelect.value);
+        } else if (countrySelect.value) {
+            filterCitiesByCountry(countrySelect.value);
+        }
+    }
+
+    // ==========================================================================
+    // Пошук міст по букві
+    // ==========================================================================
+    const citySearchInput = document.getElementById('city-search');
+    if (citySearchInput && citySelect) {
+        citySearchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            const options = citySelect.querySelectorAll('option');
+            
+            options.forEach(function(option) {
+                if (option.value === '') {
+                    // Залишаємо перший option "Выберите город"
+                    return;
+                }
+                
+                const cityName = option.getAttribute('data-city-name') || option.textContent.toLowerCase();
+                if (cityName.includes(searchTerm)) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        });
+    }
 
     // Перевірка website
     const websiteInput = document.querySelector('input[name="website"]');

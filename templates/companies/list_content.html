@@ -1,11 +1,10 @@
 {% load static %}
 
-<div class="page-header">
-    <p>Всего: <strong>{{ total_count }} компаний</strong> | Новых за 30 дней: <strong>+{{ new_count }}</strong></p>
-</div>
-
 <!-- Фільтри -->
 <div class="card filters-card">
+    <div class="page-header" style="margin-bottom: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--color-border);">
+        <p style="margin: 0;">Всего: <strong>{{ total_count }} компаний</strong> | Новых за 30 дней: <strong>+{{ new_count }}</strong></p>
+    </div>
     <div class="filters">
         <div class="filter-group">
             <label class="filter-label">Статус</label>
@@ -45,13 +44,11 @@
 
         <div class="filter-group">
             <label class="filter-label">Дата обновления</label>
-            <select class="form-select filter-select" name="date_updated" data-filter="date_updated">
-                <option value="">Все даты</option>
-                <option value="today" {% if selected_date_updated == 'today' %}selected{% endif %}>Сегодня</option>
-                <option value="yesterday" {% if selected_date_updated == 'yesterday' %}selected{% endif %}>Вчера</option>
-                <option value="this_week" {% if selected_date_updated == 'this_week' %}selected{% endif %}>На этой неделе</option>
-                <option value="this_month" {% if selected_date_updated == 'this_month' %}selected{% endif %}>В этом месяце</option>
-            </select>
+            <div style="display: flex; gap: var(--spacing-xs); align-items: center;">
+                <input type="date" class="form-control" name="date_updated_from" value="{{ request.GET.date_updated_from|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="От">
+                <span style="color: var(--color-text-light);">-</span>
+                <input type="date" class="form-control" name="date_updated_to" value="{{ request.GET.date_updated_to|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="До">
+            </div>
         </div>
 
         <div class="filter-group">
@@ -59,7 +56,7 @@
             <select class="form-select filter-select" name="category" data-filter="category">
                 <option value="">Все разделы</option>
                 {% for category in all_categories %}
-                <option value="{{ category.name }}" {% if selected_category == category.name %}selected{% endif %}>{{ category.name }}</option>
+                <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -106,7 +103,11 @@
                     </td>
                     <td class="table__td">
                         <div class="company-cell">
-                            <div class="company-logo company-logo--placeholder" title="{{ company.name }}"></div>
+                            {% if company.logo %}
+                            <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="company-logo" title="{{ company.name }}">
+                            {% else %}
+                            <div class="company-logo company-logo--placeholder" title="{{ company.name }}">🏢</div>
+                            {% endif %}
                             <a href="{% url 'myapp:company_detail' company.id %}" hx-get="{% url 'myapp:company_detail' company.id %}"
                                 hx-target="#main-content" hx-push-url="true" class="company-name-link">{{ company.name }}</a>
                         </div>
@@ -115,17 +116,22 @@
                         <div class="phone-cell">
                             {% if favorite_phone %}
                             <span class="phone-number">{{ favorite_phone.number }}</span>
-                            {% if favorite_phone.is_favorite %}<span class="phone-star">⭐</span>{% endif %}
                             <span class="contact-name">{{ favorite_phone.contact_name|default:'' }}</span>
                             {% else %}
                             <span class="text-muted">-</span>
                             {% endif %}
                         </div>
                     </td>
-                    <td class="table__td">{% if company.instagram %}{{ company.instagram }}{% else %}-{% endif %}</td>
+                    <td class="table__td">
+                        {% if company.instagram %}
+                        <a href="https://instagram.com/{{ company.instagram|remove:'@' }}" target="_blank" rel="noopener">{{ company.instagram }}</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
                     <td class="table__td">
                         {% if company.website %}
-                        <a href="{{ company.website }}" target="_blank" rel="noopener" class="website-link">🌐</a>
+                        <a href="{{ company.website }}" target="_blank" rel="noopener" class="website-link" title="На сайт">🌐</a>
                         {% else %}
                         -
                         {% endif %}
@@ -133,14 +139,26 @@
                     <td class="table__td">
                         <span class="badge {{ company.status_badge_class }}">{{ company.status.name|default:'-' }}</span>
                     </td>
-                    <td class="table__td">{{ company.city.name|default:'-' }}</td>
+                    <td class="table__td">
+                        <div>{{ company.city.name|default:'-' }}</div>
+                        {% for address in company.addresses.all %}
+                        {% if address.is_favorite %}
+                        <div style="font-size: 0.75rem; color: var(--color-text-light); margin-top: 2px;">{{ address.address|truncatewords:5 }}</div>
+                        {% endif %}
+                        {% endfor %}
+                    </td>
                     <td class="table__td">{{ company.updated_at|date:"d.m.Y" }}</td>
                     <td class="table__td">
                         <span class="badge {{ company.category_badge_class }}">{{ company.category.name|default:'-' }}</span>
                     </td>
                     <td class="table__td">
                         {% if company.call_date %}
-                        <span class="call-date" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date|date:"d.m.Y" }}</span>
+                        {% now "Y-m-d" as today_str %}
+                        {% if company.call_date|date:"Y-m-d" < today_str %}
+                        <span class="call-date call-date--overdue" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date|date:"d.m.Y" }}</span>
+                        {% else %}
+                        <span class="call-date call-date--upcoming" data-call-date="{{ company.call_date|date:'Y-m-d' }}">{{ company.call_date|date:"d.m.Y" }}</span>
+                        {% endif %}
                         {% else %}
                         <span class="call-date" data-call-date="">-</span>
                         {% endif %}
@@ -148,11 +166,15 @@
                     <td class="table__td">{{ company.short_comment|default:"-"|truncatewords:5 }}</td>
                     <td class="table__td">
                         <div class="table-actions">
-                            <button type="button" class="icon-btn favorite-btn" data-id="{{ company.id }}"
-                                title="В избранное">⭐</button>
+                            <button type="button" 
+                                    class="icon-btn favorite-btn {% if company.id in favorite_company_ids %}favorite-btn--active{% endif %}" 
+                                    data-id="{{ company.id }}"
+                                    hx-post="{% url 'myapp:company_toggle_favorite' company.id %}"
+                                    hx-trigger="click"
+                                    hx-swap="none"
+                                    title="В избранное">⭐</button>
                             {% if company.telegram %}
-                            <button type="button" class="icon-btn telegram-btn" data-telegram="{{ company.telegram }}"
-                                title="Telegram">💬</button>
+                            <a href="https://t.me/{{ company.telegram|remove:'@' }}" target="_blank" rel="noopener" class="icon-btn" title="Telegram" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">💬</a>
                             {% endif %}
                             <a href="{% url 'myapp:company_edit' company.id %}" hx-get="{% url 'myapp:company_edit' company.id %}"
                                 hx-target="#main-content" hx-push-url="true" class="icon-btn"
@@ -390,5 +412,52 @@
     document.body.addEventListener('htmx:afterSwap', function () {
         sortTableByDate();
         checkCallDates();
+        initFavoriteButtons();
     });
+
+    // ==========================================================================
+    // Favorite система (зірка для ранжування)
+    // ==========================================================================
+    function initFavoriteButtons() {
+        document.querySelectorAll('.favorite-btn').forEach(function(btn) {
+            // Видаляємо старі обробники
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const companyId = this.getAttribute('data-id');
+                const url = this.getAttribute('hx-post');
+                
+                // Відправляємо запит
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+                        'HX-Request': 'true'
+                    }
+                }).then(function(response) {
+                    return response.text();
+                }).then(function(data) {
+                    // Перемикаємо клас активності
+                    if (newBtn.classList.contains('favorite-btn--active')) {
+                        newBtn.classList.remove('favorite-btn--active');
+                    } else {
+                        newBtn.classList.add('favorite-btn--active');
+                    }
+                    // Оновлюємо список компаній
+                    const currentUrl = window.location.href.split('?')[0];
+                    const params = new URLSearchParams(window.location.search);
+                    htmx.ajax('GET', currentUrl + '?' + params.toString(), {
+                        target: '#main-content',
+                        swap: 'innerHTML'
+                    });
+                });
+            });
+        });
+    }
+    
+    initFavoriteButtons();
 </script>

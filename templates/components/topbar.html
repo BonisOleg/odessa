@@ -1,8 +1,14 @@
 {% load static %}
 
 <header class="topbar">
-    <!-- Флаг країни + дата/час -->
+    <!-- Логотип + Флаг країни + дата/час -->
     <div class="topbar__left">
+        <div class="topbar__logo" style="margin-right: var(--spacing-md);">
+            <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="{% static 'img/logo.png' %}" alt="CRMin.in" style="height: 32px; width: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span style="display: none; font-weight: bold; color: var(--color-primary);">CRMin.in</span>
+            </a>
+        </div>
         <div class="topbar__country dropdown">
             <button class="dropdown__trigger" type="button">
                 🇺🇦 <span class="dropdown__arrow">▾</span>
@@ -20,7 +26,8 @@
     </div>
     
     <!-- Меню навігації -->
-    <nav class="topbar__nav">
+    <button class="topbar__menu-toggle" onclick="toggleMobileMenu()" style="display: none;">☰</button>
+    <nav class="topbar__nav" id="mobile-nav" style="display: none;">
         <a href="{% url 'myapp:clients' %}" 
            hx-get="{% url 'myapp:clients' %}" 
            hx-target="#main-content" 
