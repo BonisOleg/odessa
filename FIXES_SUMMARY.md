@@ -126,3 +126,5 @@ context = {
 **Деплой:** Зміни запушено в GitHub репозиторій  
 **Тестування:** Потрібно протестувати на https://crm-nice.onrender.com/companies/
 
+
+

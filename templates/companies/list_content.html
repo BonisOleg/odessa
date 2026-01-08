@@ -33,8 +33,9 @@
                     <span class="dropdown__arrow">▾</span>
                 </button>
                 <div class="multiselect-options">
+                    <input type="text" class="city-search-input" placeholder="Поиск по городу..." style="width: 100%; padding: var(--spacing-xs) var(--spacing-sm); border-bottom: 1px solid var(--color-border); font-size: var(--font-size-sm);">
                     {% for city in all_cities %}
-                    <div class="multiselect-option">
+                    <div class="multiselect-option" data-city-name="{{ city.name|lower }}">
                         <input type="checkbox" id="city-{{ city.id }}" value="{{ city.name }}" data-filter="city" name="city" {% if city.name in selected_cities %}checked{% endif %}>
                         <label for="city-{{ city.id }}">{{ city.name }}</label>
                     </div>
@@ -46,9 +47,9 @@
         <div class="filter-group">
             <label class="filter-label">Дата обновления</label>
             <div style="display: flex; gap: var(--spacing-xs); align-items: center;">
-                <input type="date" class="form-control" name="date_updated_from" value="{{ request.GET.date_updated_from|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="От">
+                <input type="date" class="form-control" name="date_updated_from" value="{{ date_updated_from|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="От">
                 <span style="color: var(--color-text-light);">-</span>
-                <input type="date" class="form-control" name="date_updated_to" value="{{ request.GET.date_updated_to|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="До">
+                <input type="date" class="form-control" name="date_updated_to" value="{{ date_updated_to|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="До">
             </div>
         </div>
 
@@ -71,7 +72,36 @@
                 <option value="this_week" {% if selected_call_date == 'this_week' %}selected{% endif %}>На этой неделе</option>
             </select>
         </div>
+        
+        <div class="filter-group" style="flex: 0 0 auto;">
+            <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true" class="button button--sm button--secondary" style="white-space: nowrap;">🗙 Скинути</a>
+        </div>
     </div>
+    
+    <!-- Активні фільтри -->
+    {% if selected_statuses or selected_cities or selected_category or date_updated_from or date_updated_to or call_date_from or call_date_to %}
+    <div class="active-filters" style="margin-top: var(--spacing-md); padding: var(--spacing-sm); background-color: var(--color-bg-light); border-radius: var(--radius-base); display: flex; flex-wrap: wrap; gap: var(--spacing-xs); align-items: center;">
+        <span style="font-weight: var(--font-weight-medium); color: var(--color-text); margin-right: var(--spacing-xs);">Активні фільтри:</span>
+        {% for status in selected_statuses %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            {{ status }}
+            <button type="button" onclick="window.location.href='{% url 'myapp:company_list' %}';" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+        </span>
+        {% endfor %}
+        {% for city in selected_cities %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            {{ city }}
+            <button type="button" onclick="window.location.href='{% url 'myapp:company_list' %}';" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+        </span>
+        {% endfor %}
+        {% if selected_category %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            {% for category in all_categories %}{% if category.id|stringformat:"s" == selected_category %}{{ category.name }}{% endif %}{% endfor %}
+            <button type="button" onclick="window.location.href='{% url 'myapp:company_list' %}';" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 <!-- Таблиця компаній -->

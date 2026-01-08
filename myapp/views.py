@@ -167,6 +167,11 @@ def company_list(request):
     
     # Фільтрація по пошуковому запиту
     if search_query:
+        # Нормалізація номера телефону (видалити пробіли, дефіси, дужки)
+        normalized_query = search_query.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        # Нормалізація для Instagram/Telegram (видалити @)
+        normalized_social = search_query.lstrip('@')
+        
         companies_queryset = companies_queryset.filter(
             Q(name__icontains=search_query) |
             Q(short_comment__icontains=search_query) |
@@ -174,11 +179,11 @@ def company_list(request):
             Q(city__name__icontains=search_query) |
             Q(category__name__icontains=search_query) |
             Q(keywords__icontains=search_query) |
-            Q(phones__number__icontains=search_query) |
+            Q(phones__number__icontains=normalized_query) |
             Q(phones__contact_name__icontains=search_query) |
-            Q(instagram__icontains=search_query) |
+            Q(instagram__icontains=normalized_social) |
             Q(website__icontains=search_query) |
-            Q(telegram__icontains=search_query) |
+            Q(telegram__icontains=normalized_social) |
             Q(addresses__address__icontains=search_query)
         ).distinct()
     
@@ -259,7 +264,18 @@ def company_list(request):
     
     # Отримуємо унікальні значення для фільтрів
     all_statuses = Status.objects.all().order_by('name')
-    all_cities = City.objects.all().order_by('name')
+    
+    # Фільтрування міст по країні користувача
+    all_cities = City.objects.all()
+    if request.user.is_authenticated:
+        try:
+            user_profile = request.user.userprofile
+            if user_profile and user_profile.country:
+                all_cities = all_cities.filter(country=user_profile.country)
+        except (AttributeError, ObjectDoesNotExist):
+            pass
+    all_cities = all_cities.order_by('name')
+    
     all_categories = Category.objects.all().order_by('name')
     
     # Отримуємо список обраних компаній для поточного користувача
@@ -585,9 +601,9 @@ def company_delete_logo(request, pk):
         company.logo = None
         company.save()
     
-    if is_htmx_request(request):
-        return redirect('myapp:company_detail', pk=company.pk)
-    return redirect('myapp:company_detail', pk=company.pk)
+    # Повертаємо оновлений HTML без перезавантаження
+    html = '<div class="company-logo-detail company-logo-placeholder">🏢</div>'
+    return HttpResponse(html, status=200)
 
 
 @login_required
@@ -617,9 +633,8 @@ def company_delete_photo(request, pk):
             except Exception:
                 pass  # Ігноруємо помилки видалення файлу
     
-    if is_htmx_request(request):
-        return redirect('myapp:company_detail', pk=company.pk)
-    return redirect('myapp:company_detail', pk=company.pk)
+    # Повертаємо порожню відповідь (елемент буде видалено HTMX swap)
+    return HttpResponse('', status=200)
 
 
 @login_required

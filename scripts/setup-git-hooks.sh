@@ -113,3 +113,5 @@ echo ""
 echo "Для ручної перевірки: npm run check:rules"
 echo "Для автовиправлення: npm run fix:rules"
 
+
+

@@ -12,9 +12,18 @@
 <!-- Header + Actions -->
 <div class="card company-header">
     <div class="company-header-top">
-        <div class="company-header-info">
+        <div class="company-header-info" id="logo-container">
             {% if company.logo %}
-            <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="company-logo-detail">
+            <div class="logo-wrapper" style="position: relative; display: inline-block;">
+                <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="company-logo-detail">
+                <button type="button" 
+                        class="button button--sm button--danger"
+                        style="position: absolute; top: 5px; right: 5px; padding: 2px 6px; font-size: 0.75rem;"
+                        hx-post="{% url 'myapp:company_delete_logo' company.id %}"
+                        hx-target="#logo-container"
+                        hx-swap="innerHTML swap:300ms"
+                        title="Видалити логотип">🗑️</button>
+            </div>
             {% else %}
             <div class="company-logo-detail company-logo-placeholder">🏢</div>
             {% endif %}
@@ -75,7 +84,7 @@
                 {% if company.website %}
                 <div class="info-item">
                     <span class="info-label">🌐 Сайт:</span>
-                    <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website|slice:"8:" }}</a>
+                    <a href="{{ company.website }}" target="_blank" rel="noopener" title="{{ company.website }}">{{ company.website }}</a>
                 </div>
                 {% endif %}
                 {% if company.instagram %}
@@ -122,10 +131,12 @@
         {% endif %}
 
         <!-- Полное описание -->
+        {% if company.full_description %}
         <div class="card">
             <h4>Полное описание</h4>
-            <div class="full-description-content" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6;">{{ company.full_description|linebreaks }}</div>
+            <div class="full-description-content" style="white-space: pre-wrap; word-wrap: break-word; line-height: 1.6;">{{ company.full_description|safe }}</div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Права колонка (30%) -->
@@ -196,16 +207,15 @@
         <button type="button" class="slider-btn slider-btn--prev" onclick="scrollPhotos(-200)">←</button>
         <div class="photo-slider-wrapper" id="photo-slider-wrapper">
             {% for photo in company.photos %}
-            <div class="photo-item">
+            <div class="photo-item" id="photo-{{ forloop.counter0 }}">
                 <img src="{{ photo }}" alt="Фото {{ forloop.counter }}">
                 <button type="button" 
                         class="button button--sm button--danger photo-delete-btn"
                         style="position: absolute; top: 5px; right: 5px; padding: 2px 6px; font-size: 0.75rem;"
                         hx-post="{% url 'myapp:company_delete_photo' company.id %}"
                         hx-vals='{"photo_url": "{{ photo }}"}'
-                        hx-target="#main-content"
-                        hx-push-url="true"
-                        onclick="return confirm('Видалити це фото?')"
+                        hx-target="#photo-{{ forloop.counter0 }}"
+                        hx-swap="outerHTML swap:300ms"
                         title="Видалити фото">🗑️</button>
             </div>
             {% endfor %}

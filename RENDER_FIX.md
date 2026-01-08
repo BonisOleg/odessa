@@ -145,3 +145,5 @@ CSRF_TRUSTED_ORIGINS=https://your-app-name.onrender.com
 2. Переконайтесь, що всі змінні середовища встановлені правильно
 3. Для SQLite: переконайтесь, що `DATABASE_URL` НЕ встановлено
 
+
+

@@ -30,3 +30,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_user_profiles, reverse_code=reverse_create_user_profiles),
     ]
 
+
+

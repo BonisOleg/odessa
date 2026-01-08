@@ -150,7 +150,12 @@
         <!-- Права колонка -->
         <div class="form-column">
             {% if user_country %}
-            <input type="hidden" name="country" id="country-select" value="{{ user_country.id }}">
+            <div class="form-group">
+                <label class="form-group__label">Страна</label>
+                <input type="text" class="form-control" value="{{ user_country.name }} {{ user_country.flag_emoji }}" disabled>
+                <input type="hidden" name="country" id="country-select" value="{{ user_country.id }}">
+                <span class="form-hint">Страна призначена адміністратором</span>
+            </div>
             {% else %}
             <div class="form-group">
                 <label class="form-group__label form-group__label--required">Страна</label>

@@ -226,61 +226,22 @@
     document.body.addEventListener('htmx:afterSwap', initPhotoSlider);
 
     // ==========================================================================
-    // Favorite Companies (localStorage)
+    // Favorite Companies (Server-side with HTMX)
     // ==========================================================================
 
     function initFavorites() {
         const favoriteButtons = document.querySelectorAll('.favorite-btn');
 
         favoriteButtons.forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
-                e.preventDefault();
-                const companyId = this.getAttribute('data-id');
-                const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-                const index = favorites.indexOf(companyId);
-
-                if (index > -1) {
-                    favorites.splice(index, 1);
-                    this.classList.remove('icon-btn--active');
-                } else {
-                    favorites.push(companyId);
-                    this.classList.add('icon-btn--active');
+            // Обробляємо успішне завантаження HTMX запиту
+            btn.addEventListener('htmx:afterRequest', function(event) {
+                if (event.detail.successful) {
+                    // Перекидаємо запит для перезавантаження списку
+                    setTimeout(function() {
+                        htmx.ajax('GET', window.location.pathname, {target: '#main-content'});
+                    }, 300);
                 }
-
-                localStorage.setItem('favorites', JSON.stringify(favorites));
-                // Пересортувати таблицю
-                sortTableByFavorites();
             });
-        });
-
-        // Установити активні стани для закріплених
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-        favorites.forEach(function (id) {
-            const btn = document.querySelector('.favorite-btn[data-id="' + id + '"]');
-            if (btn) {
-                btn.classList.add('icon-btn--active');
-            }
-        });
-    }
-
-    function sortTableByFavorites() {
-        const table = document.querySelector('table');
-        if (!table) return;
-
-        const tbody = table.querySelector('tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-
-        rows.sort(function (a, b) {
-            const aId = a.querySelector('.favorite-btn')?.getAttribute('data-id');
-            const bId = b.querySelector('.favorite-btn')?.getAttribute('data-id');
-            const aFav = favorites.includes(aId) ? 0 : 1;
-            const bFav = favorites.includes(bId) ? 0 : 1;
-            return aFav - bFav;
-        });
-
-        rows.forEach(function (row) {
-            tbody.appendChild(row);
         });
     }
 
@@ -376,6 +337,68 @@
     // Form Helpers
     // ==========================================================================
 
+    // ==========================================================================
+    // City Search Filter
+    // ==========================================================================
+
+    function initCitySearch() {
+        const searchInputs = document.querySelectorAll('.city-search-input');
+        searchInputs.forEach(function(searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const optionsContainer = this.closest('.multiselect-options');
+                if (!optionsContainer) return;
+                
+                const options = optionsContainer.querySelectorAll('.multiselect-option');
+                options.forEach(function(option) {
+                    const cityName = option.getAttribute('data-city-name') || option.textContent.toLowerCase();
+                    const shouldShow = cityName.includes(query);
+                    option.style.display = shouldShow ? '' : 'none';
+                });
+            });
+        });
+    }
+
+    initCitySearch();
+    document.body.addEventListener('htmx:afterSwap', initCitySearch);
+
+    // Додавання адреси
+    document.addEventListener('click', function (event) {
+        if (event.target.matches('[data-action="add-address"]')) {
+            event.preventDefault();
+            const addressList = document.getElementById('address-list');
+            if (addressList) {
+                const index = addressList.querySelectorAll('.address-input-group').length;
+                const newAddressGroup = document.createElement('div');
+                newAddressGroup.className = 'address-input-group';
+                newAddressGroup.style.cssText = 'display: flex; gap: var(--spacing-xs); align-items: center; margin-bottom: var(--spacing-xs);';
+                newAddressGroup.innerHTML = `
+                    <input type="text" class="form-control" name="addresses[]" placeholder="Введіть адресу">
+                    <label class="address-favorite" style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="radio" name="favorite_address" value="${index}">
+                        <span class="favorite-star">⭐</span>
+                    </label>
+                    <button type="button" class="button button--sm button--danger remove-address">−</button>
+                `;
+                addressList.appendChild(newAddressGroup);
+            }
+        }
+        
+        // Видалення адреси
+        if (event.target.matches('.remove-address') || event.target.closest('.remove-address')) {
+            event.preventDefault();
+            const addressGroup = event.target.closest('.address-input-group');
+            if (addressGroup) {
+                const allAddresses = document.querySelectorAll('.address-input-group');
+                if (allAddresses.length > 1) {
+                    addressGroup.remove();
+                } else {
+                    alert('Має бути хоча б одна адреса');
+                }
+            }
+        }
+    });
+
     // Додавання телефонного поля
     document.addEventListener('click', function (event) {
         if (event.target.matches('[data-action="add-phone"]')) {
@@ -388,6 +411,20 @@
                 newInput.name = 'phones[]';
                 newInput.placeholder = '+380991234567';
                 phoneInputs.insertBefore(newInput, event.target);
+            }
+        }
+        
+        // Видалення телефону
+        if (event.target.matches('.remove-phone') || event.target.closest('.remove-phone')) {
+            event.preventDefault();
+            const phoneGroup = event.target.closest('.phone-input-group');
+            if (phoneGroup) {
+                const allPhones = document.querySelectorAll('.phone-input-group');
+                if (allPhones.length > 1) {
+                    phoneGroup.remove();
+                } else {
+                    alert('Має бути хоча б один телефон');
+                }
             }
         }
     });
@@ -533,7 +570,7 @@
                 if (!input) return;
 
                 display.style.display = 'none';
-                input.classList.add('is-visible');
+                input.style.display = 'block';
                 input.focus();
 
                 function saveDate() {

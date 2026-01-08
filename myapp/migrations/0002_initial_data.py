@@ -106,3 +106,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(create_initial_data, reverse_initial_data),
     ]
 
+
+

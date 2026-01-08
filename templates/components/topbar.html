@@ -26,8 +26,8 @@
     </div>
     
     <!-- Меню навігації -->
-    <button class="topbar__menu-toggle" onclick="toggleMobileMenu()" style="display: none;">☰</button>
-    <nav class="topbar__nav" id="mobile-nav" style="display: none;">
+    <button class="topbar__menu-toggle" onclick="toggleMobileMenu()">☰</button>
+    <nav class="topbar__nav" id="mobile-nav">
         <a href="{% url 'myapp:clients' %}" 
            hx-get="{% url 'myapp:clients' %}" 
            hx-target="#main-content" 

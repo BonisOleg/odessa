@@ -120,6 +120,22 @@
     align-items: center;
 }
 
+/* Menu Toggle Button (приховано на десктопі) */
+.topbar__menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 24px;
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    margin: 0;
+}
+
+.topbar__menu-toggle:hover {
+    color: var(--color-primary);
+}
+
 /* Responsive - Планшети */
 @media (max-width: 1024px) {
     .topbar__nav {
@@ -280,5 +296,8 @@
     .topbar__right {
         order: 3;
     }
+}
+}
+}
 }
 }
