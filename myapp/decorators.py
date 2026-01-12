@@ -10,6 +10,11 @@ from django.shortcuts import redirect
 from django.http import HttpRequest, HttpResponse
 
 
+def is_htmx_request(request: HttpRequest) -> bool:
+    """Перевіряє, чи запит зроблено через HTMX."""
+    return request.headers.get('HX-Request') == 'true'
+
+
 def super_admin_required(view_func):
     """Декоратор для перевірки чи користувач є супер адміном."""
     @wraps(view_func)

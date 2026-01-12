@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from datetime import timedelta
 
-from .decorators import super_admin_required, manager_or_super_admin_required
+from .decorators import super_admin_required, manager_or_super_admin_required, is_htmx_request
 from .forms import CategoryForm, CityForm, CompanyForm, CountryForm, LoginForm, StatusForm, UserProfileForm
 from .models import Category, City, Company, CompanyAddress, CompanyComment, CompanyPhone, Country, Status, UserProfile, UserFavoriteCompany
 
