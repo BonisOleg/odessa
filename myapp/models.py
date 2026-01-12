@@ -322,6 +322,12 @@ class UserProfile(models.Model):
         null=True,
         help_text="Аватар користувача"
     )
+    profile_description = models.TextField(
+        max_length=500,
+        blank=True,
+        default='',
+        help_text="Про користувача (телефон, відділ тощо)"
+    )
     registration_date = models.DateTimeField(auto_now_add=True)
     language = models.CharField(
         max_length=10,

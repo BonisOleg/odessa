@@ -5,19 +5,18 @@
     <div class="topbar__left">
         <div class="topbar__logo" style="margin-right: var(--spacing-md);">
             <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true" style="display: flex; align-items: center; text-decoration: none;">
-                <img src="{% static 'img/logo.png' %}" alt="CRMin.in" style="height: 32px; width: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span style="display: none; font-weight: bold; color: var(--color-primary);">CRMin.in</span>
+                <img src="{% static 'img/logo.png' %}" alt="Logo" style="height: 32px; width: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <span style="display: none; font-weight: bold; color: var(--color-primary); font-size: var(--font-size-lg);">CRM Nice</span>
             </a>
         </div>
         <div class="topbar__country dropdown">
             <button class="dropdown__trigger" type="button">
-                🇺🇦 <span class="dropdown__arrow">▾</span>
+                {% if request.user.userprofile.country.flag_emoji %}{{ request.user.userprofile.country.flag_emoji }}{% else %}🌍{% endif %} {{ request.user.userprofile.country.name|default:"Країна" }} <span class="dropdown__arrow">▾</span>
             </button>
             <div class="dropdown__menu">
-                <a href="#" class="dropdown__item">🇺🇦 Украина</a>
-                <a href="#" class="dropdown__item">🇵🇱 Польша</a>
-                <a href="#" class="dropdown__item">🇩🇪 Германия</a>
-                <a href="#" class="dropdown__item">🇨🇿 Чехия</a>
+                {% for country in countries %}
+                <a href="#" class="dropdown__item">{{ country.flag_emoji }} {{ country.name }}</a>
+                {% endfor %}
             </div>
         </div>
         <div class="topbar__datetime">

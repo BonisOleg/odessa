@@ -55,6 +55,11 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label class="form-group__label">Про користувача</label>
+                    <textarea class="form-control" name="profile_description" rows="3" maxlength="500" placeholder="Додаткова інформація про користувача (телефон, відділ тощо)">{{ profile_description|default:'' }}</textarea>
+                    <span class="form-hint">Максимум 500 символів</span>
+                </div>
             </div>
             <div class="modal__footer">
                 <button type="button" class="button button--secondary" data-action="close-modal">Отмена</button>

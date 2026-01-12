@@ -134,3 +134,29 @@
     min-height: 48px;
   }
 }
+
+/* Favorite Button */
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  min-width: auto;
+  min-height: auto;
+  color: var(--color-text-light);
+  transition: all var(--transition-fast);
+}
+
+.favorite-btn:hover {
+  color: var(--color-warning);
+  transform: scale(1.2);
+}
+
+.favorite-btn--active {
+  color: var(--color-warning);
+}
+
+.favorite-btn--active:hover {
+  transform: scale(1.1);
+}

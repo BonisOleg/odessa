@@ -2,13 +2,6 @@
 {% load myapp_filters %}
 
 <!-- Тільки контент для HTMX (без layout) -->
-<!-- Короткий коментар вгорі -->
-{% if company.short_comment %}
-<div class="card short-comment-top" style="margin-bottom: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); background-color: var(--color-bg-light); border-left: 3px solid var(--color-primary);">
-    <p style="margin: 0; font-size: var(--font-size-sm); color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ company.short_comment }}</p>
-</div>
-{% endif %}
-
 <!-- Header + Actions -->
 <div class="card company-header">
     <div class="company-header-top">
@@ -33,6 +26,8 @@
             </div>
         </div>
         <div class="company-actions">
+            <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true"
+                class="button button--sm button--secondary" title="Повернутися до списку">← Назад</a>
             <a href="{% url 'myapp:company_edit' company.id %}" hx-get="{% url 'myapp:company_edit' company.id %}" hx-target="#main-content" hx-push-url="true"
                 class="button button--sm button--primary">✏️ Редактировать</a>
             <button type="button" class="button button--sm button--danger" hx-get="{% url 'myapp:company_delete' company.id %}" hx-target="body" hx-swap="beforeend">🗑️ Удалить</button>
@@ -256,4 +251,10 @@
         <textarea class="form-control" name="comment_text" rows="1" placeholder="Добавить комментарий..." style="font-size: 0.875rem; padding: var(--spacing-xs) var(--spacing-sm);" required></textarea>
         <button type="submit" class="button button--primary button--sm" style="font-size: 0.75rem; padding: var(--spacing-xs) var(--spacing-sm);">Отправить</button>
     </form>
+</div>
+
+<!-- Кнопка повернення в кінці -->
+<div style="padding: var(--spacing-md) 0; text-align: center;">
+    <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true"
+        class="button button--secondary">← Повернутися до списку</a>
 </div>

@@ -6,6 +6,29 @@
     'use strict';
 
     // ==========================================================================
+    // Auto-hide success messages
+    // ==========================================================================
+
+    function autoHideMessages() {
+        const successMessages = document.querySelectorAll('.message--success');
+        successMessages.forEach(function(msg) {
+            setTimeout(function() {
+                msg.style.transition = 'opacity 0.3s ease-out';
+                msg.style.opacity = '0';
+                setTimeout(function() {
+                    msg.remove();
+                }, 300);
+            }, 3000); // 3 seconds
+        });
+    }
+
+    // Ініціалізація при завантаженні
+    autoHideMessages();
+    
+    // Також при оновленні через HTMX
+    document.body.addEventListener('htmx:afterSwap', autoHideMessages);
+
+    // ==========================================================================
     // bfcache (Back/Forward Cache) Support
     // ==========================================================================
 
@@ -563,7 +586,11 @@
     function initCallDateEditor() {
         const editBtns = document.querySelectorAll('.btn-edit-date');
         editBtns.forEach(function (btn) {
-            btn.addEventListener('click', function () {
+            // Видаляємо старі обробники
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', function () {
                 const display = this.closest('.call-date-display');
                 const input = this.closest('.call-date-card').querySelector('.call-date-input');
 
@@ -573,48 +600,36 @@
                 input.style.display = 'block';
                 input.focus();
 
-                function saveDate() {
-                    const saveUrl = input.getAttribute('data-save-url');
-                    if (!saveUrl) return;
-
-                    const formData = new FormData();
-                    formData.append('call_date', input.value);
-                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
-
-                    // Використовуємо HTMX якщо доступний
-                    if (input.hasAttribute('hx-post')) {
-                        // HTMX обробить запит автоматично
-                        input.dispatchEvent(new Event('change'));
-                        display.style.display = 'flex';
-                        input.style.display = 'none';
-                    } else {
-                        // Fallback на fetch
-                        fetch(saveUrl, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
-                            }
-                        }).then(function (response) {
-                            if (response.ok) {
-                                return response.text();
-                            } else {
-                                throw new Error('Помилка збереження');
-                            }
-                        }).then(function (html) {
-                            display.innerHTML = html;
+                // Обробка збереження через HTMX
+                function handleDateChange() {
+                    if (input.value) {
+                        // HTMX автоматично відправить запит через hx-post
+                        // Після успішного збереження HTMX оновить display
+                        setTimeout(function() {
                             display.style.display = 'flex';
                             input.style.display = 'none';
-                            initCallDateEditor(); // Реініціалізуємо обробники
-                        }).catch(function (error) {
-                            console.error('Error saving call date:', error);
-                            alert('Помилка збереження дати');
-                        });
+                            // Реініціалізуємо обробники після оновлення
+                            initCallDateEditor();
+                        }, 100);
+                    } else {
+                        // Якщо дата очищена, також відправляємо
+                        setTimeout(function() {
+                            display.style.display = 'flex';
+                            input.style.display = 'none';
+                            initCallDateEditor();
+                        }, 100);
                     }
                 }
 
-                input.addEventListener('change', saveDate);
-                input.addEventListener('blur', saveDate);
+                // Обробка зміни дати
+                input.addEventListener('change', function() {
+                    handleDateChange();
+                });
+                
+                // Обробка втрати фокусу
+                input.addEventListener('blur', function() {
+                    handleDateChange();
+                });
             });
         });
     }

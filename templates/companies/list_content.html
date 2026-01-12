@@ -65,16 +65,15 @@
 
         <div class="filter-group">
             <label class="filter-label">Дата звонка</label>
-            <select class="form-select filter-select" name="call_date" data-filter="call_date">
-                <option value="">Все даты</option>
-                <option value="overdue" {% if selected_call_date == 'overdue' %}selected{% endif %}>Просрочено</option>
-                <option value="today" {% if selected_call_date == 'today' %}selected{% endif %}>Сегодня</option>
-                <option value="this_week" {% if selected_call_date == 'this_week' %}selected{% endif %}>На этой неделе</option>
-            </select>
+            <div style="display: flex; gap: var(--spacing-xs); align-items: center;">
+                <input type="date" class="form-control" name="call_date_from" value="{{ call_date_from|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="От">
+                <span style="color: var(--color-text-light);">-</span>
+                <input type="date" class="form-control" name="call_date_to" value="{{ call_date_to|default:'' }}" style="font-size: 0.75rem; padding: var(--spacing-xs);" placeholder="До">
+            </div>
         </div>
         
         <div class="filter-group" style="flex: 0 0 auto;">
-            <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true" class="button button--sm button--secondary" style="white-space: nowrap;">🗙 Скинути</a>
+            <a href="{% url 'myapp:company_list' %}" hx-get="{% url 'myapp:company_list' %}" hx-target="#main-content" hx-push-url="true" class="button button--sm button--secondary button-reset-filters" style="white-space: nowrap; padding: var(--spacing-xs) var(--spacing-sm); min-width: 40px; display: flex; align-items: center; justify-content: center;" title="Скинути фільтри">✕</a>
         </div>
     </div>
     
@@ -85,19 +84,43 @@
         {% for status in selected_statuses %}
         <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
             {{ status }}
-            <button type="button" onclick="window.location.href='{% url 'myapp:company_list' %}';" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+            <button type="button" class="remove-filter-tag" data-filter="status" data-value="{{ status }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
         </span>
         {% endfor %}
         {% for city in selected_cities %}
         <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
             {{ city }}
-            <button type="button" onclick="window.location.href='{% url 'myapp:company_list' %}';" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+            <button type="button" class="remove-filter-tag" data-filter="city" data-value="{{ city }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
         </span>
         {% endfor %}
         {% if selected_category %}
         <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
             {% for category in all_categories %}{% if category.id|stringformat:"s" == selected_category %}{{ category.name }}{% endif %}{% endfor %}
-            <button type="button" onclick="window.location.href='{% url 'myapp:company_list' %}';" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px;">×</button>
+            <button type="button" class="remove-filter-tag" data-filter="category" data-value="{{ selected_category }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
+        </span>
+        {% endif %}
+        {% if date_updated_from %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            Оновлено від: {{ date_updated_from }}
+            <button type="button" class="remove-filter-tag" data-filter="date_updated_from" data-value="{{ date_updated_from }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
+        </span>
+        {% endif %}
+        {% if date_updated_to %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            Оновлено до: {{ date_updated_to }}
+            <button type="button" class="remove-filter-tag" data-filter="date_updated_to" data-value="{{ date_updated_to }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
+        </span>
+        {% endif %}
+        {% if call_date_from %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            Дзвінок від: {{ call_date_from }}
+            <button type="button" class="remove-filter-tag" data-filter="call_date_from" data-value="{{ call_date_from }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
+        </span>
+        {% endif %}
+        {% if call_date_to %}
+        <span class="filter-tag" style="background-color: var(--color-primary); color: white; padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: var(--font-size-sm); display: inline-flex; align-items: center; gap: var(--spacing-xs);">
+            Дзвінок до: {{ call_date_to }}
+            <button type="button" class="remove-filter-tag" data-filter="call_date_to" data-value="{{ call_date_to }}" style="background: none; border: none; color: white; cursor: pointer; padding: 0; font-size: 16px; line-height: 1;">×</button>
         </span>
         {% endif %}
     </div>
@@ -202,7 +225,7 @@
                                     hx-post="{% url 'myapp:company_toggle_favorite' company.id %}"
                                     hx-trigger="click"
                                     hx-swap="none"
-                                    title="В избранное">⭐</button>
+                                    title="В избранное">{% if company.id in favorite_company_ids %}🌟{% else %}⭐{% endif %}</button>
                             {% if company.telegram %}
                             <a href="https://t.me/{{ company.telegram|remove:'@' }}" target="_blank" rel="noopener" class="icon-btn" title="Telegram" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">💬</a>
                             {% endif %}
@@ -338,16 +361,24 @@
             params.append('category', categorySelect.value);
         }
         
-        // Дата оновлення
-        const dateUpdatedSelect = document.querySelector('select[name="date_updated"]');
-        if (dateUpdatedSelect && dateUpdatedSelect.value) {
-            params.append('date_updated', dateUpdatedSelect.value);
+        // Дата оновлення (від-до)
+        const dateUpdatedFrom = document.querySelector('input[name="date_updated_from"]');
+        if (dateUpdatedFrom && dateUpdatedFrom.value) {
+            params.append('date_updated_from', dateUpdatedFrom.value);
+        }
+        const dateUpdatedTo = document.querySelector('input[name="date_updated_to"]');
+        if (dateUpdatedTo && dateUpdatedTo.value) {
+            params.append('date_updated_to', dateUpdatedTo.value);
         }
         
-        // Дата дзвінка
-        const callDateSelect = document.querySelector('select[name="call_date"]');
-        if (callDateSelect && callDateSelect.value) {
-            params.append('call_date', callDateSelect.value);
+        // Дата дзвінка (від-до)
+        const callDateFrom = document.querySelector('input[name="call_date_from"]');
+        if (callDateFrom && callDateFrom.value) {
+            params.append('call_date_from', callDateFrom.value);
+        }
+        const callDateTo = document.querySelector('input[name="call_date_to"]');
+        if (callDateTo && callDateTo.value) {
+            params.append('call_date_to', callDateTo.value);
         }
         
         return '{% url "myapp:company_list" %}?' + params.toString();
@@ -368,9 +399,9 @@
         }
     }
 
-    // Обробка змін checkbox та select
+    // Обробка змін checkbox та select та date input
     document.addEventListener('change', function (e) {
-        if (e.target.matches('input[data-filter], select[data-filter]')) {
+        if (e.target.matches('input[data-filter], select[data-filter], input[name="date_updated_from"], input[name="date_updated_to"], input[name="call_date_from"], input[name="call_date_to"]')) {
             if (e.target.matches('input[data-filter]')) {
                 const dropdown = e.target.closest('.multiselect-dropdown');
                 if (dropdown) {
@@ -379,6 +410,84 @@
             }
             // Застосовуємо фільтри через backend
             applyFilters();
+        }
+    });
+
+    // ==========================================================================
+    // Видалення окремих фільтрів
+    // ==========================================================================
+    document.addEventListener('click', function(e) {
+        const removeBtn = e.target.closest('.remove-filter-tag');
+        if (!removeBtn) return;
+        
+        e.preventDefault();
+        
+        const filterType = removeBtn.getAttribute('data-filter');
+        const filterValue = removeBtn.getAttribute('data-value');
+        
+        // Будуємо URL без цього фільтра
+        const params = new URLSearchParams();
+        
+        // Пошук
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        // Статуси (без видаленого)
+        const statusChecks = document.querySelectorAll('input[name="status"]:checked');
+        statusChecks.forEach(function (cb) {
+            if (filterType === 'status' && cb.value === filterValue) {
+                return; // Пропускаємо видалений фільтр
+            }
+            params.append('status', cb.value);
+        });
+        
+        // Міста (без видаленого)
+        const cityChecks = document.querySelectorAll('input[name="city"]:checked');
+        cityChecks.forEach(function (cb) {
+            if (filterType === 'city' && cb.value === filterValue) {
+                return; // Пропускаємо видалений фільтр
+            }
+            params.append('city', cb.value);
+        });
+        
+        // Категорія
+        const categorySelect = document.querySelector('select[name="category"]');
+        if (categorySelect && categorySelect.value && filterType !== 'category') {
+            params.append('category', categorySelect.value);
+        }
+        
+        // Дата оновлення
+        const dateUpdatedFrom = document.querySelector('input[name="date_updated_from"]');
+        if (dateUpdatedFrom && dateUpdatedFrom.value && filterType !== 'date_updated_from') {
+            params.append('date_updated_from', dateUpdatedFrom.value);
+        }
+        const dateUpdatedTo = document.querySelector('input[name="date_updated_to"]');
+        if (dateUpdatedTo && dateUpdatedTo.value && filterType !== 'date_updated_to') {
+            params.append('date_updated_to', dateUpdatedTo.value);
+        }
+        
+        // Дата дзвінка
+        const callDateFrom = document.querySelector('input[name="call_date_from"]');
+        if (callDateFrom && callDateFrom.value && filterType !== 'call_date_from') {
+            params.append('call_date_from', callDateFrom.value);
+        }
+        const callDateTo = document.querySelector('input[name="call_date_to"]');
+        if (callDateTo && callDateTo.value && filterType !== 'call_date_to') {
+            params.append('call_date_to', callDateTo.value);
+        }
+        
+        // Переходимо на URL без фільтра
+        const url = '{% url "myapp:company_list" %}?' + params.toString();
+        if (typeof htmx !== 'undefined') {
+            htmx.ajax('GET', url, {
+                target: '#main-content',
+                swap: 'innerHTML',
+                pushUrl: true
+            });
+        } else {
+            window.location.href = url;
         }
     });
 
@@ -470,11 +579,13 @@
                 }).then(function(response) {
                     return response.text();
                 }).then(function(data) {
-                    // Перемикаємо клас активності
+                    // Перемикаємо клас активності та emoji
                     if (newBtn.classList.contains('favorite-btn--active')) {
                         newBtn.classList.remove('favorite-btn--active');
+                        newBtn.textContent = '⭐';
                     } else {
                         newBtn.classList.add('favorite-btn--active');
+                        newBtn.textContent = '🌟';
                     }
                     // Оновлюємо список компаній
                     const currentUrl = window.location.href.split('?')[0];

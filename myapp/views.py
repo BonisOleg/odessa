@@ -21,13 +21,17 @@ from .forms import CategoryForm, CityForm, CompanyForm, CountryForm, LoginForm, 
 from .models import Category, City, Company, CompanyAddress, CompanyComment, CompanyPhone, Country, Status, UserProfile, UserFavoriteCompany
 
 
-def is_htmx_request(request: HttpRequest) -> bool:
-    """Перевірка чи це HTMX запит"""
-    return request.headers.get('HX-Request') == 'true'
-
-
 # ============================================================================
-# Компанії
+# Context Processors
+# ============================================================================
+
+def countries_context(request):
+    """Додає список країн в контекст для всіх шаблонів"""
+    return {
+        'countries': Country.objects.all().order_by('name')
+    }
+
+
 # ============================================================================
 
 def _process_company_phones(company: Company, phones_data: list, contact_names: list, favorite_phone_index: str | None) -> None:
@@ -1268,6 +1272,9 @@ def user_create(request):
         # Оновлюємо профіль (створюється автоматично через сигнал)
         user_profile = user.userprofile
         user_profile.role = role
+        profile_description = request.POST.get('profile_description', '').strip()
+        if profile_description:
+            user_profile.profile_description = profile_description
         if country_id:
             try:
                 country = Country.objects.get(pk=country_id)
