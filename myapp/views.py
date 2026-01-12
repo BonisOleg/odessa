@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -1374,3 +1374,32 @@ def logout_view(request):
     logout(request)
     return redirect("myapp:login")
 
+
+# ============================================================================
+# API Endpoints
+# ============================================================================
+
+@login_required
+@require_http_methods(["POST"])
+def change_user_country(request):
+    """Змінює країну користувача в профілі"""
+    country_id = request.POST.get('country_id')
+    
+    if not country_id:
+        return JsonResponse({'success': False, 'error': 'Country ID not provided'}, status=400)
+    
+    try:
+        country = Country.objects.get(id=country_id)
+        user_profile = request.user.userprofile
+        user_profile.country = country
+        user_profile.save()
+        
+        return JsonResponse({
+            'success': True,
+            'country_name': country.name,
+            'country_flag': country.flag_emoji
+        })
+    except Country.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Country not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

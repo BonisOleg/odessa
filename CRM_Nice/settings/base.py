@@ -62,7 +62,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "myapp.views.countries_context",
+                "myapp.context_processors.global_context",
             ],
             "autoescape": True,
         },

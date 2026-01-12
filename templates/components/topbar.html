@@ -15,7 +15,13 @@
             </button>
             <div class="dropdown__menu">
                 {% for country in countries %}
-                <a href="#" class="dropdown__item">{{ country.flag_emoji }} {{ country.name }}</a>
+                <button type="button" 
+                        class="dropdown__item country-selector-btn" 
+                        data-country-id="{{ country.id }}"
+                        data-country-name="{{ country.name }}"
+                        data-country-flag="{{ country.flag_emoji }}">
+                    {{ country.flag_emoji }} {{ country.name }}
+                </button>
                 {% endfor %}
             </div>
         </div>

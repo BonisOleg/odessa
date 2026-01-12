@@ -514,6 +514,13 @@
         // Якщо завантажено модальне вікно
         const modal = event.detail.target.querySelector('.modal');
         if (modal) {
+            // Видаляємо старі модальні вікна перед відкриттям нового
+            const oldModals = document.querySelectorAll('.modal:not(#' + (modal.id || '') + ')');
+            oldModals.forEach(function (oldModal) {
+                if (oldModal.parentNode) {
+                    oldModal.parentNode.removeChild(oldModal);
+                }
+            });
             openModal(modal);
         }
         // Якщо оновлено #main-content (успішний submit), закриваємо та ВИДАЛЯЄМО всі модальні вікна
@@ -880,5 +887,96 @@
         initMobileMenu();
         initMobileFilter();
     });
+
+    // ==========================================================================
+    // Country Selector
+    // ==========================================================================
+
+    function initCountrySelector() {
+        document.querySelectorAll('.country-selector-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const countryId = this.getAttribute('data-country-id');
+                const countryName = this.getAttribute('data-country-name');
+                const countryFlag = this.getAttribute('data-country-flag');
+                
+                // Відправляємо запит на зміну країни
+                const formData = new FormData();
+                formData.append('country_id', countryId);
+                formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+                
+                fetch('/api/change-country/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    }
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (data.success) {
+                        // Оновлюємо текст кнопки
+                        const triggerBtn = document.querySelector('.topbar__country .dropdown__trigger');
+                        if (triggerBtn) {
+                            const textNode = triggerBtn.childNodes[0];
+                            textNode.textContent = countryFlag + ' ' + countryName + ' ';
+                        }
+                        
+                        // Закриваємо dropdown
+                        const dropdown = document.querySelector('.topbar__country');
+                        if (dropdown) {
+                            dropdown.classList.remove('is-open');
+                        }
+                        
+                        // Показуємо повідомлення
+                        showMessage('Країну змінено на ' + countryName, 'success');
+                        
+                        // Перезавантажуємо сторінку для оновлення даних
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        showMessage('Помилка: ' + (data.error || 'Не вдалось змінити країну'), 'error');
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error changing country:', error);
+                    showMessage('Помилка зміни країни', 'error');
+                });
+            });
+        });
+    }
+
+    // Ініціалізуємо при завантаженні
+    initCountrySelector();
+
+    // Реініціалізуємо після HTMX swap
+    document.body.addEventListener('htmx:afterSwap', function() {
+        initCountrySelector();
+    });
+
+    // Допоміжна функція для показу повідомлень
+    function showMessage(text, type) {
+        const messagesContainer = document.querySelector('.messages') || createMessagesContainer();
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message message--' + type;
+        messageDiv.innerHTML = '<div class="message__text">' + text + '</div>';
+        messagesContainer.appendChild(messageDiv);
+        
+        setTimeout(function() {
+            messageDiv.remove();
+        }, 3000);
+    }
+
+    function createMessagesContainer() {
+        const container = document.createElement('div');
+        container.className = 'messages';
+        document.body.insertBefore(container, document.body.firstChild);
+        return container;
+    }
 
 })();

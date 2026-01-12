@@ -24,6 +24,7 @@ urlpatterns = [
     path('companies/<int:pk>/toggle-favorite/', views.company_toggle_favorite, name='company_toggle_favorite'),
     path('companies/check-duplicates/', views.company_check_duplicates, name='company_check_duplicates'),
     path('api/cities-by-country/', views.get_cities_by_country, name='get_cities_by_country'),
+    path('api/change-country/', views.change_user_country, name='change_country'),
     
     # Налаштування
     path('settings/', views.settings_dashboard, name='settings_dashboard'),
