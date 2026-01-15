@@ -180,11 +180,11 @@
             </div>
             <input type="date" 
                    class="call-date-input" 
+                   name="call_date"
                    value="{% if company.call_date %}{{ company.call_date|date:'Y-m-d' }}{% endif %}"
                    data-company-id="{{ company.id }}"
                    hx-post="{% url 'myapp:company_update_call_date' company.id %}"
-                   hx-trigger="change"
-                   hx-vals='{"call_date": this.value}'
+                   hx-trigger="change delay:100ms, blur delay:100ms"
                    hx-target="#call-date-display-{{ company.id }}"
                    hx-swap="innerHTML"
                    style="display: none;">

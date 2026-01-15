@@ -592,50 +592,81 @@
 
     function initCallDateEditor() {
         const editBtns = document.querySelectorAll('.btn-edit-date');
+        
         editBtns.forEach(function (btn) {
-            // Видаляємо старі обробники
+            // Видаляємо старі обробники через клонування
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
             
-            newBtn.addEventListener('click', function () {
-                const display = this.closest('.call-date-display');
-                const input = this.closest('.call-date-card').querySelector('.call-date-input');
+            newBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const card = this.closest('.call-date-card');
+                const display = card.querySelector('.call-date-display');
+                const input = card.querySelector('.call-date-input');
 
-                if (!input) return;
+                if (!input || !display) return;
 
+                // Показуємо input, приховуємо display
                 display.style.display = 'none';
                 input.style.display = 'block';
                 input.focus();
 
-                // Обробка збереження через HTMX
-                function handleDateChange() {
-                    if (input.value) {
-                        // HTMX автоматично відправить запит через hx-post
-                        // Після успішного збереження HTMX оновить display
-                        setTimeout(function() {
-                            display.style.display = 'flex';
-                            input.style.display = 'none';
-                            // Реініціалізуємо обробники після оновлення
-                            initCallDateEditor();
-                        }, 100);
-                    } else {
-                        // Якщо дата очищена, також відправляємо
-                        setTimeout(function() {
-                            display.style.display = 'flex';
-                            input.style.display = 'none';
-                            initCallDateEditor();
-                        }, 100);
-                    }
+                // Функція для відправки дати вручну
+                function manualSave() {
+                    const callDate = input.value;
+                    const hxPost = input.getAttribute('hx-post');
+                    const target = input.getAttribute('hx-target');
+                    
+                    if (!hxPost || !callDate) return;
+                    
+                    // Відправляємо POST запит через fetch
+                    const formData = new FormData();
+                    formData.append('call_date', callDate);
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+                    
+                    fetch(hxPost, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                        }
+                    })
+                    .then(function(response) {
+                        if (response.ok) {
+                            return response.text();
+                        }
+                        throw new Error('Network response was not ok');
+                    })
+                    .then(function(html) {
+                        // Оновлюємо display з serverside відповіддю
+                        if (target) {
+                            const targetEl = document.querySelector(target);
+                            if (targetEl) {
+                                targetEl.innerHTML = html;
+                            }
+                        }
+                        // Приховуємо input, показуємо display після успішного збереження
+                        input.style.display = 'none';
+                        display.style.display = 'flex';
+                        // Реініціалізуємо обробники після оновлення
+                        initCallDateEditor();
+                    })
+                    .catch(function(error) {
+                        console.error('Error saving call date:', error);
+                        alert('Помилка при збереженні дати');
+                    });
                 }
 
-                // Обробка зміни дати
+                // Обробка зміни дати (change event)
                 input.addEventListener('change', function() {
-                    handleDateChange();
+                    manualSave();
                 });
                 
-                // Обробка втрати фокусу
+                // Обробка втрати фокусу (blur event)
                 input.addEventListener('blur', function() {
-                    handleDateChange();
+                    if (input.value) {
+                        manualSave();
+                    }
                 });
             });
         });
