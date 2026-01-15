@@ -23,6 +23,7 @@
             <div>
                 <h1>{{ company.name }}</h1>
                 <span class="badge {{ company.status.badge_class }}">{{ company.status.name }}</span>
+                {% if company.category %}<div class="company-type">🏷️ {{ company.category.name }}</div>{% endif %}
             </div>
         </div>
         <div class="company-actions">
@@ -34,7 +35,6 @@
             <a href="{% url 'myapp:company_export' company.id %}" class="button button--sm button--secondary" download>📊 Экспорт</a>
         </div>
     </div>
-    <div class="company-id">ID: {{ company.client_id }}</div>
 </div>
 
 <!-- Контент (2 колонки) -->
@@ -56,6 +56,10 @@
                         <span class="text-muted" style="font-style: italic;">Нет телефонов</span>
                         {% endfor %}
                     </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">📍 Город:</span>
+                    <span>{{ company.city }}</span>
                 </div>
                 {% if company.addresses.all %}
                 <div class="info-item">
@@ -94,42 +98,14 @@
                     <a href="https://instagram.com/{{ company.instagram|remove:'@' }}" target="_blank" rel="noopener">{{ company.instagram }}</a>
                 </div>
                 {% endif %}
-                <div class="info-item">
-                    <span class="info-label">📍 Город:</span>
-                    <span>{{ company.city }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">🏷️ Раздел:</span>
-                    {% if company.category %}
-                    <span class="badge badge-category" 
-                          data-bg-color="{{ company.category.badge_color_bg }}"
-                          data-fg-color="{{ company.category.badge_color_fg }}">{{ company.category.name }}</span>
-                    {% else %}
-                    <span class="badge badge--secondary">-</span>
-                    {% endif %}
-                </div>
                 {% if company.keywords %}
-                <div class="info-item">
-                    <span class="info-label">🔑 Ключевые слова:</span>
-                    <span>{{ company.keywords }}</span>
+                <div class="card keywords-card">
+                    <h4>🔑 Ключевые слова</h4>
+                    <div class="keywords-content">{{ company.keywords }}</div>
                 </div>
                 {% endif %}
             </div>
         </div>
-
-        <!-- Короткий комментарий (редагування) -->
-        {% if company.short_comment %}
-        <div class="card">
-            <div class="short-comment-block">
-                <h4>Короткий комментарий</h4>
-                <p class="short-comment-text" 
-                   contenteditable="true" 
-                   data-company-id="{{ company.id }}"
-                   data-save-url="{% url 'myapp:company_update_short_comment' company.id %}">{{ company.short_comment }}</p>
-                <small class="text-muted">Кликните для редактирования</small>
-            </div>
-        </div>
-        {% endif %}
 
         <!-- Полное описание -->
         {% if company.full_description %}
@@ -188,8 +164,16 @@
                    style="display: none;">
         </div>
 
-        <!-- Даты -->
+        <!-- ID, Статус, Дати -->
         <div class="card">
+            <div class="info-item">
+                <span class="info-label">🆔 ID:</span>
+                <span>{{ company.client_id }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🔖 Статус:</span>
+                <span class="badge {{ company.status_badge }}">{{ company.status }}</span>
+            </div>
             <div class="info-item">
                 <span class="info-label">📅 Создано:</span>
                 <span>{{ company.created_date }}</span>
@@ -198,11 +182,19 @@
                 <span class="info-label">📅 Обновлено:</span>
                 <span>{{ company.updated_date }}</span>
             </div>
-            <div class="info-item">
-                <span class="info-label">🔖 Статус:</span>
-                <span class="badge {{ company.status_badge }}">{{ company.status }}</span>
-            </div>
         </div>
+
+        <!-- Короткий комментарий в sidebar -->
+        {% if company.short_comment %}
+        <div class="card short-comment-sidebar">
+            <h4>💬 Короткий комментарий</h4>
+            <p class="short-comment-text" 
+               contenteditable="true" 
+               data-company-id="{{ company.id }}"
+               data-save-url="{% url 'myapp:company_update_short_comment' company.id %}">{{ company.short_comment }}</p>
+            <small class="text-muted">Кликните для редактирования</small>
+        </div>
+        {% endif %}
     </div>
 </div>
 
