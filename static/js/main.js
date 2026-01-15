@@ -591,8 +591,8 @@
                 // Функція для відправки дати вручну
                 function manualSave() {
                     const callDate = input.value;
-                    const hxPost = input.getAttribute('hx-post');
-                    const target = input.getAttribute('hx-target');
+                    const hxPost = input.getAttribute('data-hx-post');
+                    const target = input.getAttribute('data-hx-target');
                     
                     if (!hxPost || !callDate) return;
                     
@@ -634,15 +634,13 @@
                     });
                 }
 
-                // Обробка зміни дати (change event)
-                input.addEventListener('change', function() {
-                    manualSave();
-                });
-                
-                // Обробка втрати фокусу (blur event)
+                // Обробка втрати фокусу (blur event) - дозволяємо користувачу завершити введення
                 input.addEventListener('blur', function() {
                     if (input.value) {
-                        manualSave();
+                        // Невелика затримка для надійності
+                        setTimeout(function() {
+                            manualSave();
+                        }, 100);
                     }
                 });
             });

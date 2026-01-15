@@ -809,7 +809,7 @@ def company_check_duplicates(request):
 # Налаштування
 # ============================================================================
 
-@super_admin_required
+@login_required
 @require_http_methods(["GET"])
 def settings_dashboard(request):
     """Головна сторінка налаштувань"""
@@ -817,7 +817,7 @@ def settings_dashboard(request):
     return render(request, template)
 
 
-@super_admin_required
+@login_required
 @require_http_methods(["GET", "POST"])
 def settings_countries(request):
     """Управління країнами (тільки для супер адміна)"""
