@@ -76,10 +76,8 @@
             </div>
 
             <div class="form-group">
-                <label class="form-group__label">
-                    💬 Telegram
-                </label>
-                <input type="text" class="form-control {% if form.telegram.errors %}form-control--error{% endif %}" name="telegram" value="{{ form.telegram.value|default:'' }}" placeholder="@username или https://t.me/username">
+                <label class="form-group__label">💬 Telegram</label>
+                <input type="text" class="form-control {% if form.telegram.errors %}form-control--error{% endif %}" name="telegram" value="{{ form.telegram.value|default:'' }}" placeholder="@username або https://t.me/username">
                 {% if form.telegram.errors %}
                 {% for error in form.telegram.errors %}
                 <span class="form-error">{{ error }}</span>
@@ -88,9 +86,20 @@
             </div>
 
             <div class="form-group">
-                <label class="form-group__label">Сайт</label>
+                <label class="form-group__label">🪐 Есть на сайте</label>
+                <input type="url" class="form-control {% if form.on_site_url.errors %}form-control--error{% endif %}" name="on_site_url" value="{{ form.on_site_url.value|default:'' }}" placeholder="https://example.com/company">
+                <span class="form-hint">Ссылка на каталог/рейтинг (если есть, в списке будет планетка)</span>
+                {% if form.on_site_url.errors %}
+                {% for error in form.on_site_url.errors %}
+                <span class="form-error">{{ error }}</span>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-group__label">🌐 Сайт компании</label>
                 <input type="url" class="form-control {% if form.website.errors %}form-control--error{% endif %}" name="website" value="{{ form.website.value|default:'' }}" placeholder="https://example.com">
-                <span class="form-hint">Будет проверка на дубли</span>
+                <span class="form-hint">Основной сайт компании</span>
                 {% if form.website.errors %}
                 {% for error in form.website.errors %}
                 <span class="form-error">{{ error }}</span>

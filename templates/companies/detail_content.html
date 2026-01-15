@@ -78,8 +78,14 @@
                 {% endif %}
                 {% if company.website %}
                 <div class="info-item">
-                    <span class="info-label">🌐 Сайт:</span>
+                    <span class="info-label">🌐 Сайт компании:</span>
                     <a href="{{ company.website }}" target="_blank" rel="noopener" title="{{ company.website }}">{{ company.website }}</a>
+                </div>
+                {% endif %}
+                {% if company.on_site_url %}
+                <div class="info-item">
+                    <span class="info-label">🪐 Есть на сайте:</span>
+                    <a href="{{ company.on_site_url }}" target="_blank" rel="noopener" title="{{ company.on_site_url }}">{{ company.on_site_url }}</a>
                 </div>
                 {% endif %}
                 {% if company.instagram %}
@@ -141,7 +147,17 @@
         <div class="card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 2px solid #3b82f6; margin-bottom: var(--spacing-md);">
             <a href="{{ company.website }}" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm); padding: var(--spacing-md); text-decoration: none; color: #1e40af; font-weight: var(--font-weight-semibold);" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">
                 <span style="font-size: 1.5rem;">🌐</span>
-                <span>На сайт</span>
+                <span>На сайт компании</span>
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Есть на сайте (якщо є on_site_url) -->
+        {% if company.on_site_url %}
+        <div class="card" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%); border: 2px solid #6366f1; margin-bottom: var(--spacing-md);">
+            <a href="{{ company.on_site_url }}" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm); padding: var(--spacing-md); text-decoration: none; color: #4f46e5; font-weight: var(--font-weight-semibold);" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">
+                <span style="font-size: 1.5rem;">🪐</span>
+                <span>В каталоге</span>
             </a>
         </div>
         {% endif %}

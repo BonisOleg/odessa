@@ -24,6 +24,7 @@ class CompanyForm(forms.ModelForm):
             "status",
             "telegram",
             "website",
+            "on_site_url",
             "instagram",
             "short_comment",
             "full_description",

@@ -123,7 +123,8 @@ class Company(models.Model):
     )
 
     telegram: str = models.CharField(max_length=255, blank=True)
-    website: str = models.URLField(blank=True)
+    website: str = models.URLField(blank=True, verbose_name="Сайт компании")
+    on_site_url: str = models.URLField(blank=True, verbose_name="Есть на сайте", help_text="Ссылка на страницу компании в каталоге/рейтинге")
     instagram: str = models.CharField(max_length=255, blank=True)
 
     short_comment: str = models.CharField(max_length=500, blank=True)
