@@ -33,11 +33,22 @@ def countries_context(request):
 
 
 # ============================================================================
+# Utility Functions
+# ============================================================================
+
+def normalize_phone_number(phone: str) -> str:
+    """Нормалізує телефонний номер: видаляє пробіли, дефіси, дужки."""
+    if not phone:
+        return phone
+    return phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+
+
+# ============================================================================
 
 def _process_company_phones(company: Company, phones_data: list, contact_names: list, favorite_phone_index: str | None) -> None:
     """Обробка телефонів компанії при створенні/оновленні."""
-    # Фільтруємо порожні телефони
-    valid_phones = [phone.strip() for phone in phones_data if phone.strip()]
+    # Фільтруємо порожні телефони та нормалізуємо
+    valid_phones = [normalize_phone_number(phone.strip()) for phone in phones_data if phone.strip()]
     
     # Валідація: має бути хоча б один телефон
     if not valid_phones:
@@ -55,7 +66,7 @@ def _process_company_phones(company: Company, phones_data: list, contact_names: 
         
         CompanyPhone.objects.create(
             company=company,
-            number=phone.strip(),
+            number=phone,
             contact_name=contact_name.strip(),
             is_favorite=is_favorite
         )
@@ -742,7 +753,7 @@ def company_check_duplicates(request):
     """AJAX endpoint для перевірки дублікатів"""
     from django.http import JsonResponse
     
-    phone = request.GET.get('phone', '').strip()
+    phone = normalize_phone_number(request.GET.get('phone', '').strip())
     website = request.GET.get('website', '').strip()
     instagram = request.GET.get('instagram', '').strip()
     telegram = request.GET.get('telegram', '').strip()
