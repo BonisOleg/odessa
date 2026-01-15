@@ -249,29 +249,6 @@
     document.body.addEventListener('htmx:afterSwap', initPhotoSlider);
 
     // ==========================================================================
-    // Favorite Companies (Server-side with HTMX)
-    // ==========================================================================
-
-    function initFavorites() {
-        const favoriteButtons = document.querySelectorAll('.favorite-btn');
-
-        favoriteButtons.forEach(function (btn) {
-            // Обробляємо успішне завантаження HTMX запиту
-            btn.addEventListener('htmx:afterRequest', function(event) {
-                if (event.detail.successful) {
-                    // Перекидаємо запит для перезавантаження списку
-                    setTimeout(function() {
-                        htmx.ajax('GET', window.location.pathname, {target: '#main-content'});
-                    }, 300);
-                }
-            });
-        });
-    }
-
-    initFavorites();
-    document.body.addEventListener('htmx:afterSwap', initFavorites);
-
-    // ==========================================================================
     // Pagination
     // ==========================================================================
 

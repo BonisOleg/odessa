@@ -1,5 +1,6 @@
 {% load static %}
 {% load myapp_filters %}
+{% csrf_token %}
 
 <!-- Фільтри -->
 <div class="card filters-card">
@@ -222,9 +223,7 @@
                             <button type="button" 
                                     class="icon-btn favorite-btn {% if company.id in favorite_company_ids %}favorite-btn--active{% endif %}" 
                                     data-id="{{ company.id }}"
-                                    hx-post="{% url 'myapp:company_toggle_favorite' company.id %}"
-                                    hx-trigger="click"
-                                    hx-swap="none"
+                                    data-favorite-url="{% url 'myapp:company_toggle_favorite' company.id %}"
                                     title="В избранное">{% if company.id in favorite_company_ids %}🌟{% else %}⭐{% endif %}</button>
                             {% if company.telegram %}
                             <a href="https://t.me/{{ company.telegram|remove:'@' }}" target="_blank" rel="noopener" class="icon-btn" title="Telegram" onclick="window.open(this.href, '_blank', 'noopener,noreferrer'); return false;">💬</a>
@@ -550,54 +549,77 @@
     document.body.addEventListener('htmx:afterSwap', function () {
         sortTableByDate();
         checkCallDates();
-        initFavoriteButtons();
     });
 
     // ==========================================================================
     // Favorite система (зірка для ранжування)
     // ==========================================================================
-    function initFavoriteButtons() {
-        document.querySelectorAll('.favorite-btn').forEach(function(btn) {
-            // Видаляємо старі обробники
-            const newBtn = btn.cloneNode(true);
-            btn.parentNode.replaceChild(newBtn, btn);
+    
+    // Use event delegation for favorite buttons
+    document.addEventListener('click', function(e) {
+        const favBtn = e.target.closest('.favorite-btn');
+        if (!favBtn) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Prevent double-clicks
+        if (favBtn.disabled || favBtn.classList.contains('processing')) {
+            return;
+        }
+        
+        const url = favBtn.getAttribute('data-favorite-url');
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        
+        if (!url || !csrfToken) {
+            console.error('Missing URL or CSRF token for favorite toggle');
+            return;
+        }
+        
+        // Mark as processing
+        favBtn.classList.add('processing');
+        favBtn.disabled = true;
+        
+        // Send POST request to toggle favorite
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).then(function(response) {
+            if (!response.ok) {
+                throw new Error('Failed to toggle favorite');
+            }
             
-            newBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const companyId = this.getAttribute('data-id');
-                const url = this.getAttribute('hx-post');
-                
-                // Відправляємо запит
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
-                        'HX-Request': 'true'
-                    }
-                }).then(function(response) {
-                    return response.text();
-                }).then(function(data) {
-                    // Перемикаємо клас активності та emoji
-                    if (newBtn.classList.contains('favorite-btn--active')) {
-                        newBtn.classList.remove('favorite-btn--active');
-                        newBtn.textContent = '⭐';
-                    } else {
-                        newBtn.classList.add('favorite-btn--active');
-                        newBtn.textContent = '🌟';
-                    }
-                    // Оновлюємо список компаній
-                    const currentUrl = window.location.href.split('?')[0];
-                    const params = new URLSearchParams(window.location.search);
+            // Toggle the button's visual state immediately
+            if (favBtn.classList.contains('favorite-btn--active')) {
+                favBtn.classList.remove('favorite-btn--active');
+                favBtn.textContent = '⭐';
+            } else {
+                favBtn.classList.add('favorite-btn--active');
+                favBtn.textContent = '🌟';
+            }
+            
+            // Reload company list to re-sort by favorites
+            setTimeout(function() {
+                const currentUrl = window.location.href.split('?')[0];
+                const params = new URLSearchParams(window.location.search);
+                if (typeof htmx !== 'undefined') {
                     htmx.ajax('GET', currentUrl + '?' + params.toString(), {
                         target: '#main-content',
                         swap: 'innerHTML'
                     });
-                });
-            });
+                } else {
+                    window.location.reload();
+                }
+            }, 200);
+        }).catch(function(error) {
+            console.error('Error toggling favorite:', error);
+            favBtn.classList.remove('processing');
+            favBtn.disabled = false;
+            alert('Помилка при додаванні в обране');
         });
-    }
-    
-    initFavoriteButtons();
+    });
 </script>

@@ -699,17 +699,22 @@ def company_toggle_favorite(request, pk):
     """AJAX endpoint для додавання/видалення компанії з обраного"""
     company = get_object_or_404(Company, pk=pk)
     
-    favorite, created = UserFavoriteCompany.objects.get_or_create(
+    # Спробуємо видалити запис (якщо він є)
+    deleted_count, _ = UserFavoriteCompany.objects.filter(
         user=request.user,
         company=company
-    )
+    ).delete()
     
-    if not created:
-        # Якщо вже є в обраному - видаляємо
-        favorite.delete()
+    if deleted_count > 0:
+        # Запис був видалений - повертаємо 'removed'
         return HttpResponse('removed', status=200)
-    
-    return HttpResponse('added', status=200)
+    else:
+        # Запису не було - створюємо новий
+        UserFavoriteCompany.objects.create(
+            user=request.user,
+            company=company
+        )
+        return HttpResponse('added', status=200)
 
 
 @login_required
