@@ -809,7 +809,7 @@ def company_check_duplicates(request):
 # Налаштування
 # ============================================================================
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET"])
 def settings_dashboard(request):
     """Головна сторінка налаштувань"""
