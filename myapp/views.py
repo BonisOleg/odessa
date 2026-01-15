@@ -830,7 +830,7 @@ def settings_countries(request):
     return render(request, template, context)
 
 
-@super_admin_required
+@login_required
 @require_http_methods(["GET", "POST"])
 def settings_cities(request):
     """Управління містами (тільки для супер адміна)"""
@@ -853,7 +853,7 @@ def settings_cities(request):
     return render(request, template, context)
 
 
-@super_admin_required
+@login_required
 @require_http_methods(["GET", "POST"])
 def settings_categories(request):
     """Управління розділами (тільки для супер адміна)"""
@@ -1217,7 +1217,6 @@ def status_delete(request, pk):
     return redirect('myapp:settings_statuses')
 
 
-@login_required
 @super_admin_required
 @require_http_methods(["GET"])
 def settings_user_add(request):
@@ -1226,7 +1225,6 @@ def settings_user_add(request):
     return render(request, 'settings/modals/user_add.html', {'countries': countries})
 
 
-@login_required
 @super_admin_required
 @require_http_methods(["POST"])
 def user_create(request):
