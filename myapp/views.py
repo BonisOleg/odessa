@@ -883,8 +883,10 @@ def settings_statuses(request):
 @require_http_methods(["GET"])
 def settings_users(request):
     """Управління користувачами"""
+    users = User.objects.select_related('userprofile').all().order_by('username')
     template = 'settings/users_content.html' if is_htmx_request(request) else 'settings/users.html'
-    return render(request, template)
+    context = {'users': users}
+    return render(request, template, context)
 
 
 # ============================================================================
