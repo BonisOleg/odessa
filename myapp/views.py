@@ -809,7 +809,7 @@ def company_check_duplicates(request):
 # Налаштування
 # ============================================================================
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET"])
 def settings_dashboard(request):
     """Головна сторінка налаштувань"""
@@ -817,7 +817,7 @@ def settings_dashboard(request):
     return render(request, template)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_countries(request):
     """Управління країнами (тільки для супер адміна)"""
@@ -830,7 +830,7 @@ def settings_countries(request):
     return render(request, template, context)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_cities(request):
     """Управління містами (тільки для супер адміна)"""
@@ -853,7 +853,7 @@ def settings_cities(request):
     return render(request, template, context)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_categories(request):
     """Управління розділами (тільки для супер адміна)"""
@@ -866,7 +866,7 @@ def settings_categories(request):
     return render(request, template, context)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET", "POST"])
 def settings_statuses(request):
     """Управління статусами"""
@@ -879,7 +879,7 @@ def settings_statuses(request):
     return render(request, template, context)
 
 
-@login_required
+@super_admin_required
 @require_http_methods(["GET"])
 def settings_users(request):
     """Управління користувачами"""

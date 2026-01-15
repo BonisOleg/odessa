@@ -16,17 +16,30 @@ python manage.py migrate
 # Створення тестового користувача для логіну (якщо ще не існує)
 python manage.py shell << 'EOF'
 from django.contrib.auth import get_user_model
+from myapp.models import UserProfile
 
 User = get_user_model()
 username = "demo"
 password = "Demo1234!"
 email = "demo@example.com"
 
-if not User.objects.filter(username=username).exists():
-    User.objects.create_user(username=username, password=password, email=email)
-    print(f"Created demo user: {username} / {password}")
+user, created = User.objects.get_or_create(
+    username=username,
+    defaults={'email': email, 'is_staff': True, 'is_superuser': True}
+)
+
+if created:
+    user.set_password(password)
+    user.save()
+    print(f"✓ Created demo user: {username} / {password}")
 else:
-    print(f"Demo user already exists: {username}")
+    print(f"✓ Demo user already exists: {username}")
+
+# Призначити роль SUPER_ADMIN
+profile, _ = UserProfile.objects.get_or_create(user=user)
+profile.role = 'SUPER_ADMIN'
+profile.save()
+print(f"✓ User {username} set as SUPER_ADMIN")
 EOF
 
 
