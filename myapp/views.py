@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Case, When, Value, DateTimeField, IntegerField
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -250,23 +250,29 @@ def company_list(request):
         except ValueError:
             pass  # Ігноруємо невалідні дати
     
-    # Сортування: спочатку обрані (favorite) для поточного користувача, потім за датою оновлення
+    # Сортування: спочатку обрані (favorite) для поточного користувача, потім за датою додавання в обране
+    favorite_dates = {}
     favorite_company_ids = []
     if request.user.is_authenticated:
-        favorite_company_ids = list(
+        favorite_dates = dict(
             UserFavoriteCompany.objects.filter(user=request.user)
-            .values_list('company_id', flat=True)
+            .values_list('company_id', 'created_at')
         )
+        favorite_company_ids = list(favorite_dates.keys())
     
-    # Сортуємо: спочатку обрані, потім за датою оновлення
-    from django.db.models import Case, When, IntegerField
+    # Сортуємо: спочатку обрані, серед обраних - остання додана в обране перша, потім за датою оновлення
     companies_queryset = companies_queryset.annotate(
         is_favorite=Case(
             When(id__in=favorite_company_ids, then=1),
             default=0,
             output_field=IntegerField()
+        ),
+        favorite_date=Case(
+            *[When(id=cid, then=Value(fdate)) for cid, fdate in favorite_dates.items()],
+            default=None,
+            output_field=DateTimeField()
         )
-    ).order_by('-is_favorite', '-updated_at')
+    ).order_by('-is_favorite', '-favorite_date', '-updated_at')
     
     # Підрахунок нових компаній за останні 30 днів
     thirty_days_ago = timezone.now() - timedelta(days=30)
@@ -293,13 +299,9 @@ def company_list(request):
     
     all_categories = Category.objects.all().order_by('name')
     
-    # Отримуємо список обраних компаній для поточного користувача
-    favorite_company_ids = set()
-    if request.user.is_authenticated:
-        favorite_company_ids = set(
-            UserFavoriteCompany.objects.filter(user=request.user)
-            .values_list('company_id', flat=True)
-        )
+    # Встановлюємо favorite_company_ids як set для передачі в контекст (для шаблону)
+    if isinstance(favorite_company_ids, list):
+        favorite_company_ids = set(favorite_company_ids)
     
     context = {
         'companies': page_obj,

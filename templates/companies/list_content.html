@@ -498,13 +498,12 @@
         if (!tbody) return;
 
         const rows = Array.from(tbody.querySelectorAll('tr'));
-        const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 
         rows.sort(function (a, b) {
-            const aId = a.querySelector('.favorite-btn')?.getAttribute('data-id');
-            const bId = b.querySelector('.favorite-btn')?.getAttribute('data-id');
-            const aFav = favorites.includes(aId) ? 0 : 1;
-            const bFav = favorites.includes(bId) ? 0 : 1;
+            const aBtn = a.querySelector('.favorite-btn');
+            const bBtn = b.querySelector('.favorite-btn');
+            const aFav = aBtn?.classList.contains('favorite-btn--active') ? 0 : 1;
+            const bFav = bBtn?.classList.contains('favorite-btn--active') ? 0 : 1;
 
             if (aFav !== bFav) return aFav - bFav;
 
