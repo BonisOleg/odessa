@@ -105,14 +105,29 @@ class CityForm(forms.ModelForm):
 
 class CategoryForm(forms.ModelForm):
     """Форма для створення/редагування категорії."""
+    
+    BADGE_CLASS_CHOICES = [
+        ("", "Виберіть колір"),
+        ("badge--primary", "Синій"),
+        ("badge--success", "Зелений"),
+        ("badge--warning", "Жовтий/Помаранчевий"),
+        ("badge--danger", "Червоний"),
+        ("badge--info", "Блакитний"),
+        ("badge--secondary", "Сірий"),
+    ]
+    
+    badge_class = forms.ChoiceField(
+        choices=BADGE_CLASS_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Колір бейджа"
+    )
 
     class Meta:
         model = Category
-        fields = ("name", "badge_color_bg", "badge_color_fg")
+        fields = ("name", "badge_class")
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "IT-услуги"}),
-            "badge_color_bg": forms.TextInput(attrs={"type": "color", "class": "form-control", "value": "#3B82F6"}),
-            "badge_color_fg": forms.TextInput(attrs={"type": "color", "class": "form-control", "value": "#FFFFFF"}),
         }
 
 

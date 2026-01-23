@@ -1,7 +1,7 @@
 {% load static %}
 
 <!-- Тільки контент для HTMX (без layout) -->
-<div class="page-header" id="main-content">
+<div class="page-header">
     <h1>Управление разделами</h1>
     <p><a href="/settings/" hx-get="/settings/" hx-target="#main-content" hx-push-url="true" class="text-primary">←
             Назад к настройкам</a></p>
@@ -30,8 +30,7 @@
             <tr class="table__row">
                 <td class="table__td">{{ category.name }}</td>
                 <td class="table__td">
-                    <div class="color-preview" data-color="{{ category.badge_color_bg }}"></div>
-                    <span class="text-muted">{{ category.badge_color_bg }}</span>
+                    <span class="badge {{ category.badge_class }}">{{ category.name }}</span>
                 </td>
                 <td class="table__td">{{ category.companies_count }}</td>
                 <td class="table__td">
