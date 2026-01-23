@@ -37,10 +37,13 @@
     max-width: 600px;
     width: 100%;
     max-height: 90vh;
-    overflow-y: auto;
     z-index: 1;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal__header {
@@ -83,7 +86,6 @@
 
 .modal__body {
     padding: var(--spacing-lg);
-    flex: 1 0 0;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
