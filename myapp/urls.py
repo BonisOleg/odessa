@@ -60,6 +60,7 @@ urlpatterns = [
     path('settings/users/add/', views.settings_user_add, name='settings_user_add'),
     path('settings/users/create/', views.user_create, name='user_create'),
     path('settings/users/<int:pk>/edit/', views.settings_user_edit, name='settings_user_edit'),
+    path('settings/users/<int:pk>/update/', views.user_update, name='user_update'),
     path('settings/users/<int:pk>/delete/', views.settings_user_delete, name='settings_user_delete'),
     
     # Заглушки для розділів в розробці

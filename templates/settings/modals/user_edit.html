@@ -7,20 +7,31 @@
             <h2 class="modal__title">Редактировать пользователя</h2>
             <button type="button" class="modal__close" data-action="close-modal" aria-label="Закрыть">×</button>
         </div>
-        <form method="post">
+        <form method="post" action="{% url 'myapp:user_update' edit_user.id %}" hx-post="{% url 'myapp:user_update' edit_user.id %}" hx-target="#main-content" hx-swap="innerHTML">
             {% csrf_token %}
             <div class="modal__body">
+                {% if errors %}
+                <div class="message message--error" role="alert">
+                    <div class="message__text">
+                        <ul>
+                            {% for error in errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="form-group">
                     <label class="form-group__label form-group__label--required">Имя</label>
-                    <input type="text" class="form-control" name="name" value="Мария Сидорова" required>
+                    <input type="text" class="form-control" name="name" value="{{ edit_user.get_full_name|default:edit_user.username }}" required>
                 </div>
                 <div class="form-group">
                     <label class="form-group__label form-group__label--required">Логин</label>
-                    <input type="text" class="form-control" name="username" value="maria.sidorova" required>
+                    <input type="text" class="form-control" name="username" value="{{ edit_user.username }}" required>
                 </div>
                 <div class="form-group">
                     <label class="form-group__label form-group__label--required">Email</label>
-                    <input type="email" class="form-control" name="email" value="maria@example.com" required>
+                    <input type="email" class="form-control" name="email" value="{{ edit_user.email }}" required>
                 </div>
                 <div class="form-group">
                     <label class="form-group__label">Новый пароль</label>
@@ -30,24 +41,24 @@
                     <label class="form-group__label form-group__label--required">Роль</label>
                     <select class="form-select" name="role" required>
                         <option value="">Выберите роль</option>
-                        <option>Суперадмин</option>
-                        <option selected>Менеджер</option>
-                        <option>Наблюдатель</option>
+                        <option value="SUPER_ADMIN" {% if edit_user.userprofile.is_super_admin %}selected{% endif %}>Супер адмін</option>
+                        <option value="MANAGER" {% if edit_user.userprofile.is_manager %}selected{% endif %}>Менеджер</option>
+                        <option value="OBSERVER" {% if edit_user.userprofile.is_observer %}selected{% endif %}>Спостерігач</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-group__label form-group__label--required">Страна</label>
                     <select class="form-select" name="country" required>
                         <option value="">Выберите страну</option>
-                        <option selected>🇺🇦 Украина</option>
-                        <option>🇵🇱 Польша</option>
-                        <option>🇩🇪 Германия</option>
-                        <option>🇨🇿 Чехия</option>
+                        {% for country in countries %}
+                        <option value="{{ country.id }}" {% if edit_user.userprofile.country.id == country.id %}selected{% endif %}>{{ country.flag_emoji }} {{ country.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-group__label">
-                        <input type="checkbox" name="is_active" checked> Активен
+                    <label class="form-checkbox">
+                        <input type="checkbox" name="is_active" {% if edit_user.is_active %}checked{% endif %}>
+                        <span class="form-checkbox__label">Активен</span>
                     </label>
                 </div>
             </div>
@@ -58,4 +69,3 @@
         </form>
     </div>
 </div>
-

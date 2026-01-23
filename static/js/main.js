@@ -450,6 +450,12 @@
             modal.classList.remove('is-open');
             document.body.style.overflow = '';
 
+            // Видаляємо обробник touchmove з overlay
+            const overlay = modal.querySelector('.modal__overlay');
+            if (overlay) {
+                overlay.removeEventListener('touchmove', preventTouchMove);
+            }
+
             // Видаляємо модальне з DOM після анімації закриття
             setTimeout(function () {
                 if (modal.parentNode) {
@@ -459,11 +465,29 @@
         }
     }
 
+    // Функція для запобігання скролу на overlay при сенсорних пристроях
+    function preventTouchMove(event) {
+        event.preventDefault();
+    }
+
     // Відкриття модального вікна
     function openModal(modal) {
         if (modal) {
             modal.classList.add('is-open');
             document.body.style.overflow = 'hidden';
+
+            // Блокуємо scroll на overlay (але не на modal__body)
+            const overlay = modal.querySelector('.modal__overlay');
+            if (overlay) {
+                overlay.addEventListener('touchmove', preventTouchMove, { passive: false });
+            }
+
+            // Також блокуємо scroll на modal__content для запобігання скролу всередину контенту
+            const content = modal.querySelector('.modal__content');
+            if (content) {
+                // Забезпечуємо, що скрол можливий тільки в modal__body
+                content.style.touchAction = 'none';
+            }
         }
     }
 

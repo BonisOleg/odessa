@@ -1315,8 +1315,86 @@ def user_create(request):
 @require_http_methods(["GET"])
 def settings_user_edit(request, pk):
     """Модальне вікно редагування користувача"""
-    context = {'user_id': pk}
+    edit_user = get_object_or_404(User, pk=pk)
+    countries = Country.objects.all().order_by('name')
+    context = {
+        'edit_user': edit_user,
+        'countries': countries
+    }
     return render(request, 'settings/modals/user_edit.html', context)
+
+
+@super_admin_required
+@require_http_methods(["POST"])
+def user_update(request, pk):
+    """Оновлення користувача через HTMX"""
+    edit_user = get_object_or_404(User, pk=pk)
+    name = request.POST.get('name', '').strip()
+    username = request.POST.get('username', '').strip()
+    email = request.POST.get('email', '').strip()
+    password = request.POST.get('password', '').strip()
+    role = request.POST.get('role', '').strip()
+    country_id = request.POST.get('country', '').strip()
+    is_active = request.POST.get('is_active') == 'on'
+    
+    # Валідація
+    errors = []
+    if not name:
+        errors.append('Ім\'я обов\'язкове')
+    if not username:
+        errors.append('Логін обов\'язковий')
+    elif User.objects.filter(username=username).exclude(pk=pk).exists():
+        errors.append('Користувач з таким логіном вже існує')
+    if not email:
+        errors.append('Email обов\'язковий')
+    elif User.objects.filter(email=email).exclude(pk=pk).exists():
+        errors.append('Користувач з таким email вже існує')
+    if password and len(password) < 6:
+        errors.append('Пароль повинен містити мінімум 6 символів')
+    if not role:
+        errors.append('Роль обов\'язкова')
+    elif role not in ['SUPER_ADMIN', 'MANAGER', 'OBSERVER']:
+        errors.append('Невірна роль')
+    
+    if errors:
+        countries = Country.objects.all().order_by('name')
+        return render(request, 'settings/modals/user_edit.html', {
+            'edit_user': edit_user,
+            'countries': countries,
+            'errors': errors
+        }, status=400)
+    
+    try:
+        # Оновлюємо користувача
+        edit_user.first_name = name.split()[0] if name.split() else ''
+        edit_user.last_name = ' '.join(name.split()[1:]) if len(name.split()) > 1 else ''
+        edit_user.username = username
+        edit_user.email = email
+        edit_user.is_active = is_active
+        if password:
+            edit_user.set_password(password)
+        edit_user.save()
+        
+        # Оновлюємо профіль
+        user_profile = edit_user.userprofile
+        user_profile.role = role
+        if country_id:
+            try:
+                country = Country.objects.get(pk=country_id)
+                user_profile.country = country
+            except Country.DoesNotExist:
+                pass
+        user_profile.save()
+        
+        messages.success(request, f'Користувач "{username}" успішно оновлений.')
+        return redirect('myapp:settings_users')
+    except Exception as e:
+        messages.error(request, f'Помилка при оновленні користувача: {str(e)}')
+        countries = Country.objects.all().order_by('name')
+        return render(request, 'settings/modals/user_edit.html', {
+            'edit_user': edit_user,
+            'countries': countries
+        }, status=400)
 
 
 @login_required

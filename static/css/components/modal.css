@@ -85,6 +85,9 @@
     padding: var(--spacing-lg);
     flex: 1 0 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal__footer {
