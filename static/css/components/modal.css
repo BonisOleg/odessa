@@ -113,6 +113,7 @@
         max-height: calc(95vh - var(--safe-area-inset-bottom));
         border-radius: var(--radius-md) var(--radius-md) 0 0;
         margin-top: auto;
+        overflow-y: auto;
         overflow-x: hidden;
     }
 
@@ -125,7 +126,8 @@
     }
 
     .modal__body {
-        overflow-y: auto;
+        padding: var(--spacing-md);
+        max-width: 100%;
         overflow-x: hidden;
     }
 
